@@ -7,13 +7,13 @@ Base = declarative_base()
 class Slot(Base):
     __tablename__ = 'slot'
 
-    slot_id:    Mapped[int]     = mapped_column(primary_key=True, autoincrement=True)
-    song_id:    Mapped[int]     = mapped_column(ForeignKey('song.song_id'), nullable=False)
-    start_time: Mapped[str]     = mapped_column(Time, nullable=False)
-    end_time:   Mapped[str]     = mapped_column(Time, nullable=False)
+    slot_id:    Mapped[int]                 = mapped_column(primary_key=True, autoincrement=True)
+    song_id:    Mapped[int]                 = mapped_column(ForeignKey('song.song_id'), nullable=False)
+    start_time: Mapped[str]                 = mapped_column(Time, nullable=False)
+    end_time:   Mapped[str]                 = mapped_column(Time, nullable=False)
 
-    song:       Mapped["Song"]  = relationship("Song", back_populates="slot_list")
-    occupied_slots: Mapped[List["OccupiedSlot"]] = relationship("OccupiedSlot", back_populates="slot")
+    song:           Mapped["Song"]          = relationship("Song", back_populates="slot_list")
+    occupied_slots: Mapped["OccupiedSlot"]  = relationship("OccupiedSlot", back_populates="slot")
 
 class Song(Base):
     __tablename__ = 'song'
@@ -46,12 +46,12 @@ class Edit(Base):
 class Group(Base):
     __tablename__ = 'group'
 
-    group_id:       Mapped[int]                 = mapped_column(primary_key=True, autoincrement=True)
-    name:           Mapped[str]                 = mapped_column(String(255), nullable=False)
+    group_id:           Mapped[int]                 = mapped_column(primary_key=True, autoincrement=True)
+    name:               Mapped[str]                 = mapped_column(String(255), nullable=False)
 
-    user_list:      Mapped[List["User"]]        = relationship("User", back_populates="group")
-    edit_list:      Mapped[List["Edit"]]        = relationship("Edit", back_populates="group")
-    invitation_list: Mapped[List["Invitation"]]  = relationship("Invitation", back_populates="group")
+    user_list:          Mapped[List["User"]]        = relationship("User", back_populates="group")
+    edit_list:          Mapped[List["Edit"]]        = relationship("Edit", back_populates="group")
+    invitation_list:    Mapped[List["Invitation"]]  = relationship("Invitation", back_populates="group")
 
 class Invitation(Base):
     __tablename__ = 'invitation'

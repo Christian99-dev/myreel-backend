@@ -1,18 +1,14 @@
-from fastapi import FastAPI, HTTPException, Depends,status
-from pydantic import BaseModel
-from typing import Annotated
-from api.config.database import engine, get_db
-from sqlalchemy.orm import Session
+from fastapi import FastAPI
 
-import api.models.models as models
+#routes
+from api.routes.songs import router as songs_router
 
 app = FastAPI()
-models.Base.metadata.create_all(bind=engine)
+
+app.include_router(songs_router)
 
 @app.get("/")
-async def read_root():
+async def root():
     return {"message": "Hello, World!"}
-
-db_dependency = Annotated[Session, Depends(get_db)]
 
 # uvicorn main:app --reload
