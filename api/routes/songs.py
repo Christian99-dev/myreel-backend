@@ -18,6 +18,6 @@ def create(request: CreateRequest, db: db_dependency) -> CreateResponse:
             request.audio_src, 
             db
         )
-        return CreateResponse(message=f"Song '{new_song.name}' by '{new_song.author}' created successfully")
+        return CreateResponse(message=f"Song '{new_song.name}' by '{new_song.author}' created successfully", song=new_song)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
