@@ -23,7 +23,7 @@ class Role:
                  groupid:       Optional[str] = None, 
                  editid:        Optional[str] = None
     ):
-        self._role = RoleEnum.ADMIN
+        self._role = RoleEnum.EXTERNAL
 
     def hasAccess(self, role: RoleEnum, include_sub_roles: bool = True) -> bool:
         if include_sub_roles:
