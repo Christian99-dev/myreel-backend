@@ -1,4 +1,3 @@
-import pytest
 from sqlalchemy.orm import Session
 from api.services.song import create
 from api.models.database.model import Song

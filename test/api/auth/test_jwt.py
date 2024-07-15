@@ -1,5 +1,4 @@
 import logging
-import pytest
 import jwt
 from datetime import datetime, timedelta
 from api.auth.jwt import create_jwt, read_jwt, SECRET_KEY, ALGORITHM

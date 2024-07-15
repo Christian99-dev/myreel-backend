@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from api.services.edit import create, get
-from api.models.database.model import Edit
 
 def test_create(db_session: Session):
     # Define edit data
