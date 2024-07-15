@@ -41,7 +41,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 # bitte die funktion hier aufrufen mit der db_dependency
 print_database_contents(SessionLocal(),{
     'Slot':         False,
-    'Song':         True,
+    'Song':         False,
     'Edit':         False,
     'Group':        False,
     'Invitation':   False,
