@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from api.services.group import create, get
-from api.models.database.models import Group
+from api.models.database.model import Group
 
 def test_create(db_session: Session):
     # Define group data

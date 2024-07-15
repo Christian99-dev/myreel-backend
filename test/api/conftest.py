@@ -2,7 +2,7 @@ import logging
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from api.models.database.models import Base
+from api.models.database.model import Base
 
 # Set up the test database URL
 DATABASE_URL = "sqlite:///./test.db"

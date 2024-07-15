@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from fastapi.params import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from api.models.database import models
+from api.models.database import model
 from api.utils.print_database_contents import print_database_contents
 from distutils.util import strtobool
 
@@ -26,7 +26,7 @@ engine  = create_engine(URL_DATABASE, connect_args={"check_same_thread": False} 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 #pverride model if needed
-models.Base.metadata.create_all(bind=engine)
+model.Base.metadata.create_all(bind=engine)
 
 
 def get_db():

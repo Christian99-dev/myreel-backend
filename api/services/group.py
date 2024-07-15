@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from api.models.database.models import Group
+from api.models.database.model import Group
 
 def create(
         name: str, 

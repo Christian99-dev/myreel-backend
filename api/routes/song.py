@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from api.models.schema.songs import CreateRequest, CreateResponse
-from api.services.songs import create as createService
+from api.models.schema.song import CreateRequest, CreateResponse
+from api.services.song import create as createService
 from api.config.database import db_dependency
 
 

@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 
 #routes
-from api.routes.songs import router as songs_router
+from api.routes.song import router as song_router
 
 app = FastAPI()
 
-app.include_router(songs_router)
+app.include_router(song_router)
 
 @app.get("/")
 async def root():

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from api.models.database.models import Edit
+from api.models.database.model import Edit
 
 def create(
         song_id: int, 

@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy.orm import Session
 from api.services.user import create, get
-from api.models.database.models import User
+from api.models.database.model import User
 
 def test_create(db_session: Session):
     # Define user data

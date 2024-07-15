@@ -1,4 +1,4 @@
-from api.models.database.models import Song 
+from api.models.database.model import Song 
 from sqlalchemy.orm import Session
 
 def test_session_isolation(db_session: Session):

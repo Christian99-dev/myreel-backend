@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy.orm import Session
-from api.services.songs import create
-from api.models.database.models import Song
+from api.services.song import create
+from api.models.database.model import Song
 
 def test_create(db_session: Session):
     # Arrange: Set up the parameters for the new song
