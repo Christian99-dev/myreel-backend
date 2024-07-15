@@ -1,25 +1,34 @@
 from sqlalchemy.orm import Session
+from api.models.database.model import Edit
 from api.services.edit import create, get
 
 def test_create(db_session: Session):
-    # Define edit data
-    song_id = 1
-    created_by = 1
-    group_id = 1
+    # Arrange: Set up the parameters for the new edit
+    song_id = 1  # Ensure this song_id exists in your test setup
+    created_by = 1  # Use a valid user_id or create a user if necessary
+    group_id = 1  # Use a valid group_id or create a group if necessary
     name = "Test Edit"
     is_live = True
-    
-    # Create a new edit
-    edit = create(song_id, created_by, group_id, name, is_live, db_session)
-    
-    # Verify the edit is created and has the correct data
-    assert edit is not None
-    assert edit.song_id == song_id
-    assert edit.created_by == created_by
-    assert edit.group_id == group_id
-    assert edit.name == name
-    assert edit.isLive == is_live
 
+    # Act: Call the create service function
+    new_edit = create(song_id=song_id, created_by=created_by, group_id=group_id, name=name, is_live=is_live, db=db_session)
+    
+    # Assert: Check the created edit's attributes
+    assert new_edit.song_id == song_id
+    assert new_edit.created_by == created_by
+    assert new_edit.group_id == group_id
+    assert new_edit.name == name
+    assert new_edit.isLive == is_live
+
+    # Verify: Ensure the edit was actually added to the database
+    edit_in_db = db_session.query(Edit).filter_by(edit_id=new_edit.edit_id).one_or_none()
+    assert edit_in_db is not None
+    assert edit_in_db.song_id == song_id
+    assert edit_in_db.created_by == created_by
+    assert edit_in_db.group_id == group_id
+    assert edit_in_db.name == name
+    assert edit_in_db.isLive == is_live
+    
 def test_get(db_session: Session):
     # Define edit data
     song_id = 1

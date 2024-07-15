@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from api.models.database.model import Group
 from api.services.group import create, get
 
 def test_create(db_session: Session):
@@ -6,11 +7,16 @@ def test_create(db_session: Session):
     name = "Test Group"
     
     # Create a new group
-    group = create(name, db_session)
+    new_group = create(name, db_session)
     
     # Verify the group is created and has the correct data
-    assert group is not None
-    assert group.name == name
+    assert new_group is not None
+    assert new_group.name == name
+    
+    # Verify: Ensure the group was actually added to the database
+    group_in_db = db_session.query(Group).filter_by(group_id=new_group.group_id).one_or_none()
+    assert group_in_db is not None
+    assert group_in_db.name == name
 
 def test_get(db_session: Session):
     # Define group data

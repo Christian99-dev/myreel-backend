@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from api.models.database.model import User
 from api.services.user import create, get
 
 def test_create(db_session: Session):
@@ -9,14 +10,22 @@ def test_create(db_session: Session):
     email = "testuser@example.com"
     
     # Create a new user
-    user = create(group_id, role, name, email, db_session)
+    new_user = create(group_id, role, name, email, db_session)
     
     # Verify the user is created and has the correct data
-    assert user is not None
-    assert user.name == name
-    assert user.email == email
-    assert user.role == role
-    assert user.group_id == group_id
+    assert new_user is not None
+    assert new_user.name == name
+    assert new_user.email == email
+    assert new_user.role == role
+    assert new_user.group_id == group_id
+    
+    # Verify: Ensure the user was actually added to the database
+    user_in_db = db_session.query(User).filter_by(user_id=new_user.user_id).one_or_none()
+    assert user_in_db is not None
+    assert user_in_db.group_id == group_id
+    assert user_in_db.role == role
+    assert user_in_db.name == name
+    assert user_in_db.email == email
 
 def test_get(db_session: Session):
     # Define user data
