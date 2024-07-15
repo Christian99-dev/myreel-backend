@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from api.services.songs import create
 from api.models.database.models import Song
 
-def test_create_song(db_session: Session):
+def test_create(db_session: Session):
     # Arrange: Set up the parameters for the new song
     name = "Test Song"
     author = "Test Author"
