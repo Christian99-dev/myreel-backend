@@ -1,14 +1,12 @@
-import pytest
 import logging
 import os
-from api.auth.role import Role, RoleEnum, role_hierarchy
-from typing import Optional
+from api.auth.role import Role, RoleEnum
 from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 load_dotenv()
 
-def test_role_has_access_with_include_sub_roles():
+def test_role_has_access_methode_with_include_sub_roles():
     role_instance = Role()
     
     role_instance._role = RoleEnum.ADMIN
@@ -26,7 +24,7 @@ def test_role_has_access_with_include_sub_roles():
     role_instance._role = RoleEnum.EXTERNAL
     roleTesterHasAccess(role_instance,  RoleEnum.EXTERNAL)
 
-def test_role_has_access_without_include_sub_roles():
+def test_role_has_access_methode_without_include_sub_roles():
     role_instance = Role()
     
     role_instance._role = RoleEnum.ADMIN
@@ -48,8 +46,13 @@ def test_role_admin():
     right_admin_token = os.getenv("ADMIN_TOKEN")
     wrong_admin_token = "wrong_key"
     
-    # Wron admin token -> is external
+    # Wrong admin token -> is external
     role_instance_not_admin = Role(admintoken=wrong_admin_token)
+    roleTesterHasAccess(role_instance_not_admin, RoleEnum.EXTERNAL)    
+    
+    # Wron admin token -> is external
+    role_instance_admin = Role(admintoken=right_admin_token)
+    roleTesterHasAccess(role_instance_admin, RoleEnum.ADMIN)
 
 # util
 def roleTesterHasAccess(role_instance: Role, role_to_test: RoleEnum):

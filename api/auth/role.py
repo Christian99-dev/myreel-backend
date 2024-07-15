@@ -1,5 +1,9 @@
+import os
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class RoleEnum(Enum):
     ADMIN           = "admin"
@@ -22,8 +26,13 @@ class Role:
                  userid:        Optional[str] = None, 
                  groupid:       Optional[str] = None, 
                  editid:        Optional[str] = None
-    ):
+    ):        
+        if admintoken is not None and admintoken is os.getenv("ADMIN_TOKEN"):
+            self._role = RoleEnum.ADMIN
+            return
+        
         self._role = RoleEnum.EXTERNAL
+    
 
     def hasAccess(self, role: RoleEnum, include_sub_roles: bool = True) -> bool:
         if include_sub_roles:
