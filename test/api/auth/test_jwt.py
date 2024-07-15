@@ -2,7 +2,7 @@ import logging
 import pytest
 import jwt
 from datetime import datetime, timedelta
-from api.utils.jwt import create_jwt, read_jwt, SECRET_KEY, ALGORITHM
+from api.auth.jwt import create_jwt, read_jwt, SECRET_KEY, ALGORITHM
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
