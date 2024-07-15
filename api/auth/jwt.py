@@ -7,7 +7,7 @@ import os
 load_dotenv()
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+ALGORITHM = os.getenv("JWT_ALGORITHM")
 
 def create_jwt(user_id: str, expires_in_minutes: int) -> str:
     expire = datetime.utcnow() + timedelta(minutes=expires_in_minutes)
