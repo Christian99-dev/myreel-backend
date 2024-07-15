@@ -4,8 +4,6 @@ import jwt
 from datetime import datetime, timedelta
 from api.auth.jwt import create_jwt, read_jwt, SECRET_KEY, ALGORITHM
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 def test_create_and_read_jwt_valid():
