@@ -5,6 +5,7 @@ from fastapi.params import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from api.models.database import model
+from api.utils.fill_mock_data import fill_mock_data
 from api.utils.print_database_contents import print_database_contents
 from distutils.util import strtobool
 
@@ -28,7 +29,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 #pverride model if needed
 model.Base.metadata.create_all(bind=engine)
 
-
 def get_db():
     db = SessionLocal()
     try:
@@ -38,14 +38,18 @@ def get_db():
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
-# bitte die funktion hier aufrufen mit der db_dependency
-print_database_contents(SessionLocal(),{
-    'Slot':         False,
-    'Song':         False,
-    'Edit':         False,
-    'Group':        False,
-    'Invitation':   False,
-    'User':         False,
-    'LoginRequest': False,
-    'OccupiedSlot': False
-})
+with SessionLocal() as session:
+     # Wenn die Tabelle leer ist, die Datenbank füllen
+    if not session.query(model.User).first() and LOCAL_DB:
+        fill_mock_data(session)
+    
+    print_database_contents(session, {
+        'Slot':         False,
+        'Song':         True,
+        'Edit':         True,
+        'Group':        True,
+        'Invitation':   False,
+        'User':         True,
+        'LoginRequest': False,
+        'OccupiedSlot': False
+    })
