@@ -6,19 +6,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class RoleEnum(Enum):
-    ADMIN           = "admin"
-    GROUP_CREATOR   = "GroupCreator"
-    EDIT_CREATOR    = "EditCreator"
-    GROUP_MEMBER    = "GroupMember"
-    EXTERNAL        = "External"
-    
-role_hierarchy = {
-    RoleEnum.ADMIN:         [RoleEnum.GROUP_CREATOR, RoleEnum.EDIT_CREATOR, RoleEnum.GROUP_MEMBER, RoleEnum.EXTERNAL],
-    RoleEnum.GROUP_CREATOR: [                        RoleEnum.EDIT_CREATOR, RoleEnum.GROUP_MEMBER, RoleEnum.EXTERNAL],
-    RoleEnum.EDIT_CREATOR:  [                                               RoleEnum.GROUP_MEMBER, RoleEnum.EXTERNAL],
-    RoleEnum.GROUP_MEMBER:  [                                                                      RoleEnum.EXTERNAL],
-    RoleEnum.EXTERNAL:      []
-}
+    ADMIN           = 0
+    GROUP_CREATOR   = 1
+    EDIT_CREATOR    = 2
+    GROUP_MEMBER    = 3
+    EXTERNAL        = 4
 
 class Role:
     def __init__(self, 
@@ -35,11 +27,11 @@ class Role:
     
 
     def hasAccess(self, role: RoleEnum, include_sub_roles: bool = True) -> bool:
+        print(role)
         if include_sub_roles:
-            if self._role == role:
+            if self._role.value <= role.value:
                 return True
-            elif role in role_hierarchy.get(self._role, []):
-                return True
-            return False
+            else:
+                return False
         else:
-            return self._role == role
+            return self._role.value == role.value
