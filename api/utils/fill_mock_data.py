@@ -1,3 +1,4 @@
+import random
 from sqlalchemy.orm import Session
 from api.models.database.model import Group, User, Song, Edit
 
@@ -34,6 +35,8 @@ def fill_mock_data(db_session: Session):
         songs.append(song)
 
     # Create users for each group: 1 creator and 2 members
+    creators = {}
+    members_by_group = {}
     for group in groups:
         creator = User(
             group_id=group.group_id,
@@ -44,7 +47,9 @@ def fill_mock_data(db_session: Session):
         db_session.add(creator)
         db_session.commit()
         db_session.refresh(creator)
+        creators[group.group_id] = creator
 
+        members = []
         for j in range(1, 3):
             member = User(
                 group_id=group.group_id,
@@ -55,13 +60,34 @@ def fill_mock_data(db_session: Session):
             db_session.add(member)
             db_session.commit()
             db_session.refresh(member)
-    
+            members.append(member)
+        
+        members_by_group[group.group_id] = members
+
     # Create 3 edits for each group
     for group in groups:
-        for i in range(1, 4):
+        creator = creators[group.group_id]  # Get the creator for the current group
+        members = members_by_group[group.group_id]  # Get members for the current group
+        
+        # Create the first edit by the creator
+        first_edit = Edit(
+            song_id=songs[0].song_id,
+            created_by=creator.user_id,
+            group_id=group.group_id,
+            name=f"Edit 1 of {group.name}",
+            isLive=True
+        )
+        db_session.add(first_edit)
+        db_session.commit()
+        db_session.refresh(first_edit)
+
+        # Create subsequent edits by random members
+        for i in range(2, 4):
+            # Randomly select a member, excluding the creator
+            random_member = random.choice(members)
             edit = Edit(
                 song_id=songs[i-1].song_id,
-                created_by=creator.user_id,
+                created_by=random_member.user_id,
                 group_id=group.group_id,
                 name=f"Edit {i} of {group.name}",
                 isLive=True
@@ -69,4 +95,3 @@ def fill_mock_data(db_session: Session):
             db_session.add(edit)
             db_session.commit()
             db_session.refresh(edit)
-
