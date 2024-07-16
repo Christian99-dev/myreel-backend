@@ -3,6 +3,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from api.models.database.model import Base
+from api.utils.fill_mock_data import fill_mock_data
 
 # Set up the test database URL
 DATABASE_URL = "sqlite:///./test.db"
@@ -37,3 +38,18 @@ def db_session(db_engine):
     session.close()
     transaction.rollback()
     connection.close()
+
+@pytest.fixture(scope="function")
+def db_session_filled(db_engine):
+    """Creates a new database session for a test."""
+    connection = db_engine.connect()
+    transaction = connection.begin()
+    session = TestingSessionLocal(bind=connection)
+    fill_mock_data(session)
+    
+    yield session
+    
+    session.close()
+    transaction.rollback()
+    connection.close()
+
