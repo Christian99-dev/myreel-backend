@@ -27,7 +27,6 @@ class Role:
     
 
     def hasAccess(self, role: RoleEnum, include_sub_roles: bool = True) -> bool:
-        print(role)
         if include_sub_roles:
             if self._role.value <= role.value:
                 return True
