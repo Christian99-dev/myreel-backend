@@ -23,3 +23,9 @@ def create(
 
 def get(edit_id: int, db: Session) -> Edit:
     return db.query(Edit).filter(Edit.edit_id == edit_id).first()
+
+def is_edit_creator(user_id: int, edit_id: int, db: Session) -> bool:
+    edit = db.query(Edit).filter(Edit.edit_id == edit_id).first()
+    if edit and edit.created_by == user_id:
+        return True
+    return False

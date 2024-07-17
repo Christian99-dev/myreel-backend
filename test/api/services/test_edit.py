@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
-from api.models.database.model import Edit
-from api.services.edit import create, get
+from api.models.database.model import Edit, User
+from api.services.edit import create, get, is_edit_creator
 
+# create
 def test_create(db_session: Session):
     # Arrange: Set up the parameters for the new edit
     song_id = 1  # Ensure this song_id exists in your test setup
@@ -28,7 +29,8 @@ def test_create(db_session: Session):
     assert edit_in_db.group_id == group_id
     assert edit_in_db.name == name
     assert edit_in_db.isLive == is_live
-    
+
+# get    
 def test_get(db_session: Session):
     # Define edit data
     song_id = 1
@@ -61,3 +63,13 @@ def test_get_edit_failed(db_session: Session):
     
     # Verify that no edit is found
     assert fetched_edit is None
+
+# is_edit_creator
+def test_is_edit_creator_true(db_session_filled: Session):
+    # Assuming the creator of Edit 1 in Group 1 has user_id 1
+    assert is_edit_creator(1, 1, db_session_filled) == True
+
+def test_is_edit_creator_false(db_session_filled: Session):
+    # Assuming Edit 2 in Group 1 was created by a user with user_id 2
+    assert is_edit_creator(1, 2, db_session_filled) == False
+    
