@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Group
-from api.services.group import create, get
+from api.services.group import create, get, is_group_creator
 
+# create
 def test_create(db_session: Session):
     # Define group data
     name = "Test Group"
@@ -18,6 +19,7 @@ def test_create(db_session: Session):
     assert group_in_db is not None
     assert group_in_db.name == name
 
+# get
 def test_get(db_session: Session):
     # Define group data
     name = "Test Group"
@@ -42,3 +44,16 @@ def test_get_group_failed(db_session: Session):
     
     # Verify that no group is found
     assert fetched_group is None
+
+# is_group_creator
+def test_is_group_creator_true(db_session_filled: Session):
+    # Assuming the creator of Group 1 has user_id 1
+    assert is_group_creator(1, 1, db_session_filled) == True
+
+def test_is_group_creator_false_not_in_group(db_session_filled: Session):
+    # Assuming user_id 1 is not in Group 2
+    assert is_group_creator(1, 2, db_session_filled) == False
+
+def test_is_group_creator_false_not_creator(db_session_filled: Session):
+    # Assuming a member of Group 1 with user_id 2 is not the creator
+    assert is_group_creator(2, 1, db_session_filled) == False
