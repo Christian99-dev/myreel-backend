@@ -5,8 +5,8 @@ from fastapi.params import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from api.models.database import model
-from api.utils.fill_mock_data import fill_mock_data
-from api.utils.print_database_contents import print_database_contents
+from api.utils.database import fill_mock_data
+from api.utils.database.print_database_contents import print_database_contents
 from distutils.util import strtobool
 
 load_dotenv()

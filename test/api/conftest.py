@@ -3,7 +3,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from api.models.database.model import Base
-from api.utils.fill_mock_data import fill_mock_data
+from api.utils.database.fill_mock_data import fill_mock_data
 
 # Set up the test database URL
 DATABASE_URL = "sqlite:///./test.db"
