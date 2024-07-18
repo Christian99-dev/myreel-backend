@@ -60,7 +60,6 @@ def test_role_external(db_session_filled: Session):
     # wrong edit    
     roleTesterHasAccess(Role(admintoken="wrong",    userid=3,     groupid=None,    editid=7,        db_session=db_session_filled),  RoleEnum.EXTERNAL)
     
-    
 def test_role_admin(db_session_filled: Session):
     admin_token = os.getenv("ADMIN_TOKEN")    
     roleTesterHasAccess(Role(admintoken=admin_token, userid=None,   groupid=None,   editid=None,    db_session=db_session_filled),   RoleEnum.ADMIN)
@@ -84,8 +83,6 @@ def test_role_always_highest(db_session_filled: Session):
     
     # GROUP_CREATOR 
     roleTesterHasAccess(Role(admintoken=None,           userid=1,        groupid=1,     editid=1,    db_session=db_session_filled), RoleEnum.GROUP_CREATOR)  # ALSO EDIT_CREATOR
-
-
 
 # util
 def roleTesterHasAccess(role_instance: Role, role_to_test: RoleEnum):
