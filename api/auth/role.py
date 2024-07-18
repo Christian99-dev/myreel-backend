@@ -35,7 +35,7 @@ class Role:
             if is_group_member(userid, groupid, db_session):
                 roles.append(RoleEnum.GROUP_MEMBER)
                 
-            if is_group_creator(userid, userid, db_session):
+            if is_group_creator(userid, groupid, db_session):
                 roles.append(RoleEnum.GROUP_CREATOR)
         
         #GROUP MEMBER ODER CREATOR
