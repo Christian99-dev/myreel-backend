@@ -5,7 +5,7 @@ from fastapi.params import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from api.models.database import model
-from api.utils.database import fill_mock_data
+from api.utils.database import fill_test_model
 from api.utils.database.print_database_contents import print_database_contents
 from distutils.util import strtobool
 
@@ -41,7 +41,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 with SessionLocal() as session:
      # Wenn die Tabelle leer ist, die Datenbank füllen
     if not session.query(model.User).first() and LOCAL_DB:
-        fill_mock_data(session)
+        fill_test_model(session)
     
     print_database_contents(session, {
         'Slot':         False,

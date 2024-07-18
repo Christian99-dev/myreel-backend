@@ -3,7 +3,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from api.models.database.model import Base
-from api.utils.database.fill_mock_data import fill_mock_data
+from api.utils.database.fill_test_model import fill_test_model
 
 # Set up the test database URL
 DATABASE_URL = "sqlite:///./test.db"
@@ -45,7 +45,7 @@ def db_session_filled(db_engine):
     connection = db_engine.connect()
     transaction = connection.begin()
     session = TestingSessionLocal(bind=connection)
-    fill_mock_data(session)
+    fill_test_model(session)
     
     yield session
     
