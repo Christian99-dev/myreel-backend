@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from api.models.database.model import Edit, User
+from api.models.database.model import Edit
 from api.services.edit import create, get, is_edit_creator
 
 # create
