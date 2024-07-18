@@ -34,7 +34,7 @@ class Edit(Base):
     edit_id:        Mapped[int]                     = mapped_column(primary_key=True, autoincrement=True)
     song_id:        Mapped[int]                     = mapped_column(ForeignKey('song.song_id'), nullable=False)
     created_by:     Mapped[int]                     = mapped_column(ForeignKey('user.user_id'), nullable=False)
-    group_id:       Mapped[int]                     = mapped_column(ForeignKey('group.group_id'), nullable=False)
+    group_id:       Mapped[str]                     = mapped_column(ForeignKey('group.group_id'), nullable=False)
     name:           Mapped[str]                     = mapped_column(String(255), nullable=False)
     isLive:         Mapped[bool]                    = mapped_column(Boolean, nullable=False)
 
@@ -46,7 +46,7 @@ class Edit(Base):
 class Group(Base):
     __tablename__ = 'group'
 
-    group_id:           Mapped[int]                 = mapped_column(primary_key=True, autoincrement=True)
+    group_id:           Mapped[str]                 = mapped_column(primary_key=True)
     name:               Mapped[str]                 = mapped_column(String(255), nullable=False)
 
     user_list:          Mapped[List["User"]]        = relationship("User", back_populates="group")
@@ -57,7 +57,7 @@ class Invitation(Base):
     __tablename__ = 'invitation'
 
     invitation_id:  Mapped[int]     = mapped_column(primary_key=True, autoincrement=True)
-    group_id:       Mapped[int]     = mapped_column(ForeignKey('group.group_id'), nullable=False)
+    group_id:       Mapped[str]     = mapped_column(ForeignKey('group.group_id'), nullable=False)
     token:          Mapped[str]     = mapped_column(String(255), nullable=False)
     email:          Mapped[str]     = mapped_column(String(255), nullable=False)
     created_at:     Mapped[str]     = mapped_column(DateTime, nullable=False)
@@ -69,7 +69,7 @@ class User(Base):
     __tablename__ = 'user'
 
     user_id:            Mapped[int]                  = mapped_column(primary_key=True, autoincrement=True)
-    group_id:           Mapped[int]                  = mapped_column(ForeignKey('group.group_id'), nullable=False)
+    group_id:           Mapped[str]                  = mapped_column(ForeignKey('group.group_id'), nullable=False)
     role:               Mapped[str]                  = mapped_column(String(255), nullable=False)
     name:               Mapped[str]                  = mapped_column(String(255), nullable=False)
     email:              Mapped[str]                  = mapped_column(String(255), nullable=False, unique=True)

@@ -19,7 +19,7 @@ class Role:
     def __init__(self, 
                  admintoken:    Optional[str]     = None, 
                  userid:        Optional[int]     = None, 
-                 groupid:       Optional[int]     = None, 
+                 groupid:       Optional[str]     = None, 
                  editid:        Optional[int]     = None,
                  db_session:    Optional[Session] = None
     ):  

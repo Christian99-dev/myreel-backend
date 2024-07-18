@@ -3,6 +3,7 @@ import os
 from sqlalchemy.orm import Session
 from api.auth.role import Role, RoleEnum
 from dotenv import load_dotenv
+from api.utils.database.test_model import group_id_1
 
 logger = logging.getLogger(__name__)
 load_dotenv()
@@ -49,13 +50,13 @@ def test_role_external(db_session_filled: Session):
     roleTesterHasAccess(Role(admintoken="wrong",    userid=-99,     groupid=-99,    editid=-99,     db_session=db_session_filled),  RoleEnum.EXTERNAL)
 
     # no user given
-    roleTesterHasAccess(Role(admintoken="wrong",    userid=-99,     groupid=1,      editid=1,        db_session=db_session_filled),  RoleEnum.EXTERNAL)
-    roleTesterHasAccess(Role(admintoken="wrong",    userid=None,    groupid=1,      editid=1,        db_session=db_session_filled),  RoleEnum.EXTERNAL)
+    roleTesterHasAccess(Role(admintoken="wrong",    userid=-99,     groupid=group_id_1,      editid=1,        db_session=db_session_filled),  RoleEnum.EXTERNAL)
+    roleTesterHasAccess(Role(admintoken="wrong",    userid=None,    groupid=group_id_1,      editid=1,        db_session=db_session_filled),  RoleEnum.EXTERNAL)
     
     # wrong group    
-    roleTesterHasAccess(Role(admintoken="wrong",    userid=4,     groupid=1,    editid=1,        db_session=db_session_filled),  RoleEnum.EXTERNAL)
-    roleTesterHasAccess(Role(admintoken="wrong",    userid=4,     groupid=1,    editid=None,     db_session=db_session_filled),  RoleEnum.EXTERNAL)
-    roleTesterHasAccess(Role(admintoken="wrong",    userid=5,     groupid=1,    editid=None,     db_session=db_session_filled),  RoleEnum.EXTERNAL)
+    roleTesterHasAccess(Role(admintoken="wrong",    userid=4,     groupid=group_id_1,    editid=1,        db_session=db_session_filled),  RoleEnum.EXTERNAL)
+    roleTesterHasAccess(Role(admintoken="wrong",    userid=4,     groupid=group_id_1,    editid=None,     db_session=db_session_filled),  RoleEnum.EXTERNAL)
+    roleTesterHasAccess(Role(admintoken="wrong",    userid=5,     groupid=group_id_1,    editid=None,     db_session=db_session_filled),  RoleEnum.EXTERNAL)
     
     # wrong edit    
     roleTesterHasAccess(Role(admintoken="wrong",    userid=3,     groupid=None,    editid=7,        db_session=db_session_filled),  RoleEnum.EXTERNAL)
@@ -65,24 +66,24 @@ def test_role_admin(db_session_filled: Session):
     roleTesterHasAccess(Role(admintoken=admin_token, userid=None,   groupid=None,   editid=None,    db_session=db_session_filled),   RoleEnum.ADMIN)
 
 def test_role_group_creator(db_session_filled: Session):
-    roleTesterHasAccess(Role(admintoken=None,   userid=1,   groupid=1,  editid=None, db_session=db_session_filled), RoleEnum.GROUP_CREATOR)
+    roleTesterHasAccess(Role(admintoken=None,   userid=1,   groupid=group_id_1,  editid=None, db_session=db_session_filled), RoleEnum.GROUP_CREATOR)
     
 def test_role_edit_creator(db_session_filled: Session):
     roleTesterHasAccess(Role(admintoken=None,   userid=1,   groupid=None,  editid=1, db_session=db_session_filled), RoleEnum.EDIT_CREATOR)
 
 def test_role_group_member(db_session_filled: Session):
-    roleTesterHasAccess(Role(admintoken=None,   userid=2,   groupid=1,  editid=None, db_session=db_session_filled), RoleEnum.GROUP_MEMBER)   
+    roleTesterHasAccess(Role(admintoken=None,   userid=2,   groupid=group_id_1,  editid=None, db_session=db_session_filled), RoleEnum.GROUP_MEMBER)   
 
 def test_role_always_highest(db_session_filled: Session):  
     admin_token = os.getenv("ADMIN_TOKEN")    
     
     # ADMIN 
-    roleTesterHasAccess(Role(admintoken=admin_token,   userid=1,        groupid=1,      editid=None, db_session=db_session_filled), RoleEnum.ADMIN)  # ALSO GROUP_CREATOR
+    roleTesterHasAccess(Role(admintoken=admin_token,   userid=1,        groupid=group_id_1,      editid=None, db_session=db_session_filled), RoleEnum.ADMIN)  # ALSO GROUP_CREATOR
     roleTesterHasAccess(Role(admintoken=admin_token,   userid=1,        groupid=None,   editid=1,    db_session=db_session_filled), RoleEnum.ADMIN)  # ALSO EDIT_CREATOR
-    roleTesterHasAccess(Role(admintoken=admin_token,   userid=2,        groupid=1,      editid=None, db_session=db_session_filled), RoleEnum.ADMIN)  # ALSO GROUP_MEMBER
+    roleTesterHasAccess(Role(admintoken=admin_token,   userid=2,        groupid=group_id_1,      editid=None, db_session=db_session_filled), RoleEnum.ADMIN)  # ALSO GROUP_MEMBER
     
     # GROUP_CREATOR 
-    roleTesterHasAccess(Role(admintoken=None,           userid=1,        groupid=1,     editid=1,    db_session=db_session_filled), RoleEnum.GROUP_CREATOR)  # ALSO EDIT_CREATOR
+    roleTesterHasAccess(Role(admintoken=None,           userid=1,        groupid=group_id_1,     editid=1,    db_session=db_session_filled), RoleEnum.GROUP_CREATOR)  # ALSO EDIT_CREATOR
 
 # util
 def roleTesterHasAccess(role_instance: Role, role_to_test: RoleEnum):

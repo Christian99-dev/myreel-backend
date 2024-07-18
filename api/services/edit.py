@@ -4,7 +4,7 @@ from api.models.database.model import Edit
 def create(
         song_id: int, 
         created_by: int, 
-        group_id: int, 
+        group_id: str, 
         name: str, 
         is_live: bool, 
         db: Session) -> Edit:

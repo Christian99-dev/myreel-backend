@@ -5,7 +5,7 @@ from fastapi.params import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from api.models.database import model
-from api.utils.database import fill_test_model
+from api.utils.database.fill_test_model import fill_test_model
 from api.utils.database.print_database_contents import print_database_contents
 from distutils.util import strtobool
 

@@ -1,10 +1,11 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import User
 from api.services.user import create, get
+from api.utils.database.create_uuid import create_uuid
 
 def test_create(db_session: Session):
     # Define user data
-    group_id = 1
+    group_id = create_uuid()
     role = "admin"
     name = "Test User"
     email = "testuser@example.com"
@@ -29,7 +30,7 @@ def test_create(db_session: Session):
 
 def test_get(db_session: Session):
     # Define user data
-    group_id = 1
+    group_id = create_uuid()
     role = "admin"
     name = "Test User"
     email = "testuser@example.com"

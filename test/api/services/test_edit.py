@@ -1,13 +1,14 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Edit
 from api.services.edit import create, get, is_edit_creator
+from api.utils.database.create_uuid import create_uuid
 
 # create
 def test_create(db_session: Session):
     # Arrange: Set up the parameters for the new edit
     song_id = 1  # Ensure this song_id exists in your test setup
     created_by = 1  # Use a valid user_id or create a user if necessary
-    group_id = 1  # Use a valid group_id or create a group if necessary
+    group_id = create_uuid()  # Use a valid group_id or create a group if necessary
     name = "Test Edit"
     is_live = True
 
@@ -35,7 +36,7 @@ def test_get(db_session: Session):
     # Define edit data
     song_id = 1
     created_by = 1
-    group_id = 1
+    group_id = create_uuid()
     name = "Test Edit"
     is_live = True
     
