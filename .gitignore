@@ -6,3 +6,4 @@ __pycache__
 .vscode
 context-printer*.*
 folder-structure-printer*.*
+*.log
