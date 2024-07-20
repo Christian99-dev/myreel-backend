@@ -6,7 +6,7 @@ from api.config.database import db_dependency
 
 router = APIRouter(
     prefix="/songs",
-)   
+)    
 
 @router.post("/create", response_model=CreateResponse)
 def create(request: CreateRequest, db: db_dependency) -> CreateResponse:
@@ -21,3 +21,19 @@ def create(request: CreateRequest, db: db_dependency) -> CreateResponse:
         return CreateResponse.from_orm(new_song)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+@router.delete("/delete")
+def delete(id: int, db: db_dependency):
+    return
+
+@router.patch("/update")
+def update(id: int, db: db_dependency):
+    return
+
+@router.get("/get")
+def get(id: int, db: db_dependency):
+    return
+
+@router.get("/list")
+def list(db: db_dependency):
+    return
