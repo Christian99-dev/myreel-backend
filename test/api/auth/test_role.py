@@ -5,7 +5,7 @@ from api.auth.role import Role, RoleEnum
 from dotenv import load_dotenv
 from api.utils.database.test_model import group_id_1
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("testing")
 load_dotenv()
 
 def test_role_has_access_methode_with_include_sub_roles():
