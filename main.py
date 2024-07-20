@@ -6,12 +6,18 @@ from api.routes.group import router as group_router
 
 # middleware 
 from api.middleware.log_access_path import LogAccessMiddleware
+from api.middleware.access_handler import AccessHandlerMiddleware
+from logging_config import setup_logging_prod
+
+# setup loggers
+setup_logging_prod()
 
 # app
 app = FastAPI()
 
 # add middleware
 app.add_middleware(LogAccessMiddleware)
+app.add_middleware(AccessHandlerMiddleware)
 
 # router
 app.include_router(song_router)
