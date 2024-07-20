@@ -5,7 +5,7 @@ from api.config.database import db_dependency
 
 
 router = APIRouter(
-    prefix="/songs",
+    prefix="/song",
 )    
 
 @router.post("/create", response_model=CreateResponse)
