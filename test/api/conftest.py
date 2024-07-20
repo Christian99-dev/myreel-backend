@@ -11,9 +11,17 @@ DATABASE_URL = "sqlite:///:memory:"
 # Create a new database engine for the test database
 engine = create_engine(DATABASE_URL, echo=False)  # Set echo=False to reduce logs
 
-# Configure logging to reduce SQLAlchemy output
+class MyFilter(object):
+    def __init__(self, level):
+        self.__level = level
+
+    def filter(self, logRecord):
+        return logRecord.levelno <= self.__level
+
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
+logging.getLogger('asyncio').setLevel(logging.WARNING)
+logging.getLogger("testing").addFilter(MyFilter(logging.DEBUG))
 
 # Create a configured "Session" class
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
