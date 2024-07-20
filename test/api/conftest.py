@@ -21,6 +21,8 @@ class MyFilter(object):
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
 logging.getLogger('asyncio').setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 logging.getLogger("testing").addFilter(MyFilter(logging.DEBUG))
 
 # Create a configured "Session" class
