@@ -15,6 +15,10 @@ def setup_logging_testing():
     logger = logging.getLogger("testing")
     logger.setLevel(logging.DEBUG)
     logger.addFilter(MyFilter(logging.DEBUG))
+    
+    access_logger = logging.getLogger("access")
+    access_logger.disabled = True
+
 
 def setup_logging_prod():
     access_logger = logging.getLogger("access")
