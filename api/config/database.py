@@ -45,11 +45,11 @@ with SessionLocal() as session:
     
     print_database_contents(session, {
         'Slot':         False,
-        'Song':         True,
-        'Edit':         True,
-        'Group':        True,
+        'Song':         False,
+        'Edit':         False,
+        'Group':        False,
         'Invitation':   False,
-        'User':         True,
+        'User':         False,
         'LoginRequest': False,
         'OccupiedSlot': False
     })

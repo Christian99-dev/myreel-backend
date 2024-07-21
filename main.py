@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 #routes
+from api.config.path_roles import path_roles
 from api.routes.song import router as song_router
 from api.routes.group import router as group_router
 
@@ -17,7 +18,7 @@ app = FastAPI()
 
 # add middleware
 app.add_middleware(LogAccessMiddleware)
-app.add_middleware(AccessHandlerMiddleware)
+app.add_middleware(AccessHandlerMiddleware, path_roles=path_roles)
 
 # router
 app.include_router(song_router)
