@@ -1,21 +1,17 @@
 from pydantic import BaseModel
 
+class SongBase(BaseModel) : 
+    name: str
+    author: str
+    cover_src: str
+    audio_src: str
+    
 # /create
-class CreateRequest(BaseModel):
-    name: str
-    author: str
-    cover_src: str
-    audio_src: str
+class CreateRequest(SongBase):
+    pass
     
-class CreateResponse(BaseModel):
+class CreateResponse(SongBase):
     song_id: int
-    name: str
-    author: str
     times_used: int
-    cover_src: str
-    audio_src: str
-    
-    class Config:
-        from_attributes = True
 
 
