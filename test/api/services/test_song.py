@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from api.services.song import create
 from api.models.database.model import Song
 
-def test_create(db_session: Session):
+def test_create(db_session_empty: Session):
     # Arrange: Set up the parameters for the new song
     name = "Test Song"
     author = "Test Author"
@@ -10,7 +10,7 @@ def test_create(db_session: Session):
     audio_src = "http://example.com/audio.mp3"
 
     # Act: Call the create service function
-    new_song = create(name, author, cover_src, audio_src, db_session)
+    new_song = create(name, author, cover_src, audio_src, db_session_empty)
     
     # Assert: Check the created song's attributes
     assert new_song.name == name
@@ -20,7 +20,7 @@ def test_create(db_session: Session):
     assert new_song.times_used == 0
 
     # Verify: Ensure the song was actually added to the database
-    song_in_db = db_session.query(Song).filter_by(song_id=new_song.song_id).one_or_none()
+    song_in_db = db_session_empty.query(Song).filter_by(song_id=new_song.song_id).one_or_none()
     assert song_in_db is not None
     assert song_in_db.name == name
     assert song_in_db.author == author
