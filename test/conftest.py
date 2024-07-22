@@ -6,7 +6,8 @@ from sqlalchemy.orm import sessionmaker
 from api.models.database.model import Base
 from api.utils.database.fill_test_model import fill_test_model
 from logging_config import setup_logging_testing
-from main import app
+from api.routes.song import router as song_router
+from api.routes.group import router as group_router
 from api.config.database import get_db
 
 # setup logging
@@ -62,6 +63,15 @@ def app_client_empty():
 
 @pytest.fixture(scope="function")
 def app_client_filled(db_session_filled):
+    
+    # simulating prod api
+    app = FastAPI()
+    app.include_router(group_router)
+    app.include_router(song_router)
+    @app.get("/")
+    async def root():
+        return 17
+    
     def override_get_db():
         yield db_session_filled
     
