@@ -118,4 +118,3 @@ def _app_client_isolation_other_filled(app_client_filled: TestClient):
     assert len(songs) == len(test_model.songs), "Database should be filled with test data at the beginning of this test."
     assert not any(song["name"] == "Test Song" for song in songs), "The song should not be present in this session if isolation is correct."
 
-# database is there

@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
-from api.services.song import create
+from api.services.song import create, list_all, get
 from api.models.database.model import Song
+from api.utils.database.test_model import test_model
 
 def test_create(db_session_empty: Session):
     # Arrange: Set up the parameters for the new song
@@ -26,3 +27,20 @@ def test_create(db_session_empty: Session):
     assert song_in_db.author == author
     assert song_in_db.cover_src == cover_src
     assert song_in_db.audio_src == audio_src
+
+def test_get(db_session_filled: Session):
+    # Assume the first song from the test data is used
+    song_id = test_model.songs[0].song_id
+    retrieved_song = get(song_id, db_session_filled)
+    
+    assert retrieved_song is not None
+    assert retrieved_song.song_id == song_id
+    assert retrieved_song.name == test_model.songs[0].name
+
+def test_list(db_session_filled: Session):
+    songs = list_all(db_session_filled)
+    
+    assert len(songs) == len(test_model.songs)  # Ensure all test songs are present
+    song_ids = {song.song_id for song in test_model.songs}
+    retrieved_song_ids = {song.song_id for song in songs}
+    assert song_ids == retrieved_song_ids  # Ensure all test song IDs are returned

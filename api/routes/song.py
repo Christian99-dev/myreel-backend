@@ -1,10 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
-from api.models.database.model import Song
-from api.models.schema.song import CreateRequest, CreateResponse
-from api.services.song import create as createService
-from api.config.database import db_dependency, get_db
+from fastapi import APIRouter, HTTPException
+from api.models.schema.song import CreateRequest, CreateResponse, GetResponse, ListResponse
+from api.services.song import create as createService, list_all as list_all_service, get as get_service
+from api.config.database import db_dependency
 
-# TODO create endpoint testen
 # TODO get und list routes testing und schema
 
 router = APIRouter(
@@ -33,13 +31,18 @@ def create(request: CreateRequest, db: db_dependency) -> CreateResponse:
 # def update(id: int, db: db_dependency):
 #     return
 
-# @router.get("/get/{song_id}", response_model=Song)
-# async def get(song_id: int, db: Session = Depends(get_db)):
-#     song = get(song_id, db)
-#     if song is None:
-#         raise HTTPException(status_code=404, detail="Song not found")
-#     return song
+@router.get("/get/{song_id}", response_model=GetResponse)
+def get(song_id: int, db: db_dependency) -> GetResponse:
+    song = get_service(song_id, db)
+    if song is None:
+        raise HTTPException(status_code=404, detail="Song not found")
+    return song
 
-# @router.get("/list", response_model=list[Song])
-# async def list(db: Session = Depends(get_db)):
-#     return list(db)
+
+@router.get("/list", response_model=ListResponse)
+def list_all(db: db_dependency) -> ListResponse:
+    try:
+        songs = list_all_service(db)
+        return {"songs": songs}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
