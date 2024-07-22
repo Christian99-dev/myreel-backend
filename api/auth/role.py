@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from pytest import Session
 from api.services.edit import is_edit_creator
 from api.services.group import is_group_creator, is_group_member
+from api.utils.routes.ectract_role_infos import RoleInfos
 
 load_dotenv()
 
@@ -17,13 +18,14 @@ class RoleEnum(Enum):
 
 class Role:
     def __init__(self, 
-                 admintoken:    Optional[str]     = None, 
-                 userid:        Optional[int]     = None, 
-                 groupid:       Optional[str]     = None, 
-                 editid:        Optional[int]     = None,
+                 role_infos:    RoleInfos,
                  db_session:    Optional[Session] = None
     ):  
         roles = [RoleEnum.EXTERNAL]
+        admintoken = role_infos.admintoken
+        userid = role_infos.userid
+        groupid = role_infos.groupid
+        editid = role_infos.editid
 
         #ADMIN
         if admintoken is not None and admintoken is os.getenv("ADMIN_TOKEN"):
