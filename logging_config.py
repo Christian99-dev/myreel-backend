@@ -9,12 +9,16 @@ class MyFilter(logging.Filter):
 
 def setup_logging_testing():
     logging.basicConfig(level=logging.DEBUG)
+    
     logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
+    
     logging.getLogger('asyncio').setLevel(logging.INFO)
+    
     logging.getLogger("httpx").setLevel(logging.WARNING)    
-    logger = logging.getLogger("testing")
-    logger.setLevel(logging.DEBUG)
-    logger.addFilter(MyFilter(logging.DEBUG))
+    
+    testing_logger = logging.getLogger("testing")
+    testing_logger.setLevel(logging.DEBUG)
+    testing_logger.addFilter(MyFilter(logging.DEBUG))
     
     access_logger = logging.getLogger("access")
     access_logger.disabled = True
