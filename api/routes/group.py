@@ -7,9 +7,9 @@ router = APIRouter(
 )
 
 @router.delete("/delete")
-def delete(id: int, db: db_dependency):
+async def delete(id: int, db: db_dependency):
     return
 
 @router.get("/get")
-def get(id: int, db: db_dependency):
+async def get(id: int, db: db_dependency):
     return    

@@ -10,7 +10,7 @@ router = APIRouter(
 )    
 
 @router.post("/create", response_model=CreateResponse)
-def create(request: CreateRequest, db: db_dependency) -> CreateResponse:
+async def create(request: CreateRequest, db: db_dependency) -> CreateResponse:
     try:
         new_song = createService(
             request.name, 
@@ -32,7 +32,7 @@ def create(request: CreateRequest, db: db_dependency) -> CreateResponse:
 #     return
 
 @router.get("/get/{song_id}", response_model=GetResponse)
-def get(song_id: int, db: db_dependency) -> GetResponse:
+async def get(song_id: int, db: db_dependency) -> GetResponse:
     song = get_service(song_id, db)
     if song is None:
         raise HTTPException(status_code=404, detail="Song not found")
@@ -40,7 +40,7 @@ def get(song_id: int, db: db_dependency) -> GetResponse:
 
 
 @router.get("/list", response_model=ListResponse)
-def list_all(db: db_dependency) -> ListResponse:
+async def list_all(db: db_dependency) -> ListResponse:
     try:
         songs = list_all_service(db)
         return {"songs": songs}
