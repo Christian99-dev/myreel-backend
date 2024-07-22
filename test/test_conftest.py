@@ -109,16 +109,17 @@ def test_app_client_isolation_filled(app_client_filled: TestClient):
     get_response = app_client_filled.get(f"/song/get/{song_id}")
     assert get_response.status_code == 200
     
-    
-    # assert len(songs) == len(test_model.songs) + 1
-    # assert any(song["name"] == "Test Song" for song in songs), "The song should be present in the database in this session."
+    list_response = app_client_filled.get("/song/list")
+    assert list_response.status_code == 200
+    new_songs = list_response.json().get("songs")
+    assert len(new_songs) == len(test_model.songs) + 1
 
-def _app_client_isolation_other_filled(app_client_filled: TestClient):
+def test_app_client_isolation_other_filled(app_client_filled: TestClient):
     """Test to ensure that changes in one client session do not affect another session."""
     
-    response = app_client_filled.get("/songs")
+    response = app_client_filled.get("/song/list")
     assert response.status_code == 200
-    songs = response.json()
+    songs = response.json().get("songs")
     assert len(songs) == len(test_model.songs), "Database should be filled with test data at the beginning of this test."
     assert not any(song["name"] == "Test Song" for song in songs), "The song should not be present in this session if isolation is correct."
 
