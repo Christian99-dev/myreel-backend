@@ -8,13 +8,14 @@ from api.utils.database.fill_test_model import fill_test_model
 from logging_config import setup_logging_testing
 from main import app
 from api.config.database import get_db
+import logging
 
 # setup logging
 setup_logging_testing()
 
 # setup test db
 engine = create_engine("sqlite:///:memory:", 
-    connect_args={"check_same_thread": False,},
+    connect_args={"check_same_thread": False},
     poolclass=StaticPool
 )
 
@@ -57,25 +58,14 @@ def db_session_filled(db_engine):
 
 # FULL APP CLIENT
 @pytest.fixture(scope="function")
-def app_client_empty(db_engine):
-    empty_app = FastAPI()        
-    yield TestClient(empty_app)
+def app_client_empty(): 
+    yield TestClient(FastAPI())
 
 @pytest.fixture(scope="function")
-def app_client_filled(db_engine):
-    def override_get_db_filled():
-        connection = db_engine.connect()
-        transaction = connection.begin()
-        db = TestingSessionLocal(bind=connection)
-        fill_test_model(db)
-        
-        try:
-            yield db
-        finally:
-            db.close()
-            transaction.rollback()
-            connection.close()
-            
-    app.dependency_overrides[get_db] = override_get_db_filled
+def app_client_filled(db_session_filled):
+    def override_get_db():
+        yield db_session_filled
+    
+    app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
     app.dependency_overrides.pop(get_db, None)

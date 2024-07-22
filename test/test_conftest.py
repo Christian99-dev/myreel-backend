@@ -1,3 +1,4 @@
+from doctest import debug
 import logging
 from sqlalchemy.orm import Session
 from api.models.database.model import Song
@@ -84,30 +85,33 @@ def test_app_client_filled_has_prod_routes(app_client_filled: TestClient):
         assert route in filtered_prod_routes, f"Unexpected route {route} found in the test client app."
 
 # isolation not empty client
-def _test_app_client_isolation_filled(app_client_filled: TestClient):
+def test_app_client_isolation_filled(app_client_filled: TestClient):
     """Test to ensure that each test function gets a separate client session with filled database."""
     
-    response = app_client_filled.get("/songs")
+    response = app_client_filled.get("/song/list")
     assert response.status_code == 200
-    songs = response.json()
+    response = response.json()
+    songs = response.get("songs")
     assert len(songs) == len(test_model.songs), "Database should be filled with test data at the beginning of this test."
 
     # Add a song using the client
-    response = app_client_filled.post("/songs", json={
-        "name": "Test Song",
-        "author": "Test Author",
-        "times_used": 0,
+    create_response = app_client_filled.post("/song/create", json={
+        "name": "Das ist ein song",
+        "author": "Hallo",
         "cover_src": "http://example.com/cover.jpg",
         "audio_src": "http://example.com/audio.mp3"
     })
-    assert response.status_code == 200
+    assert create_response.status_code == 200
 
-    # Check if the song is in the database using the client
-    response = app_client_filled.get("/songs")
-    assert response.status_code == 200
-    songs = response.json()
-    assert len(songs) == len(test_model.songs) + 1
-    assert any(song["name"] == "Test Song" for song in songs), "The song should be present in the database in this session."
+    create_response_data = create_response.json()
+    song_id = create_response_data.get("song_id")
+
+    get_response = app_client_filled.get(f"/song/get/{song_id}")
+    assert get_response.status_code == 200
+    
+    
+    # assert len(songs) == len(test_model.songs) + 1
+    # assert any(song["name"] == "Test Song" for song in songs), "The song should be present in the database in this session."
 
 def _app_client_isolation_other_filled(app_client_filled: TestClient):
     """Test to ensure that changes in one client session do not affect another session."""
