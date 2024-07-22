@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from api.utils.database.test_model import test_model
 
+# create
 def test_create(app_client_filled: TestClient):
     # Act: Send a POST request to the create endpoint
     response = app_client_filled.post("/song/create", json={
@@ -19,6 +20,7 @@ def test_create(app_client_filled: TestClient):
     assert data["audio_src"]    == "http://example.com/audio.mp3"
     assert data["times_used"]   == 0  
     
+# list    
 def test_list(app_client_filled: TestClient):
     # Act: Send a GET request to the list endpoint
     response = app_client_filled.get("/song/list")
@@ -44,6 +46,7 @@ def test_list(app_client_filled: TestClient):
             for test_song in test_model.songs
         )
 
+# get
 def test_get_song(app_client_filled: TestClient):
     test_song = test_model.songs[0]
     response = app_client_filled.get(f"/song/get/{test_song.song_id}")

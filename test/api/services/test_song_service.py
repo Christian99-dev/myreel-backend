@@ -3,6 +3,7 @@ from api.services.song import create, list_all, get
 from api.models.database.model import Song
 from api.utils.database.test_model import test_model
 
+# create
 def test_create(db_session_empty: Session):
     # Arrange: Set up the parameters for the new song
     name = "Test Song"
@@ -28,6 +29,7 @@ def test_create(db_session_empty: Session):
     assert song_in_db.cover_src == cover_src
     assert song_in_db.audio_src == audio_src
 
+# get
 def test_get(db_session_filled: Session):
     # Assume the first song from the test data is used
     song_id = test_model.songs[0].song_id
@@ -37,6 +39,7 @@ def test_get(db_session_filled: Session):
     assert retrieved_song.song_id == song_id
     assert retrieved_song.name == test_model.songs[0].name
 
+# list
 def test_list(db_session_filled: Session):
     songs = list_all(db_session_filled)
     

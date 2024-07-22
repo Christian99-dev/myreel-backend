@@ -3,6 +3,7 @@ from api.models.database.model import User
 from api.services.user import create, get
 from api.utils.database.create_uuid import create_uuid
 
+# create
 def test_create(db_session_empty: Session):
     # Define user data
     group_id = create_uuid()
@@ -28,6 +29,7 @@ def test_create(db_session_empty: Session):
     assert user_in_db.name == name
     assert user_in_db.email == email
 
+# get
 def test_get(db_session_empty: Session):
     # Define user data
     group_id = create_uuid()
@@ -48,8 +50,7 @@ def test_get(db_session_empty: Session):
     assert fetched_user.email == created_user.email
     assert fetched_user.role == created_user.role
     assert fetched_user.group_id == created_user.group_id
-    
-    
+      
 def test_get_user_failed(db_session_empty: Session):
     # Define a non-existent user ID
     non_existent_user_id = 9999
