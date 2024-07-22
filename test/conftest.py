@@ -64,12 +64,17 @@ def app_client_empty(db_engine):
 @pytest.fixture(scope="function")
 def app_client_filled(db_engine):
     def override_get_db_filled():
-        db = TestingSessionLocal()
+        connection = db_engine.connect()
+        transaction = connection.begin()
+        db = TestingSessionLocal(bind=connection)
+        fill_test_model(db)
+        
         try:
-            fill_test_model(db)
             yield db
         finally:
             db.close()
+            transaction.rollback()
+            connection.close()
             
     app.dependency_overrides[get_db] = override_get_db_filled
     yield TestClient(app)
