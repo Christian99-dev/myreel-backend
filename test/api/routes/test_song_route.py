@@ -1,9 +1,5 @@
-import logging
 from fastapi.testclient import TestClient
 from api.utils.database.test_model import test_model
-
-logger = logging.getLogger("testing")
-
 
 def test_create(app_client_filled: TestClient):
     # Act: Send a POST request to the create endpoint
