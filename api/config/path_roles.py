@@ -9,12 +9,13 @@ path_roles: Dict[str, RoleEnum] = {
     '/redoc':                   RoleEnum.EXTERNAL,
     
     # root
-    '/':                        RoleEnum.EXTERNAL,        
+    '/':                        RoleEnum.EXTERNAL,
+            
     # songs
     '/song/create':             RoleEnum.ADMIN, 
-    '/song/delete':             RoleEnum.ADMIN, 
-    '/song/update':             RoleEnum.ADMIN, 
-    '/song/get':                RoleEnum.ADMIN,
+    # '/song/delete':             RoleEnum.ADMIN, 
+    # '/song/update':             RoleEnum.ADMIN, 
+    '/song/get/{song_id}':      RoleEnum.ADMIN,
     '/song/list':               RoleEnum.ADMIN, 
     
     # group
