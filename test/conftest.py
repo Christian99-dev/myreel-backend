@@ -8,7 +8,6 @@ from api.utils.database.fill_test_model import fill_test_model
 from logging_config import setup_logging_testing
 from main import app
 from api.config.database import get_db
-import logging
 
 # setup logging
 setup_logging_testing()
