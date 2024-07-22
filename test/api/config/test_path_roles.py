@@ -1,11 +1,10 @@
-from fastapi.testclient import TestClient
 from api.auth.role import RoleEnum
 from api.config.path_roles import path_roles
 from main import app
 import logging
 logger = logging.getLogger("testing")
 
-def test_all_paths_have_role_configuration(app_client_filled: TestClient):
+def test_all_paths_have_role_configuration():
 
     routes = [route.path for route in app.router.routes]
 
