@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from api.models.schema.song import CreateRequest, CreateResponse, GetResponse, ListResponse
-from api.services.song import create as createService, list_all as list_all_service, get as get_service
+from api.services.song import create as create_service, list_all as list_all_service, get as get_service
 from api.config.database import db_dependency
 
 # TODO get und list routes testing und schema
@@ -12,7 +12,7 @@ router = APIRouter(
 @router.post("/create", response_model=CreateResponse)
 async def create(request: CreateRequest, db: db_dependency) -> CreateResponse:
     try:
-        new_song = createService(
+        new_song = create_service(
             request.name, 
             request.author, 
             request.cover_src, 
