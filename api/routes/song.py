@@ -9,7 +9,7 @@ router = APIRouter(
     prefix="/song",
 )    
 
-@router.post("/create", response_model=CreateResponse)
+@router.post("/create", response_model=CreateResponse, tags=["song"])
 async def create(request: CreateRequest, db: db_dependency) -> CreateResponse:
     try:
         new_song = create_service(
@@ -31,7 +31,7 @@ async def create(request: CreateRequest, db: db_dependency) -> CreateResponse:
 # def update(id: int, db: db_dependency):
 #     return
 
-@router.get("/get/{song_id}", response_model=GetResponse)
+@router.get("/get/{song_id}", response_model=GetResponse, tags=["song"])
 async def get(song_id: int, db: db_dependency) -> GetResponse:
     song = get_service(song_id, db)
     if song is None:
@@ -39,10 +39,10 @@ async def get(song_id: int, db: db_dependency) -> GetResponse:
     return song
 
 
-@router.get("/list", response_model=ListResponse)
+@router.get("/list", response_model=ListResponse, tags=["song"])
 async def list_all(db: db_dependency) -> ListResponse:
     try:
-        songs = list_all_service(db)
+        songs = list_all_service(db)    
         return {"songs": songs}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
