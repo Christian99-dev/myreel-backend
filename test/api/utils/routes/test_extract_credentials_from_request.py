@@ -10,8 +10,6 @@ def app_client():
     @app.middleware("http")
     async def add_role_credentials(request: Request, call_next):
         credentials = await extract_role_credentials_from_request(request)
-        import logging
-        logging.getLogger("testing").debug(credentials)
         request.state.credentials = credentials
         response = await call_next(request)
         return response
