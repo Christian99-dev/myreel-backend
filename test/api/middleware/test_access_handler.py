@@ -135,7 +135,6 @@ def test_setup_routes(app_client_role_routes):
     assert app_client_role_routes.get("/external_subroles").status_code         == 403
     
 def test_setup_roles(db_session_filled):
-    import logging
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_session_filled),  RoleEnum.ADMIN)
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_1_encoded, groupid=group_creator_req_creds["params"]["groupid"], editid=None), db_session=db_session_filled),  RoleEnum.GROUP_CREATOR)
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_1_encoded, groupid=None, editid=edit_creator_req_creds["params"]["editid"]), db_session=db_session_filled),  RoleEnum.EDIT_CREATOR)
