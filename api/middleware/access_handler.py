@@ -19,7 +19,7 @@ class AccessHandlerMiddleware(BaseHTTPMiddleware):
         all_routes      = get_all_routes(app)
         path_roles      = self.path_roles
         
-        if 1 == 2:  
+        if 1 == 1:  
             log_access(request.url.path, 403, 0.0000, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), f"Role conflict! Role: {incoming_role.name}, Required: {required_role.name}")
             return Response(status_code=403)
                 
