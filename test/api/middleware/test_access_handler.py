@@ -3,7 +3,8 @@ import os
 import pytest
 from typing import Dict
 from fastapi import FastAPI
-from api.auth.role import Role, RoleEnum
+from api.auth import jwt
+from api.auth.role import Role, RoleEnum, RoleInfos
 from api.config.database import get_db
 from fastapi.testclient import TestClient
 from api.config.path_roles import PathInfo
@@ -28,11 +29,50 @@ path_roles: Dict[str, PathInfo] = {
 }
 
 # setup roles
-admin_body: dict          = {"admintoken":str(os.getenv("ADMIN_TOKEN"))}
-group_creator_body: dict  = {"userid":"1","groupid":group_id_1}
-edit_creator_body: dict   = {"userid":"1","editid":"1"}
-group_member_body: dict   = {"userid":"2","groupid":group_id_1}
-external_body: dict       = {}
+
+
+jwt_user_1 = jwt.create_jwt(1, 30)
+jwt_user_2 = jwt.create_jwt(2, 30)
+user_1_encoded = jwt.read_jwt(jwt_user_1)
+user_2_encoded = jwt.read_jwt(jwt_user_2)
+    
+admin_req_creds = {    
+    "headers": {
+        "admintoken": str(os.getenv("ADMIN_TOKEN"))
+    }
+}
+
+group_creator_req_creds = {    
+    "headers": {
+        "Authorization": f"Bearer {jwt_user_1}"
+    },
+    "params" : {
+        "groupid":group_id_1
+    }
+}
+
+edit_creator_req_creds = {    
+    "headers": {
+        "Authorization": f"Bearer {jwt_user_1}"
+    },
+    "params" : {
+        "editid":"1"
+    }
+}
+
+group_member_req_creds = {    
+    "headers": {
+        "Authorization": f"Bearer {jwt_user_2}"
+    },
+    "params" : {
+        "groupid":group_id_1
+    }
+}
+
+external_req_creds = {
+    "headers": {},
+    "params" : {}
+}
 
 @pytest.fixture(scope="function")
 def app_client_role_routes(db_session_filled):
@@ -95,12 +135,12 @@ def test_setup_routes(app_client_role_routes):
     assert app_client_role_routes.get("/external_subroles").status_code         == 403
     
 def test_setup_roles(db_session_filled):
-    pass
-    # role_tester_has_access(Role(role_infos=extract_role_infos(admin_body),           db_session=db_session_filled),  RoleEnum.ADMIN)
-    # role_tester_has_access(Role(role_infos=extract_role_infos(group_creator_body),   db_session=db_session_filled),  RoleEnum.GROUP_CREATOR)
-    # role_tester_has_access(Role(role_infos=extract_role_infos(edit_creator_body),    db_session=db_session_filled),  RoleEnum.EDIT_CREATOR)
-    # role_tester_has_access(Role(role_infos=extract_role_infos(group_member_body),    db_session=db_session_filled),  RoleEnum.GROUP_MEMBER)
-    # role_tester_has_access(Role(role_infos=extract_role_infos(external_body),        db_session=db_session_filled),  RoleEnum.EXTERNAL)
+    import logging
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_session_filled),  RoleEnum.ADMIN)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_1_encoded, groupid=group_creator_req_creds["params"]["groupid"], editid=None), db_session=db_session_filled),  RoleEnum.GROUP_CREATOR)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_1_encoded, groupid=None, editid=edit_creator_req_creds["params"]["editid"]), db_session=db_session_filled),  RoleEnum.EDIT_CREATOR)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_2_encoded, groupid=group_member_req_creds["params"]["groupid"], editid=None), db_session=db_session_filled),  RoleEnum.GROUP_MEMBER)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=db_session_filled),  RoleEnum.EXTERNAL)
 
 def test_endpoints(app_client_role_routes):
     pass
