@@ -4,7 +4,7 @@ from typing import Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from pytest import Session
-from api.auth.roleEnum import RoleEnum
+from api.auth.role_enum import RoleEnum
 from api.config.path_roles import PathInfo
 from api.services.edit import is_edit_creator
 from api.services.group import is_group_creator, is_group_member

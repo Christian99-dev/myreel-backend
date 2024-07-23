@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Dict
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from api.auth.roleEnum import RoleEnum
+from api.auth.role_enum import RoleEnum
 from api.utils.middleware.get_all_routes import get_all_routes
 from api.utils.middleware.log_access import log_access
 

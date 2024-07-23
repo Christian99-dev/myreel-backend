@@ -2,7 +2,7 @@ import logging
 import os
 from sqlalchemy.orm import Session
 from api.auth.role import Role, RoleInfos
-from api.auth.roleEnum import RoleEnum
+from api.auth.role_enum import RoleEnum
 from dotenv import load_dotenv
 from api.utils.database.test_model import group_id_1
 from test.utils import role_tester_has_access

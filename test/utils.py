@@ -1,4 +1,4 @@
-from api.auth.roleEnum import RoleEnum
+from api.auth.role_enum import RoleEnum
 from api.auth.role import Role
 from api.config.path_roles import PathInfo
 
