@@ -2,12 +2,18 @@ import os
 from enum import Enum
 from typing import Optional
 from dotenv import load_dotenv
+from pydantic import BaseModel
 from pytest import Session
 from api.services.edit import is_edit_creator
 from api.services.group import is_group_creator, is_group_member
-from api.utils.routes.ectract_role_infos import RoleInfos
 
 load_dotenv()
+
+class RoleInfos(BaseModel):
+    admintoken: Optional[str]
+    userid:     Optional[int]
+    groupid:    Optional[str]
+    editid:     Optional[int]
 
 class RoleEnum(Enum):
     ADMIN           = 0

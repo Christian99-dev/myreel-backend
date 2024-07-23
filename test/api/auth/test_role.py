@@ -1,11 +1,9 @@
 import logging
 import os
 from sqlalchemy.orm import Session
-from api.auth import role
-from api.auth.role import Role, RoleEnum
+from api.auth.role import Role, RoleEnum, RoleInfos
 from dotenv import load_dotenv
 from api.utils.database.test_model import group_id_1
-from api.utils.routes.ectract_role_infos import RoleInfos
 from test.utils import role_tester_has_access
 
 logger = logging.getLogger("testing")

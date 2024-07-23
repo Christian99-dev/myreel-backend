@@ -1,20 +1,19 @@
 from typing import Optional
 from pydantic import BaseModel
 
-class RoleInfos(BaseModel):
+class RoleCredentials(BaseModel):
     admintoken: Optional[str]
-    userid:     Optional[int]
+    jwt:        Optional[str]
     groupid:    Optional[str]
     editid:     Optional[int]
 
-def extract_role_infos(body: dict) -> RoleInfos:
+def extract_role_infos(body: dict) -> RoleCredentials:
     # Extrahiere die relevanten Informationen aus dem Body
     admintoken  = body.get('admintoken')
-    userid      = body.get('userid')
+    jwt         = body.get('jwt')
     groupid     = body.get('groupid')
     editid      = body.get('editid')
     
-    userid = int(userid) if userid is not None else None
     editid = int(editid) if editid is not None else None
 
-    return RoleInfos(admintoken=admintoken, userid=userid, groupid=groupid, editid=editid)
+    return RoleCredentials(admintoken=admintoken, jwt=jwt, groupid=groupid, editid=editid)

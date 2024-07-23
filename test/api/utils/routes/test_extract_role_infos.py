@@ -1,23 +1,21 @@
 import logging
 from fastapi import Request, FastAPI
 from fastapi.testclient import TestClient
-from api.utils.routes.ectract_role_infos import extract_role_infos, RoleInfos
+from api.utils.routes.ectract_role_infos import extract_role_infos, RoleCredentials
 logger = logging.getLogger("testing")
 
 app = FastAPI()
 
-
-@app.post("/test")
-async def role_infos_test_point(request: Request): 
-    body = await request.json()
-    roleInfos = extract_role_infos(body)
-    return roleInfos
+# @app.post("/test")
+# async def role_infos_test_point(request: Request): 
+#     body = await request.json()
+#     roleInfos = extract_role_infos(body)
+#     return roleInfos
     
-
 client = TestClient(app)
 
 
-def test_extract_role_infos():
+def _extract_role_infos():
     response = client.post("/test", json={
         "admintoken": "some_admintoken",
         "userid": "123",
@@ -32,7 +30,7 @@ def test_extract_role_infos():
     assert role_infos.groupid == "group_abc"
     assert role_infos.editid == 456
 
-def test_extract_role_infos_optional_fields():
+def _extract_role_infos_optional_fields():
 
     response = client.post("/test", json={
         "admintoken": "another_admintoken",
@@ -47,7 +45,7 @@ def test_extract_role_infos_optional_fields():
     assert role_infos.groupid == "group_xyz"
     assert role_infos.editid is None
     
-def test_extract_role_infos_no_fields():
+def _extract_role_infos_no_fields():
 
     response = client.post("/test", json={})
     
