@@ -1,7 +1,7 @@
 import logging
 from fastapi import Request, FastAPI
 from fastapi.testclient import TestClient
-from api.utils.routes.ectract_role_infos import extract_role_infos, RoleCredentials
+from api.utils.routes.exctract_role_infos import extract_role_infos, RoleCredentials
 logger = logging.getLogger("testing")
 
 app = FastAPI()

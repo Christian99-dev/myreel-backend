@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from api.config.path_roles import PathInfo
 from api.middleware.access_handler import AccessHandlerMiddleware
 from api.utils.database.test_model import group_id_1
-from api.utils.routes.ectract_role_infos import extract_role_infos
+from api.utils.routes.exctract_role_infos import extract_role_infos
 from test.utils import role_tester_has_access
 
 # Testconfig für routen
