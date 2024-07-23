@@ -4,7 +4,8 @@ import pytest
 from typing import Dict
 from fastapi import FastAPI
 from api.auth import jwt
-from api.auth.role import Role, RoleEnum, RoleInfos
+from api.auth.role import Role, RoleInfos
+from api.auth.roleEnum import RoleEnum
 from api.config.database import get_db
 from fastapi.testclient import TestClient
 from api.config.path_roles import PathInfo

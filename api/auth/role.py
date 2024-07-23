@@ -4,6 +4,8 @@ from typing import Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from pytest import Session
+from api.auth.roleEnum import RoleEnum
+from api.config.path_roles import PathInfo
 from api.services.edit import is_edit_creator
 from api.services.group import is_group_creator, is_group_member
 
@@ -14,13 +16,6 @@ class RoleInfos(BaseModel):
     userid:     Optional[int]
     groupid:    Optional[str]
     editid:     Optional[int]
-
-class RoleEnum(Enum):
-    ADMIN           = 0
-    GROUP_CREATOR   = 1
-    EDIT_CREATOR    = 2
-    GROUP_MEMBER    = 3
-    EXTERNAL        = 4
 
 class Role:
     def __init__(self, 
@@ -54,8 +49,11 @@ class Role:
         self._role = min(roles, key=lambda role: role.value)
     
 
-    def hasAccess(self, role: RoleEnum, include_sub_roles: bool = True) -> bool:
-        if include_sub_roles:
+    def hasAccess(self, pathInfo: PathInfo) -> bool:
+        has_subroles = pathInfo.has_subroles
+        role         = pathInfo.role
+        
+        if has_subroles:
             if self._role.value <= role.value:
                 return True
             else:

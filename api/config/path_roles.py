@@ -1,5 +1,5 @@
 from typing import Dict, NamedTuple
-from api.auth.role import RoleEnum
+from api.auth.roleEnum import RoleEnum
 
 class PathInfo(NamedTuple):
     role: RoleEnum
