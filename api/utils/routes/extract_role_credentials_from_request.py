@@ -8,7 +8,7 @@ class RoleCredentials(BaseModel):
     groupid: Optional[str]
     editid: Optional[int]
 
-async def extract_role_credentials_from_request(request: Request) -> RoleCredentials:
+def extract_role_credentials_from_request(request: Request) -> RoleCredentials:
     # Extrahiere die relevanten Informationen aus dem Header
     admintoken = request.headers.get('admintoken')
     jwt = request.headers.get('Authorization')  # Annahme: JWT wird im Authorization Header gesendet
