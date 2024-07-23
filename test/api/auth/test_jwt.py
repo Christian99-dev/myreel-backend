@@ -10,11 +10,11 @@ def test_create_and_read_jwt_valid():
     expires_in_minutes = 30
     logger.info(f"Creating JWT for user_id: {user_id} with expiration of  {expires_in_minutes} minutes")
     token = create_jwt(user_id, expires_in_minutes)
-    logger.info("Created token: {token}")
+    logger.info(f"Created token: {token}")
     assert isinstance(token, str)
 
     decoded_user_id = read_jwt(token)
-    logger.info("Decoded user_id from token: {decoded_user_id}")
+    logger.info(f"Decoded user_id from token: {decoded_user_id}")
     assert isinstance(decoded_user_id, int)
     assert decoded_user_id == user_id
 
