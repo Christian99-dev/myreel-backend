@@ -25,7 +25,7 @@ engine = create_engine("sqlite:///:memory:",
 
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# DB TABLES 
+# -- DB ENGINE -- #
 @pytest.fixture(scope="session")
 def db_engine():
     Base.metadata.create_all(bind=engine)
