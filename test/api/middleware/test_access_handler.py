@@ -35,42 +35,57 @@ jwt_user_2 = jwt.create_jwt(2, 30)
 user_1_encoded = jwt.read_jwt(jwt_user_1)
 user_2_encoded = jwt.read_jwt(jwt_user_2)
     
-admin_req_creds = {    
-    "headers": {
-        "admintoken": str(os.getenv("ADMIN_TOKEN"))
-    }
+admin_req_creds = {
+    "req": {    
+        "headers": {
+            "admintoken": str(os.getenv("ADMIN_TOKEN"))
+        }
+    }, 
+    "role": RoleEnum.ADMIN
 }
 
-group_creator_req_creds = {    
-    "headers": {
-        "Authorization": f"Bearer {jwt_user_1}"
-    },
-    "params" : {
-        "groupid":group_id_1
-    }
+group_creator_req_creds = {
+    "req": {    
+        "headers": {
+            "Authorization": f"Bearer {jwt_user_1}"
+        },
+        "params": {
+            "groupid": group_id_1
+        }
+    }, 
+    "role": RoleEnum.GROUP_CREATOR
 }
 
-edit_creator_req_creds = {    
-    "headers": {
-        "Authorization": f"Bearer {jwt_user_1}"
-    },
-    "params" : {
-        "editid":"1"
-    }
+edit_creator_req_creds = {
+    "req": {    
+        "headers": {
+            "Authorization": f"Bearer {jwt_user_1}"
+        },
+        "params": {
+            "editid": "1"
+        }
+    }, 
+    "role": RoleEnum.EDIT_CREATOR
 }
 
-group_member_req_creds = {    
-    "headers": {
-        "Authorization": f"Bearer {jwt_user_2}"
-    },
-    "params" : {
-        "groupid":group_id_1
-    }
+group_member_req_creds = {
+    "req": {    
+        "headers": {
+            "Authorization": f"Bearer {jwt_user_2}"
+        },
+        "params": {
+            "groupid": group_id_1
+        }
+    }, 
+    "role": RoleEnum.GROUP_MEMBER
 }
 
 external_req_creds = {
-    "headers": {},
-    "params" : {}
+    "req": {
+        "headers": {},
+        "params": {}
+    }, 
+    "role": RoleEnum.EXTERNAL
 }
 
 # prepare app with all routes
@@ -116,32 +131,42 @@ def notest_setup_routes(app_client_role_routes):
     assert app_client_role_routes.get("/external_subroles").status_code         == 200
     
 def test_setup_roles(db_session_filled):
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_session_filled),  RoleEnum.ADMIN)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_1_encoded, groupid=group_creator_req_creds["params"]["groupid"], editid=None), db_session=db_session_filled),  RoleEnum.GROUP_CREATOR)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_1_encoded, groupid=None, editid=edit_creator_req_creds["params"]["editid"]), db_session=db_session_filled),  RoleEnum.EDIT_CREATOR)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_2_encoded, groupid=group_member_req_creds["params"]["groupid"], editid=None), db_session=db_session_filled),  RoleEnum.GROUP_MEMBER)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=db_session_filled),  RoleEnum.EXTERNAL)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_session_filled), RoleEnum.ADMIN)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_1_encoded, groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), RoleEnum.GROUP_CREATOR)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_1_encoded, groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_session_filled), RoleEnum.EDIT_CREATOR)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_2_encoded, groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), RoleEnum.GROUP_MEMBER)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=db_session_filled), RoleEnum.EXTERNAL)    
+
+def test_setup_roles_with_creds(db_session_filled):
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_session_filled), admin_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_1_encoded, groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), group_creator_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_1_encoded, groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_session_filled), edit_creator_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_2_encoded, groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), group_member_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=db_session_filled), external_req_creds["role"])
 
 # maintest
-def test_endpoints(app_client_role_routes):
-    response_1 = app_client_role_routes.get("/edit_creator_no_subroles", headers=edit_creator_req_creds["headers"], params=edit_creator_req_creds["params"])
-    response_2 = app_client_role_routes.get("/edit_creator_subroles", headers=edit_creator_req_creds["headers"], params=edit_creator_req_creds["params"])
-    
-    response_3 = app_client_role_routes.get("/group_member_no_subroles", headers=edit_creator_req_creds["headers"], params=edit_creator_req_creds["params"])    
-    response_4 = app_client_role_routes.get("/group_member_subroles", headers=edit_creator_req_creds["headers"], params=edit_creator_req_creds["params"])    
-    
-    assert response_1.status_code == 200
-    assert response_2.status_code == 200
-    assert response_3.status_code == 403
-    assert response_4.status_code == 200
-    
-     
-    # import logging
-    # for path in path_roles.keys():
-        # for role_creds in [admin_req_creds, group_creator_req_creds, edit_creator_req_creds,group_member_req_creds, external_req_creds]: 
-            # response = app_client_role_routes.get(path)
-            # subroles = path_roles.get(path).has_subroles
+def test_endpoints(app_client_role_routes):     
+    for path in path_roles.keys():
+        # logger.debug("\n")
+        for current_creds in [admin_req_creds, group_creator_req_creds, edit_creator_req_creds,group_member_req_creds, external_req_creds]: 
             
+            # Extrahiere die erforderlichen Details für die Anfrage
+            headers = current_creds["req"]["headers"]
+            params  = current_creds["req"].get("params", {})
             
-              
-            # response.status_code == 403
+            with_subroles = path_roles.get(path).has_subroles
+            
+            required_role = path_roles.get(path).role
+            current_role  = current_creds["role"]
+
+            # Sende die Anfrage an den Endpoint
+            response = app_client_role_routes.get(path, headers=headers, params=params)
+
+            # Bestimme den erwarteten Statuscode
+            if not with_subroles:
+                expected_status = 200 if required_role.value == current_role.value else 403
+                assert response.status_code == expected_status
+            else:
+                expected_status = 200 if required_role.value <= current_role.value else 403
+            
+        

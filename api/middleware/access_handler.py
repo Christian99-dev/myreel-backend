@@ -42,7 +42,13 @@ class AccessHandlerMiddleware(BaseHTTPMiddleware):
         db_session = next(db_generator)
         
         role = Role(role_infos=RoleInfos(admintoken=admintoken, userid=userid, groupid=groupid, editid=editid), db_session=db_session)
-        testing_logger.debug(f"Incoming: {role._role}, Required: {pathInfo.role}, Subroles: {pathInfo.has_subroles}, Path: {request.url.path}, hasAccess: {role.hasAccess(pathInfo)}")
+        # testing_logger.debug(
+        #     f"{request.url.path:<30}  "
+        #     f"{pathInfo.role:<30}  "
+        #     f"with {role._role:<30}  "
+        #     f"Subroles: {pathInfo.has_subroles:<5}  "
+        #     f"hasAccess: {role.hasAccess(pathInfo):<5}"
+        # )   
         if role.hasAccess(pathInfo) is False:  
             log_access(request.url.path, 403, 0.0000, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), f"Role conflict! Role: {role._role}, Required: {pathInfo.role}")
             return Response(status_code=403)
