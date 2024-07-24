@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from api.utils.database.test_model import test_model
+from test.utils.test_model import test_model
 
 # create
 def test_create(app_client_filled: TestClient):

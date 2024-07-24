@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Group, Song, User, Edit
-from api.utils.database.test_model import test_model  # Importiere deine SQLAlchemy-Modelle hier entsprechend
+from test.utils.test_model import test_model
 
 def fill_test_model(db_session: Session):
     # Clear existing data

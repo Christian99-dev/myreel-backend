@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from api.services.song import create, list_all, get
 from api.models.database.model import Song
-from api.utils.database.test_model import test_model
+from test.utils.test_model import test_model
 
 # create
 def test_create(db_session_empty: Session):

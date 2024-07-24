@@ -9,7 +9,7 @@ from api.config.database import get_db
 from fastapi.testclient import TestClient
 from api.config.path_roles import PathInfo
 from api.middleware.access_handler import AccessHandlerMiddleware
-from api.utils.database.test_model import group_id_1
+from test.utils.test_model import group_id_1
 from test.utils.role_tester_has_acccess import role_tester_has_access
 import logging
 logger = logging.getLogger("testing")

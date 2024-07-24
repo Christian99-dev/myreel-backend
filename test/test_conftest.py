@@ -2,7 +2,7 @@ from doctest import debug
 import logging
 from sqlalchemy.orm import Session
 from api.models.database.model import Song
-from api.utils.database.test_model import test_model
+from test.utils.test_model import test_model
 from fastapi.testclient import TestClient
 from main import app
 logger = logging.getLogger("testing")
