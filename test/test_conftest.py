@@ -1,6 +1,7 @@
 import logging
 from sqlalchemy.orm import Session
 from api.auth.role import Role, RoleInfos
+from api.auth.role_enum import RoleEnum
 from api.models.database.model import Song
 from test.utils.role_tester_has_acccess import role_tester_has_access
 from test.utils.mock_roles_creds import admin_req_creds, group_creator_req_creds, group_member_req_creds, external_req_creds, edit_creator_req_creds
