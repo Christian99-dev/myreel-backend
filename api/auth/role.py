@@ -1,5 +1,5 @@
 import os
-from enum import Enum
+import logging
 from typing import Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel
@@ -8,6 +8,7 @@ from api.auth.role_enum import RoleEnum
 from api.config.path_roles import PathInfo
 from api.services.edit import is_edit_creator
 from api.services.group import is_group_creator, is_group_member
+logger = logging.getLogger("testing")
 
 load_dotenv()
 
@@ -27,9 +28,9 @@ class Role:
         userid = role_infos.userid
         groupid = role_infos.groupid
         editid = role_infos.editid
-
+            
         #ADMIN
-        if admintoken is not None and admintoken is os.getenv("ADMIN_TOKEN"):
+        if admintoken is not None and admintoken == os.getenv("ADMIN_TOKEN"):
             roles.append(RoleEnum.ADMIN)
         
         #GROUP MEMBER ODER CREATOR
