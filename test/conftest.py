@@ -32,7 +32,10 @@ def db_engine():
     yield engine
     Base.metadata.drop_all(bind=engine)
 
-# ONLY DATABASE
+
+# -- DB SESSIONS -- #
+
+# database = none
 @pytest.fixture(scope="function")
 def db_session_empty(db_engine):
     """Creates a new database session for a test."""
@@ -46,6 +49,7 @@ def db_session_empty(db_engine):
     transaction.rollback()
     connection.close()
 
+# database = test_model
 @pytest.fixture(scope="function")
 def db_session_filled(db_engine):
     """Creates a new database session for a test."""
@@ -60,19 +64,18 @@ def db_session_filled(db_engine):
     transaction.rollback()
     connection.close()
 
-# FULL APP CLIENT
+# -- HTTP CLIENTS -- #
 
-
-# routes = none
-# test database 0
-# middleware    0
+# routes        = none
+# database      = none
+# middleware    no
 @pytest.fixture(scope="function")
 def app_client_empty(): 
     yield TestClient(FastAPI())
 
-# routes = prod
-# test database 1
-# middleware    0
+# routes        = prod mirrored
+# database      = test_model
+# middleware    no
 @pytest.fixture(scope="function")
 def app_client_prod_routes(db_session_filled):
     
@@ -91,9 +94,9 @@ def app_client_prod_routes(db_session_filled):
     yield TestClient(app)
     app.dependency_overrides.pop(get_db, None)
     
-# routes = mock from test_path_roles
-# test database 1
-# middleware    1
+# routes        = mock_path_roles mirrored
+# database      = test_model
+# middleware    yes
 @pytest.fixture(scope="function")
 def app_client_mock_routes_middleware(db_session_filled):
     def override_get_db():
