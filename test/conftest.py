@@ -1,6 +1,7 @@
+import pytest
+import logging
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-import pytest
 from sqlalchemy import create_engine, StaticPool
 from sqlalchemy.orm import sessionmaker
 from api.models.database.model import Base
@@ -12,6 +13,7 @@ from api.config.database import get_db
 
 # setup logging
 setup_logging_testing()
+logger = logging.getLogger("testing")
 
 # setup test db
 engine = create_engine("sqlite:///:memory:", 

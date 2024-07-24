@@ -34,7 +34,7 @@ def test_extract_credentials_from_request(app_client):
     assert response.json() == {
         "credentials": {
             "admintoken": "admin_token_value",
-            "jwt": "Bearer jwt_token_value",
+            "jwt": "jwt_token_value",
             "groupid": "group_id_value",
             "editid": 123
         }
@@ -86,7 +86,7 @@ def test_extract_credentials_from_request_more_fields(app_client):
     assert response.json() == {
         "credentials": {
             "admintoken": "admin_token_value",
-            "jwt": "Bearer jwt_token_value",
+            "jwt": "jwt_token_value",
             "groupid": "group_id_value",
             "editid": 123
         }

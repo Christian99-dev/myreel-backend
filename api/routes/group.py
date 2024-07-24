@@ -1,5 +1,5 @@
-from fastapi import APIRouter
-from api.config.database import db_dependency
+from fastapi import APIRouter, Depends
+from api.config.database import Session, get_db
 
 
 router = APIRouter(
@@ -7,9 +7,9 @@ router = APIRouter(
 )
 
 @router.delete("/delete", tags=["group"])
-async def delete(id: int, db: db_dependency):
+async def delete(id: int, db: Session = Depends(get_db)):
     return
 
 @router.get("/get", tags=["group"])
-async def get(id: int, db: db_dependency):
+async def get(id: int, db: Session = Depends(get_db)):
     return    

@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel
-from pytest import Session
+from sqlalchemy.orm import Session
 from api.auth.role_enum import RoleEnum
 from api.config.path_roles import PathInfo
 from api.services.edit import is_edit_creator

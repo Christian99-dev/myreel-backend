@@ -1,26 +1,52 @@
+import logging
 from datetime import datetime
-from typing import Dict
+from typing import Callable, Dict
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from api.auth.role_enum import RoleEnum
-from api.utils.middleware.get_all_routes import get_all_routes
+from api.auth import jwt
+from api.auth.role import Role, RoleInfos
+from api.config.path_roles import PathInfo
 from api.utils.middleware.log_access import log_access
+from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
+from contextlib import contextmanager
+
+testing_logger = logging.getLogger("testing")
 
 class AccessHandlerMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, path_roles: Dict[str, RoleEnum]):
+    def __init__(self, app, path_roles: Dict[str, PathInfo], get_db: Callable):
         super().__init__(app)
         self.path_roles = path_roles
+        self.get_db = get_db
 
     async def dispatch(self, request: Request, call_next):
+        testing_logger.debug("middleware() called")
+        pathInfo        = self.path_roles.get(request.url.path)
         
-        app             = request.app
-        incoming_role   = RoleEnum.EDIT_CREATOR
-        required_role   = RoleEnum.EDIT_CREATOR
-        all_routes      = get_all_routes(app)
-        path_roles      = self.path_roles
+        if pathInfo is None:
+            return Response(status_code=404)
+            
+        # all cred
+        credentials = extract_role_credentials_from_request(request)
         
-        if 1 == 1:  
-            log_access(request.url.path, 403, 0.0000, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), f"Role conflict! Role: {incoming_role.name}, Required: {required_role.name}")
+        admintoken  = credentials.admintoken
+        groupid     = credentials.groupid
+        editid      = credentials.editid
+        
+        # user id from jwt
+        userid = None
+        try:
+            userid = jwt.read_jwt(credentials.jwt)
+        except Exception as e:            
+            userid = None
+        
+        # init role object
+        db_generator = self.get_db()
+        db_session = next(db_generator)
+        
+        role = Role(role_infos=RoleInfos(admintoken=admintoken, userid=userid, groupid=groupid, editid=editid), db_session=db_session)
+        testing_logger.debug(f"middleware() role is now {role._role} with {credentials}, userid {userid} \n")
+        if role.hasAccess(pathInfo) is False:  
+            log_access(request.url.path, 403, 0.0000, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), f"Role conflict! Role: {role._role}, Required: {pathInfo.role}")
             return Response(status_code=403)
                 
         return await call_next(request)
