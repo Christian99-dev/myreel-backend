@@ -5,7 +5,7 @@ from api.auth.role import Role, RoleInfos
 from api.auth.role_enum import RoleEnum
 from dotenv import load_dotenv
 from api.utils.database.test_model import group_id_1
-from test.utils import role_tester_has_access
+from test.utils.role_tester_has_acccess import role_tester_has_access
 
 logger = logging.getLogger("testing")
 load_dotenv()
