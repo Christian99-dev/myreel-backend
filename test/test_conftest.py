@@ -1,4 +1,3 @@
-from doctest import debug
 import logging
 from sqlalchemy.orm import Session
 from api.models.database.model import Song
