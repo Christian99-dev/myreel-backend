@@ -69,14 +69,14 @@ def test_app_client_empty_has_no_routes(app_client_empty: TestClient):
     response = app_client_empty.get("/songs")
     assert response.status_code == 404, "Route should not exist in this client."
 
-def test_app_client_filled_has_prod_routes(app_client_filled: TestClient):
+def test_app_client_filled_has_prod_routes(app_client_prod_routes: TestClient):
     """Test to ensure that the app has the correct routes."""
     # Get the list of routes from the production app
     prod_routes         = [route.path for route in app.router.routes]
     filtered_prod_routes = [route for route in prod_routes if route not in ['/openapi.json', '/docs', '/docs/oauth2-redirect', '/redoc']]
 
     # Get the list of routes from the test client
-    response = app_client_filled.get("/openapi.json")
+    response = app_client_prod_routes.get("/openapi.json")
     test_client_routes  = [path for path in response.json()["paths"].keys()]
     assert response.status_code == 200
     
@@ -88,17 +88,17 @@ def test_app_client_filled_has_prod_routes(app_client_filled: TestClient):
         assert route in filtered_prod_routes, f"Unexpected route {route} found in the test client app."
 
 # isolation not empty client
-def test_app_client_isolation_filled(app_client_filled: TestClient):
+def test_app_client_isolation_filled(app_client_prod_routes: TestClient):
     """Test to ensure that each test function gets a separate client session with filled database."""
     
-    response = app_client_filled.get("/song/list")
+    response = app_client_prod_routes.get("/song/list")
     assert response.status_code == 200
     response = response.json()
     songs = response.get("songs")
     assert len(songs) == len(test_model.songs), "Database should be filled with test data at the beginning of this test."
 
     # Add a song using the client
-    create_response = app_client_filled.post("/song/create", json={
+    create_response = app_client_prod_routes.post("/song/create", json={
         "name": "Das ist ein song",
         "author": "Hallo",
         "cover_src": "http://example.com/cover.jpg",
@@ -109,18 +109,18 @@ def test_app_client_isolation_filled(app_client_filled: TestClient):
     create_response_data = create_response.json()
     song_id = create_response_data.get("song_id")
 
-    get_response = app_client_filled.get(f"/song/get/{song_id}")
+    get_response = app_client_prod_routes.get(f"/song/get/{song_id}")
     assert get_response.status_code == 200
     
-    list_response = app_client_filled.get("/song/list")
+    list_response = app_client_prod_routes.get("/song/list")
     assert list_response.status_code == 200
     new_songs = list_response.json().get("songs")
     assert len(new_songs) == len(test_model.songs) + 1
 
-def test_app_client_isolation_other_filled(app_client_filled: TestClient):
+def test_app_client_isolation_other_filled(app_client_prod_routes: TestClient):
     """Test to ensure that changes in one client session do not affect another session."""
     
-    response = app_client_filled.get("/song/list")
+    response = app_client_prod_routes.get("/song/list")
     assert response.status_code == 200
     songs = response.json().get("songs")
     assert len(songs) == len(test_model.songs), "Database should be filled with test data at the beginning of this test."
