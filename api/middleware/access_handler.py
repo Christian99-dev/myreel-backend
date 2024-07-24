@@ -8,7 +8,6 @@ from api.auth.role import Role, RoleInfos
 from api.config.path_roles import PathInfo
 from api.utils.middleware.log_access import log_access
 from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
-from contextlib import contextmanager
 
 testing_logger = logging.getLogger("testing")
 
@@ -19,7 +18,6 @@ class AccessHandlerMiddleware(BaseHTTPMiddleware):
         self.get_db = get_db
 
     async def dispatch(self, request: Request, call_next):
-        testing_logger.debug("middleware() called")
         pathInfo        = self.path_roles.get(request.url.path)
         
         if pathInfo is None:
@@ -44,7 +42,7 @@ class AccessHandlerMiddleware(BaseHTTPMiddleware):
         db_session = next(db_generator)
         
         role = Role(role_infos=RoleInfos(admintoken=admintoken, userid=userid, groupid=groupid, editid=editid), db_session=db_session)
-        testing_logger.debug(f"middleware() role is now {role._role} with {credentials}, userid {userid} \n")
+        testing_logger.debug(f"Incoming: {role._role}, Required: {pathInfo.role}, Subroles: {pathInfo.has_subroles}, Path: {request.url.path}, hasAccess: {role.hasAccess(pathInfo)}")
         if role.hasAccess(pathInfo) is False:  
             log_access(request.url.path, 403, 0.0000, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), f"Role conflict! Role: {role._role}, Required: {pathInfo.role}")
             return Response(status_code=403)
