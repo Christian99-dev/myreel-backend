@@ -1,10 +1,12 @@
 import pytest
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, StaticPool
 from sqlalchemy.orm import sessionmaker
+from api.middleware.access_handler import AccessHandlerMiddleware
 from api.models.database.model import Base
+from test.utils.mock_path_roles import mock_path_roles
 from test.utils.fill_test_model import fill_test_model
 from logging_config import setup_logging_testing
 from api.routes.song import router as song_router
@@ -63,6 +65,7 @@ def db_session_filled(db_engine):
 def app_client_empty(): 
     yield TestClient(FastAPI())
 
+# mirror prod routes without middleware
 @pytest.fixture(scope="function")
 def app_client_filled(db_session_filled):
     
@@ -79,4 +82,31 @@ def app_client_filled(db_session_filled):
     
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
+    app.dependency_overrides.pop(get_db, None)
+    
+# prepare app with all routes
+@pytest.fixture(scope="function")
+def app_client_test_routes_middleware(db_session_filled):
+    def override_get_db():
+        yield db_session_filled
+
+    # simulating prod api
+    app = FastAPI()
+    
+    # middleware for access testing 
+    app.add_middleware(AccessHandlerMiddleware, path_roles=mock_path_roles, get_db=override_get_db)
+    
+    # every endpoints based on testconfig file
+    def create_endpoint(m_name: str):
+        async def endpoint(request: Request):
+            return f"You called {m_name}"
+        return endpoint
+
+    for path in mock_path_roles.keys():    
+        app.add_api_route(f"{path}", create_endpoint(path), methods=["GET"])
+    
+    app.dependency_overrides[get_db] = override_get_db
+    
+    yield TestClient(app)
+    
     app.dependency_overrides.pop(get_db, None)
