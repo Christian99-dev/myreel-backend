@@ -10,6 +10,8 @@ from fastapi.testclient import TestClient
 from main import app
 logger = logging.getLogger("testing")
 
+# -- DB SESSIONS -- #
+
 # isolation db session 
 def test_db_session_isolation(db_session_empty: Session):
     """Test to ensure that each test function gets a separate session."""
@@ -62,6 +64,8 @@ def test_db_session_isolation_other_filled(db_session_filled: Session):
     result = db_session_filled.query(Song).filter_by(name="Test Song").first()
     assert result is None, "The song should not be present in this session if isolation is correct."
 
+# -- HTTP CLIENTS -- #
+
 # app client routes empty and not empty
 def test_app_client_empty_has_no_routes(app_client_empty: TestClient):
     """Test to ensure that each test function gets a separate client session with no routes."""
@@ -69,6 +73,7 @@ def test_app_client_empty_has_no_routes(app_client_empty: TestClient):
     response = app_client_empty.get("/songs")
     assert response.status_code == 404, "Route should not exist in this client."
 
+# app client PROD routes are mirrored
 def test_app_client_filled_has_prod_routes(app_client_prod_routes: TestClient):
     """Test to ensure that the app has the correct routes."""
     # Get the list of routes from the production app
@@ -87,7 +92,7 @@ def test_app_client_filled_has_prod_routes(app_client_prod_routes: TestClient):
     for route in test_client_routes:
         assert route in filtered_prod_routes, f"Unexpected route {route} found in the test client app."
 
-# isolation not empty client
+# app client PROD
 def test_app_client_isolation_filled(app_client_prod_routes: TestClient):
     """Test to ensure that each test function gets a separate client session with filled database."""
     
@@ -126,6 +131,22 @@ def test_app_client_isolation_other_filled(app_client_prod_routes: TestClient):
     assert len(songs) == len(test_model.songs), "Database should be filled with test data at the beginning of this test."
     assert not any(song["name"] == "Test Song" for song in songs), "The song should not be present in this session if isolation is correct."
 
+# app client MOCK_ROUTES are there with middleware
+def test_setup_routes(app_client_mock_routes_middleware):
+    assert app_client_mock_routes_middleware.get("/admin_no_subroles").status_code          == 403
+    assert app_client_mock_routes_middleware.get("/group_creator_no_subroles").status_code  == 403
+    assert app_client_mock_routes_middleware.get("/edit_creator_no_subroles").status_code   == 403
+    assert app_client_mock_routes_middleware.get("/group_member_no_subroles").status_code   == 403
+    assert app_client_mock_routes_middleware.get("/external_no_subroles").status_code       == 200
+    
+    assert app_client_mock_routes_middleware.get("/admin_subroles").status_code            == 403
+    assert app_client_mock_routes_middleware.get("/group_creator_subroles").status_code    == 403
+    assert app_client_mock_routes_middleware.get("/edit_creator_subroles").status_code     == 403
+    assert app_client_mock_routes_middleware.get("/group_member_subroles").status_code     == 403
+    assert app_client_mock_routes_middleware.get("/external_subroles").status_code         == 200
+
+# -- UTILS -- #
+
 # testing mock roles are configured corretly
 def test_setup_roles(db_session_filled):
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_session_filled), RoleEnum.ADMIN)
@@ -134,7 +155,6 @@ def test_setup_roles(db_session_filled):
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=2, groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), RoleEnum.GROUP_MEMBER)
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=db_session_filled), RoleEnum.EXTERNAL)    
 
-def test_setup_roles_with_creds(db_session_filled):
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_session_filled), admin_req_creds["role"])
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), group_creator_req_creds["role"])
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_session_filled), edit_creator_req_creds["role"])
