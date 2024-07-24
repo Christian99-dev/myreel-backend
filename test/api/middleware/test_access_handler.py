@@ -1,76 +1,16 @@
-import os
 import pytest
 from fastapi import FastAPI, Request
-from api.auth import jwt
 from api.auth.role import Role, RoleInfos
 from api.auth.role_enum import RoleEnum
 from api.config.database import get_db
 from fastapi.testclient import TestClient
 from api.middleware.access_handler import AccessHandlerMiddleware
 from test.utils.mock_path_roles import mock_path_roles
-from test.utils.test_model import group_id_1
 from test.utils.role_tester_has_acccess import role_tester_has_access
+from test.utils.mock_roles_creds import admin_req_creds, group_creator_req_creds, group_member_req_creds, external_req_creds, edit_creator_req_creds
 import logging
 logger = logging.getLogger("testing")
 
-# setup roles
-jwt_user_1 = jwt.create_jwt(1, 30)
-jwt_user_2 = jwt.create_jwt(2, 30)
-user_1_encoded = jwt.read_jwt(jwt_user_1)
-user_2_encoded = jwt.read_jwt(jwt_user_2)
-    
-admin_req_creds = {
-    "req": {    
-        "headers": {
-            "admintoken": str(os.getenv("ADMIN_TOKEN"))
-        }
-    }, 
-    "role": RoleEnum.ADMIN
-}
-
-group_creator_req_creds = {
-    "req": {    
-        "headers": {
-            "Authorization": f"Bearer {jwt_user_1}"
-        },
-        "params": {
-            "groupid": group_id_1
-        }
-    }, 
-    "role": RoleEnum.GROUP_CREATOR
-}
-
-edit_creator_req_creds = {
-    "req": {    
-        "headers": {
-            "Authorization": f"Bearer {jwt_user_1}"
-        },
-        "params": {
-            "editid": "1"
-        }
-    }, 
-    "role": RoleEnum.EDIT_CREATOR
-}
-
-group_member_req_creds = {
-    "req": {    
-        "headers": {
-            "Authorization": f"Bearer {jwt_user_2}"
-        },
-        "params": {
-            "groupid": group_id_1
-        }
-    }, 
-    "role": RoleEnum.GROUP_MEMBER
-}
-
-external_req_creds = {
-    "req": {
-        "headers": {},
-        "params": {}
-    }, 
-    "role": RoleEnum.EXTERNAL
-}
 
 # prepare app with all routes
 @pytest.fixture(scope="function")
@@ -115,16 +55,16 @@ def notest_setup_routes(app_client_test_routes_middleware):
     
 def test_setup_roles(db_session_filled):
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_session_filled), RoleEnum.ADMIN)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_1_encoded, groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), RoleEnum.GROUP_CREATOR)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_1_encoded, groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_session_filled), RoleEnum.EDIT_CREATOR)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_2_encoded, groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), RoleEnum.GROUP_MEMBER)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), RoleEnum.GROUP_CREATOR)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_session_filled), RoleEnum.EDIT_CREATOR)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=2, groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), RoleEnum.GROUP_MEMBER)
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=db_session_filled), RoleEnum.EXTERNAL)    
 
 def test_setup_roles_with_creds(db_session_filled):
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_session_filled), admin_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_1_encoded, groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), group_creator_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_1_encoded, groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_session_filled), edit_creator_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=user_2_encoded, groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), group_member_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), group_creator_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_session_filled), edit_creator_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=2, groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), group_member_req_creds["role"])
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=db_session_filled), external_req_creds["role"])
 
 # maintest
