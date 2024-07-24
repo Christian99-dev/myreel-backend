@@ -1,6 +1,9 @@
 import logging
 from sqlalchemy.orm import Session
+from api.auth.role import Role, RoleInfos
 from api.models.database.model import Song
+from test.utils.role_tester_has_acccess import role_tester_has_access
+from test.utils.mock_roles_creds import admin_req_creds, group_creator_req_creds, group_member_req_creds, external_req_creds, edit_creator_req_creds
 from test.utils.test_model import test_model
 from fastapi.testclient import TestClient
 from main import app
@@ -122,3 +125,17 @@ def test_app_client_isolation_other_filled(app_client_filled: TestClient):
     assert len(songs) == len(test_model.songs), "Database should be filled with test data at the beginning of this test."
     assert not any(song["name"] == "Test Song" for song in songs), "The song should not be present in this session if isolation is correct."
 
+# testing mock roles are configured corretly
+def test_setup_roles(db_session_filled):
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_session_filled), RoleEnum.ADMIN)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), RoleEnum.GROUP_CREATOR)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_session_filled), RoleEnum.EDIT_CREATOR)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=2, groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), RoleEnum.GROUP_MEMBER)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=db_session_filled), RoleEnum.EXTERNAL)    
+
+def test_setup_roles_with_creds(db_session_filled):
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_session_filled), admin_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), group_creator_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_session_filled), edit_creator_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=2, groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), group_member_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=db_session_filled), external_req_creds["role"])

@@ -1,12 +1,9 @@
 import pytest
 from fastapi import FastAPI, Request
-from api.auth.role import Role, RoleInfos
-from api.auth.role_enum import RoleEnum
 from api.config.database import get_db
 from fastapi.testclient import TestClient
 from api.middleware.access_handler import AccessHandlerMiddleware
 from test.utils.mock_path_roles import mock_path_roles
-from test.utils.role_tester_has_acccess import role_tester_has_access
 from test.utils.mock_roles_creds import admin_req_creds, group_creator_req_creds, group_member_req_creds, external_req_creds, edit_creator_req_creds
 import logging
 logger = logging.getLogger("testing")
@@ -40,7 +37,7 @@ def app_client_test_routes_middleware(db_session_filled):
     app.dependency_overrides.pop(get_db, None)
 
 # test config
-def notest_setup_routes(app_client_test_routes_middleware):
+def test_setup_routes(app_client_test_routes_middleware):
     assert app_client_test_routes_middleware.get("/admin_no_subroles").status_code          == 403
     assert app_client_test_routes_middleware.get("/group_creator_no_subroles").status_code  == 403
     assert app_client_test_routes_middleware.get("/edit_creator_no_subroles").status_code   == 403
@@ -53,19 +50,6 @@ def notest_setup_routes(app_client_test_routes_middleware):
     assert app_client_test_routes_middleware.get("/group_member_subroles").status_code     == 403
     assert app_client_test_routes_middleware.get("/external_subroles").status_code         == 200
     
-def test_setup_roles(db_session_filled):
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_session_filled), RoleEnum.ADMIN)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), RoleEnum.GROUP_CREATOR)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_session_filled), RoleEnum.EDIT_CREATOR)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=2, groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), RoleEnum.GROUP_MEMBER)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=db_session_filled), RoleEnum.EXTERNAL)    
-
-def test_setup_roles_with_creds(db_session_filled):
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_session_filled), admin_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), group_creator_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_session_filled), edit_creator_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=2, groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_session_filled), group_member_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=db_session_filled), external_req_creds["role"])
 
 # maintest
 def test_endpoints(app_client_test_routes_middleware):     
