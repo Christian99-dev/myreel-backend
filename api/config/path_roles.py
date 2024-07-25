@@ -24,7 +24,7 @@ path_roles: Dict[str, PathInfo] = {
     '/song/list':               PathInfo(role=RoleEnum.ADMIN,       has_subroles=True), 
     
     # group
-    '/group/delete':            PathInfo(role=RoleEnum.ADMIN,       has_subroles=True), 
-    '/group/get':               PathInfo(role=RoleEnum.ADMIN,       has_subroles=True), 
+    # '/group/delete':            PathInfo(role=RoleEnum.ADMIN,       has_subroles=True), 
+    # '/group/get':               PathInfo(role=RoleEnum.ADMIN,       has_subroles=True), 
 }
 
