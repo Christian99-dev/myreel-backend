@@ -24,7 +24,7 @@ class AccessHandlerMiddleware(BaseHTTPMiddleware):
             return Response(status_code=404)
             
         # all cred
-        credentials = extract_role_credentials_from_request(request)
+        credentials = await extract_role_credentials_from_request(request)
         
         admintoken  = credentials.admintoken
         groupid     = credentials.groupid

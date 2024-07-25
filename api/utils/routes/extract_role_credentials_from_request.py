@@ -1,6 +1,9 @@
+import re
 from typing import Optional
 from pydantic import BaseModel
 from fastapi import Request
+import logging
+logger = logging.getLogger("testing")
 
 class RoleCredentials(BaseModel):
     admintoken: Optional[str]
@@ -8,7 +11,9 @@ class RoleCredentials(BaseModel):
     groupid: Optional[str]
     editid: Optional[int]
 
-def extract_role_credentials_from_request(request: Request) -> RoleCredentials:
+async def extract_role_credentials_from_request(request: Request) -> RoleCredentials:
+    
+    # -- SUCHE NACH token oder jwt im HEADER -- #
     # Extrahiere die relevanten Informationen aus dem Header
     admintoken = request.headers.get('admintoken')
     jwt = request.headers.get('Authorization')  # Annahme: JWT wird im Authorization Header gesendet
@@ -16,11 +21,31 @@ def extract_role_credentials_from_request(request: Request) -> RoleCredentials:
     if jwt is not None and jwt.startswith("Bearer "):
         jwt = jwt.replace("Bearer ", "")
 
-    # Extrahiere die relevanten Informationen aus den Query-Parametern
+    # -- SUCHE NACH groupid oder editid im QUERY -- #
     groupid = request.query_params.get('groupid')
     editid = request.query_params.get('editid')
+    
+    # -- SUCHE NACH groupid oder editid im BODY -- #
+    body = await request.json() if await request.body() else {}
+    groupid = groupid or body.get('groupid')
+    editid = editid or body.get('editid')    
+    
+    # -- SUCHE NACH groupid oder editid im PATH -- #
+    path = request.url.path
+    groupid_match = re.search(r'/group/([^/]+)', path)
+    editid_match = re.search(r'/edit/(\d+)', path)
 
-    # Konvertiere editid in int, falls vorhanden
-    editid = int(editid) if editid is not None else None
+    if groupid_match:
+        groupid = groupid_match.group(1)
+    if editid_match:
+        editid = int(editid_match.group(1))
+        
+    # Konvertiere editid in int, falls vorhanden und möglich
+    try:
+        editid = int(editid) if editid is not None else None
+    except:
+        editid = None
+
+    
 
     return RoleCredentials(admintoken=admintoken, jwt=jwt, groupid=groupid, editid=editid)
