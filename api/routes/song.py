@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from api.models.schema.song import CreateRequest, CreateResponse, GetResponse, ListResponse
-from api.services.song import create as create_service, list_all as list_all_service, get as get_service
+from api.services.database.song import create as create_service, list_all as list_all_service, get as get_service
 from api.config.database import Session, get_db
 
 router = APIRouter(

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Edit
-from api.services.edit import create, get, is_edit_creator
+from api.services.database.edit import create, get, is_edit_creator
 from api.utils.database.create_uuid import create_uuid
 
 # create

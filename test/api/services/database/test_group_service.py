@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Group
-from api.services.group import create, get, is_group_creator, is_group_member
+from api.services.database.group import create, get, is_group_creator, is_group_member
 from test.utils.test_model import group_id_1, group_id_2
 
 # create

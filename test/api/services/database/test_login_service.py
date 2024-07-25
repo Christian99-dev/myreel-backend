@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from api.models.database.model import LoginRequest
-from api.services.login import create, delete
+from api.services.database.login import create, delete
 
 def test_create(db_session_filled):
     login_request = create(user_id=1, db=db_session_filled)

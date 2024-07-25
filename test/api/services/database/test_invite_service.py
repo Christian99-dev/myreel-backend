@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from api.models.database.model import Invitation
-from api.services.invite import create, delete
+from api.services.database.invite import create, delete
 from test.utils.test_model import group_id_1
 
 def test_create(db_session_filled):

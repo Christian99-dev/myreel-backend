@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from api.services.song import create, list_all, get
+from api.services.database.song import create, list_all, get
 from api.models.database.model import Song
 from test.utils.test_model import test_model
 
