@@ -7,6 +7,7 @@ def create(
         group_id: str, 
         name: str, 
         is_live: bool, 
+        video_src: str,
         db: Session) -> Edit:
     
     new_edit = Edit(
@@ -14,7 +15,8 @@ def create(
         created_by=created_by,
         group_id=group_id,
         name=name,
-        isLive=is_live
+        isLive=is_live,
+        video_src=video_src
     )
     db.add(new_edit)
     db.commit()

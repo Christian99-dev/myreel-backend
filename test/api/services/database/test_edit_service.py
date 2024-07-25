@@ -11,9 +11,10 @@ def test_create(db_session_empty: Session):
     group_id = create_uuid()  # Use a valid group_id or create a group if necessary
     name = "Test Edit"
     is_live = True
+    video_src = "www.examplesrc.de"
 
     # Act: Call the create service function
-    new_edit = create(song_id=song_id, created_by=created_by, group_id=group_id, name=name, is_live=is_live, db=db_session_empty)
+    new_edit = create(song_id=song_id, created_by=created_by, group_id=group_id, name=name, is_live=is_live, video_src=video_src, db=db_session_empty)
     
     # Assert: Check the created edit's attributes
     assert new_edit.song_id == song_id
@@ -21,6 +22,7 @@ def test_create(db_session_empty: Session):
     assert new_edit.group_id == group_id
     assert new_edit.name == name
     assert new_edit.isLive == is_live
+    assert new_edit.video_src == video_src
 
     # Verify: Ensure the edit was actually added to the database
     edit_in_db = db_session_empty.query(Edit).filter_by(edit_id=new_edit.edit_id).one_or_none()
@@ -30,6 +32,7 @@ def test_create(db_session_empty: Session):
     assert edit_in_db.group_id == group_id
     assert edit_in_db.name == name
     assert edit_in_db.isLive == is_live
+    assert edit_in_db.video_src == video_src
 
 # get    
 def test_get(db_session_empty: Session):
@@ -39,9 +42,10 @@ def test_get(db_session_empty: Session):
     group_id = create_uuid()
     name = "Test Edit"
     is_live = True
+    video_src = "www.examplesrc.de"
     
     # Create a new edit
-    created_edit = create(song_id, created_by, group_id, name, is_live, db_session_empty)
+    created_edit = create(song_id, created_by, group_id, name, is_live, video_src, db_session_empty)
     
     # Fetch the edit by ID
     fetched_edit = get(created_edit.edit_id, db_session_empty)
@@ -54,6 +58,7 @@ def test_get(db_session_empty: Session):
     assert fetched_edit.group_id == created_edit.group_id
     assert fetched_edit.name == created_edit.name
     assert fetched_edit.isLive == created_edit.isLive
+    assert fetched_edit.video_src == created_edit.video_src
     
 def test_get_edit_failed(db_session_empty: Session):
     # Define a non-existent edit ID

@@ -29,6 +29,6 @@ def fill_test_model(db_session: Session):
 
     # Insert edits
     edits = [Edit(edit_id=edit.edit_id, song_id=edit.song_id, created_by=edit.created_by, group_id=edit.group_id,
-                  name=edit.name, isLive=edit.isLive) for edit in test_model.edits]
+                  name=edit.name, isLive=edit.isLive, video_src=edit.video_src) for edit in test_model.edits]
     db_session.add_all(edits)
     db_session.commit()

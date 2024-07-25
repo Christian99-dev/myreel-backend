@@ -37,6 +37,7 @@ class Edit(Base):
     group_id:       Mapped[str]                     = mapped_column(ForeignKey('group.group_id'), nullable=False)
     name:           Mapped[str]                     = mapped_column(String(255), nullable=False)
     isLive:         Mapped[bool]                    = mapped_column(Boolean, nullable=False)
+    video_src:      Mapped[str]                     = mapped_column(String(255), nullable=False)
 
     song:           Mapped["Song"]                  = relationship("Song", back_populates="edit_list")
     group:          Mapped["Group"]                 = relationship("Group", back_populates="edit_list")
@@ -95,6 +96,7 @@ class OccupiedSlot(Base):
     user_id:    Mapped[int]     = mapped_column(ForeignKey('user.user_id'), primary_key=True)
     slot_id:    Mapped[int]     = mapped_column(ForeignKey('slot.slot_id'), primary_key=True)
     edit_id:    Mapped[int]     = mapped_column(ForeignKey('edit.edit_id'), primary_key=True)
+    video_src:  Mapped[str]     = mapped_column(String(255), nullable=False)
 
     user:       Mapped["User"]  = relationship("User", back_populates="occupied_slot_list")
     slot:       Mapped["Slot"]  = relationship("Slot", back_populates="occupied_slots")

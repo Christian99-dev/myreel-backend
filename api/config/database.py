@@ -46,12 +46,12 @@ with SessionLocal() as session:
         fill_test_model(session)
     
     print_database_contents(session, {
-        'Slot':         False,
-        'Song':         False,
-        'Edit':         False,
-        'Group':        False,
-        'Invitation':   False,
-        'User':         False,
-        'LoginRequest': False,
-        'OccupiedSlot': False
+        'Slot':         True,
+        'Song':         True,
+        'Edit':         True,
+        'Group':        True,
+        'Invitation':   True,
+        'User':         True,
+        'LoginRequest': True,
+        'OccupiedSlot': True
     })

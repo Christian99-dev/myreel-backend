@@ -42,3 +42,4 @@ def test_test_model_data_matches_db(db_session_filled: Session):
         assert expected_edit.group_id == actual_edit.group_id
         assert expected_edit.name == actual_edit.name
         assert expected_edit.isLive == actual_edit.isLive
+        assert expected_edit.video_src == actual_edit.video_src
