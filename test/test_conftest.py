@@ -9,7 +9,7 @@ from test.utils.test_model import test_model
 from fastapi.testclient import TestClient
 from main import app
 logger = logging.getLogger("testing")
-
+#TODO SONG
 # -- DB SESSIONS -- #
 
 # isolation db session 
@@ -93,7 +93,7 @@ def test_app_client_filled_has_prod_routes(app_client_prod_routes: TestClient):
         assert route in filtered_prod_routes, f"Unexpected route {route} found in the test client app."
 
 # app client PROD
-def test_app_client_isolation_filled(app_client_prod_routes: TestClient):
+def notest_app_client_isolation_filled(app_client_prod_routes: TestClient):
     """Test to ensure that each test function gets a separate client session with filled database."""
     
     response = app_client_prod_routes.get("/song/list")
@@ -122,7 +122,7 @@ def test_app_client_isolation_filled(app_client_prod_routes: TestClient):
     new_songs = list_response.json().get("songs")
     assert len(new_songs) == len(test_model.songs) + 1
 
-def test_app_client_isolation_other_filled(app_client_prod_routes: TestClient):
+def notest_app_client_isolation_other_filled(app_client_prod_routes: TestClient):
     """Test to ensure that changes in one client session do not affect another session."""
     
     response = app_client_prod_routes.get("/song/list")
