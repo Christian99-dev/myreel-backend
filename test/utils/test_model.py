@@ -1,8 +1,10 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from api.utils.database.create_uuid import create_uuid
+from datetime import datetime, timedelta
 
-# main model tabels
+# main model tables
+
 class Group(BaseModel):
     group_id: Optional[str]
     name: str
@@ -31,6 +33,31 @@ class Edit(BaseModel):
     isLive: bool
     video_src: str
 
+class Slot(BaseModel):
+    slot_id: Optional[int]
+    song_id: int
+    start_time: float
+    end_time: float
+
+class Invitation(BaseModel):
+    invitation_id: Optional[int]
+    group_id: str
+    token: str
+    email: str
+    created_at: datetime
+    expires_at: datetime
+
+class LoginRequest(BaseModel):
+    user_id: int
+    pin: str
+    created_at: datetime
+    expires_at: datetime
+
+class OccupiedSlot(BaseModel):
+    user_id: int
+    slot_id: int
+    edit_id: int
+    video_src: str
 
 # main model
 class Model(BaseModel):
@@ -38,10 +65,16 @@ class Model(BaseModel):
     songs: List[Song]
     users: List[User]
     edits: List[Edit]
+    slots: List[Slot]
+    invitations: List[Invitation]
+    login_requests: List[LoginRequest]
+    occupied_slots: List[OccupiedSlot]
 
 group_id_1 = create_uuid()
 group_id_2 = create_uuid()
 group_id_3 = create_uuid()
+
+now = datetime.utcnow()
 
 test_model = Model(
     groups=[
@@ -75,5 +108,33 @@ test_model = Model(
         Edit(edit_id=7, song_id=1, created_by=7, group_id=group_id_3, name="Edit 1 of Group 3", isLive=False, video_src="http://example.com/video.mp4"),
         Edit(edit_id=8, song_id=2, created_by=9, group_id=group_id_3, name="Edit 2 of Group 3", isLive=False, video_src="http://example.com/video.mp4"),
         Edit(edit_id=9, song_id=3, created_by=8, group_id=group_id_3, name="Edit 3 of Group 3", isLive=False, video_src="http://example.com/video.mp4")
+    ],
+    slots=[
+        Slot(slot_id=1, song_id=1, start_time=0,   end_time=0.5),
+        Slot(slot_id=2, song_id=1, start_time=1,   end_time=1.5),
+        Slot(slot_id=3, song_id=1, start_time=2,   end_time=2.5),
+        
+        Slot(slot_id=4, song_id=2, start_time=0,   end_time=0.5),
+        Slot(slot_id=5, song_id=2, start_time=1,   end_time=1.5),
+        Slot(slot_id=6, song_id=2, start_time=2,   end_time=2.5),
+        
+        Slot(slot_id=7, song_id=3, start_time=0,   end_time=0.5),
+        Slot(slot_id=8, song_id=3, start_time=1,   end_time=1.5),
+        Slot(slot_id=9, song_id=3, start_time=2,   end_time=2.5)
+    ],
+    invitations=[
+        Invitation(invitation_id=1, group_id=group_id_1, token="token1", email="invitee1@example.com", created_at=now, expires_at=now + timedelta(days=1)),
+        Invitation(invitation_id=2, group_id=group_id_2, token="token2", email="invitee2@example.com", created_at=now, expires_at=now + timedelta(days=1)),
+        Invitation(invitation_id=3, group_id=group_id_3, token="token3", email="invitee3@example.com", created_at=now, expires_at=now + timedelta(days=1))
+    ],
+    login_requests=[
+        LoginRequest(user_id=1, pin="1234", created_at=now, expires_at=now + timedelta(minutes=10)),
+        LoginRequest(user_id=2, pin="5678", created_at=now, expires_at=now + timedelta(minutes=10)),
+        LoginRequest(user_id=3, pin="91011", created_at=now, expires_at=now + timedelta(minutes=10))
+    ],
+    occupied_slots=[
+        OccupiedSlot(user_id=1, slot_id=1, edit_id=1, video_src="http://example.com/occupied1.mp4"),
+        OccupiedSlot(user_id=2, slot_id=2, edit_id=2, video_src="http://example.com/occupied2.mp4"),
+        OccupiedSlot(user_id=3, slot_id=3, edit_id=3, video_src="http://example.com/occupied3.mp4")
     ]
 )

@@ -9,8 +9,8 @@ class Slot(Base):
 
     slot_id:    Mapped[int]                 = mapped_column(primary_key=True, autoincrement=True)
     song_id:    Mapped[int]                 = mapped_column(ForeignKey('song.song_id'), nullable=False)
-    start_time: Mapped[str]                 = mapped_column(Time, nullable=False)
-    end_time:   Mapped[str]                 = mapped_column(Time, nullable=False)
+    start_time: Mapped[float]               = mapped_column(nullable=False)
+    end_time:   Mapped[float]               = mapped_column(nullable=False)
 
     song:           Mapped["Song"]          = relationship("Song", back_populates="slot_list")
     occupied_slots: Mapped["OccupiedSlot"]  = relationship("OccupiedSlot", back_populates="slot")
