@@ -1,7 +1,56 @@
+from fastapi import FastAPI, Request
+from fastapi.testclient import TestClient
+import pytest
+from api.config.database import get_db
+from api.middleware.access_handler import AccessHandlerMiddleware
 from test.utils.mock_path_roles import mock_path_roles
 from test.utils.mock_roles_creds import admin_req_creds, group_creator_req_creds, group_member_req_creds, external_req_creds, edit_creator_req_creds
 import logging
 logger = logging.getLogger("testing")
+
+# routes        = mock_path_roles mirrored
+# database      = test_model
+# middleware    yes
+@pytest.fixture(scope="function")
+def app_client_mock_routes_middleware(db_session_filled):
+    def override_get_db():
+        yield db_session_filled
+
+    # simulating prod api
+    app = FastAPI()
+    
+    # middleware for access testing 
+    app.add_middleware(AccessHandlerMiddleware, path_roles=mock_path_roles, get_db=override_get_db)
+    
+    # every endpoints based on testconfig file
+    def create_endpoint(m_name: str):
+        async def endpoint(request: Request):
+            return f"You called {m_name}"
+        return endpoint
+
+    for path in mock_path_roles.keys():    
+        app.add_api_route(f"{path}", create_endpoint(path), methods=["GET"])
+    
+    app.dependency_overrides[get_db] = override_get_db
+    
+    yield TestClient(app)
+    
+    app.dependency_overrides.pop(get_db, None)
+ 
+ # app client MOCK_ROUTES are there with middleware
+
+def test_setup(app_client_mock_routes_middleware):
+    assert app_client_mock_routes_middleware.get("/admin_no_subroles").status_code          == 403
+    assert app_client_mock_routes_middleware.get("/group_creator_no_subroles").status_code  == 403
+    assert app_client_mock_routes_middleware.get("/edit_creator_no_subroles").status_code   == 403
+    assert app_client_mock_routes_middleware.get("/group_member_no_subroles").status_code   == 403
+    assert app_client_mock_routes_middleware.get("/external_no_subroles").status_code       == 200
+    
+    assert app_client_mock_routes_middleware.get("/admin_subroles").status_code            == 403
+    assert app_client_mock_routes_middleware.get("/group_creator_subroles").status_code    == 403
+    assert app_client_mock_routes_middleware.get("/edit_creator_subroles").status_code     == 403
+    assert app_client_mock_routes_middleware.get("/group_member_subroles").status_code     == 403
+    assert app_client_mock_routes_middleware.get("/external_subroles").status_code         == 200
     
 # maintest
 def test_endpoints(app_client_mock_routes_middleware):     

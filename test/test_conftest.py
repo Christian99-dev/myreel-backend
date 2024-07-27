@@ -66,14 +66,14 @@ def test_db_session_isolation_other_filled(db_session_filled: Session):
 
 # -- HTTP CLIENTS -- #
 
-# app client routes empty and not empty
+# app client empty
 def test_app_client_empty_has_no_routes(app_client_empty: TestClient):
     """Test to ensure that each test function gets a separate client session with no routes."""
     
     response = app_client_empty.get("/songs")
     assert response.status_code == 404, "Route should not exist in this client."
 
-# app client PROD routes are mirrored
+# app client filled
 def test_app_client_filled_has_prod_routes(app_client_prod_routes: TestClient):
     """Test to ensure that the app has the correct routes."""
     # Get the list of routes from the production app
@@ -92,7 +92,6 @@ def test_app_client_filled_has_prod_routes(app_client_prod_routes: TestClient):
     for route in test_client_routes:
         assert route in filtered_prod_routes, f"Unexpected route {route} found in the test client app."
 
-# app client PROD
 def notest_app_client_isolation_filled(app_client_prod_routes: TestClient):
     """Test to ensure that each test function gets a separate client session with filled database."""
     
@@ -131,21 +130,7 @@ def notest_app_client_isolation_other_filled(app_client_prod_routes: TestClient)
     assert len(songs) == len(test_model.songs), "Database should be filled with test data at the beginning of this test."
     assert not any(song["name"] == "Test Song" for song in songs), "The song should not be present in this session if isolation is correct."
 
-# app client MOCK_ROUTES are there with middleware
-def test_setup_routes(app_client_mock_routes_middleware):
-    assert app_client_mock_routes_middleware.get("/admin_no_subroles").status_code          == 403
-    assert app_client_mock_routes_middleware.get("/group_creator_no_subroles").status_code  == 403
-    assert app_client_mock_routes_middleware.get("/edit_creator_no_subroles").status_code   == 403
-    assert app_client_mock_routes_middleware.get("/group_member_no_subroles").status_code   == 403
-    assert app_client_mock_routes_middleware.get("/external_no_subroles").status_code       == 200
-    
-    assert app_client_mock_routes_middleware.get("/admin_subroles").status_code            == 403
-    assert app_client_mock_routes_middleware.get("/group_creator_subroles").status_code    == 403
-    assert app_client_mock_routes_middleware.get("/edit_creator_subroles").status_code     == 403
-    assert app_client_mock_routes_middleware.get("/group_member_subroles").status_code     == 403
-    assert app_client_mock_routes_middleware.get("/external_subroles").status_code         == 200
-
-# -- UTILS -- #
+# -- TEST MODEL -- #
 
 # testing mock roles are configured corretly
 def test_setup_roles(db_session_filled):
