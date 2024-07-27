@@ -1,7 +1,10 @@
+from typing import Dict
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 import pytest
+from api.auth.role_enum import RoleEnum
 from api.config.database import get_db
+from api.config.path_roles import PathInfo
 from api.middleware.access_handler import AccessHandlerMiddleware
 from test.utils.mock_path_roles import mock_path_roles
 from test.utils.mock_roles_creds import admin_req_creds, group_creator_req_creds, group_member_req_creds, external_req_creds, edit_creator_req_creds
@@ -13,8 +16,24 @@ logger = logging.getLogger("testing")
 # middleware    yes
 @pytest.fixture(scope="function")
 def app_client_mock_routes_middleware(db_session_filled):
+    
+    
     def override_get_db():
         yield db_session_filled
+        
+    mock_path_roles: Dict[str, PathInfo] = {
+        '/admin_no_subroles':            PathInfo(role = RoleEnum.ADMIN,         has_subroles=False),
+        '/group_creator_no_subroles':    PathInfo(role = RoleEnum.GROUP_CREATOR, has_subroles=False),
+        '/edit_creator_no_subroles':     PathInfo(role = RoleEnum.EDIT_CREATOR,  has_subroles=False),
+        '/group_member_no_subroles':     PathInfo(role = RoleEnum.GROUP_MEMBER,  has_subroles=False),
+        '/external_no_subroles':         PathInfo(role = RoleEnum.EXTERNAL,      has_subroles=False),
+        
+        '/admin_subroles':              PathInfo(role = RoleEnum.ADMIN,         has_subroles=True),
+        '/group_creator_subroles':      PathInfo(role = RoleEnum.GROUP_CREATOR, has_subroles=True),
+        '/edit_creator_subroles':       PathInfo(role = RoleEnum.EDIT_CREATOR,  has_subroles=True),
+        '/group_member_subroles':       PathInfo(role = RoleEnum.GROUP_MEMBER,  has_subroles=True),
+        '/external_subroles':           PathInfo(role = RoleEnum.EXTERNAL,      has_subroles=True),
+    }
 
     # simulating prod api
     app = FastAPI()
