@@ -2,7 +2,7 @@ from api.auth.role_enum import RoleEnum
 from api.auth.role import Role
 from api.config.path_roles import PathInfo
 
-# methodes
+# this methode is testing, if the role_instance is the expected role.
 def role_tester_has_access(role_instance: Role, role_to_test: RoleEnum):
     if role_to_test == RoleEnum.ADMIN:
         expected_with_sub_roles = {

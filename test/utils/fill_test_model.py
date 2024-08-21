@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from api.models.database.model import Group, Song, User, Edit, Slot, Invitation, LoginRequest, OccupiedSlot
 from test.utils.test_model import test_model
 
+# This method is filling a db_session with the official test data from the test_model.py file
 def fill_test_model(db_session: Session):
     # Clear existing data
     db_session.query(OccupiedSlot).delete()
