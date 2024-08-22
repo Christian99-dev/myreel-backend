@@ -42,8 +42,8 @@ db_dependency = Annotated[Session, Depends(get_db)]
 
 with SessionLocal() as session:
     
-    if not session.query(model.User).first() and LOCAL_DB:
-        # only uncommend if you want to renew the data with test data
+    if LOCAL_DB: # Guard 
+        # only uncommend if you want to renew the data data
         # fill_test_model(session) 
         pass
     
