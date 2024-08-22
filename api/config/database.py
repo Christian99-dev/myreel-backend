@@ -15,13 +15,13 @@ load_dotenv()
 LOCAL_DB = strtobool(os.getenv("LOCAL_DB"))
 
 if LOCAL_DB:
-    SQLITE_DB_PATH  = os.getenv("SQLITE_DB_PATH")
-    URL_DATABASE    = f"sqlite:///{SQLITE_DB_PATH}"
+    URL_DATABASE    = f"sqlite:///./local.db"
 else:
     MYSQL_HOST      = os.getenv("MYSQL_HOST")
     MYSQL_USER      = os.getenv("MYSQL_USER")
     MYSQL_PASSWORD  = os.getenv("MYSQL_PASSWORD")
     MYSQL_DB        = os.getenv("MYSQL_DB")
+    
     URL_DATABASE    = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB}"
 
 # Start con
