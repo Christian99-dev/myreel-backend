@@ -5,10 +5,8 @@ from dotenv import load_dotenv
 from fastapi.params import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from api.models.database import model
-from test.utils.testing_data.db.fill import fill
-from api.utils.database.print_database_contents import print_database_contents
 from distutils.util import strtobool
+
 logger = logging.getLogger("testing")
 
 load_dotenv()
@@ -24,12 +22,8 @@ else:
     
     URL_DATABASE    = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB}"
 
-# Start con
-engine  = create_engine(URL_DATABASE, connect_args={"check_same_thread": False} if LOCAL_DB else {})
+engine = create_engine(URL_DATABASE, connect_args={"check_same_thread": False} if LOCAL_DB else {})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-#pverride model if needed
-model.Base.metadata.create_all(bind=engine)
 
 def get_db():
     db = SessionLocal()
@@ -39,21 +33,3 @@ def get_db():
         db.close()
 
 db_dependency = Annotated[Session, Depends(get_db)]
-
-with SessionLocal() as session:
-    
-    if LOCAL_DB: # Guard 
-        # only uncommend if you want to renew the data data
-        fill(session) 
-        pass
-    
-    print_database_contents(session, {
-        'Slot':         True,
-        'Song':         True,
-        'Edit':         True,
-        'Group':        True,
-        'Invitation':   True,
-        'User':         True,
-        'LoginRequest': True,
-        'OccupiedSlot': True
-    })
