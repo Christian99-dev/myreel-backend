@@ -41,9 +41,11 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 with SessionLocal() as session:
-     # Wenn die Tabelle leer ist, die Datenbank füllen
+    
     if not session.query(model.User).first() and LOCAL_DB:
-        fill_test_model(session)
+        # only uncommend if you want to renew the data with test data
+        # fill_test_model(session) 
+        pass
     
     print_database_contents(session, {
         'Slot':         True,
