@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from api.models.database.model import Invitation
 from api.services.database.invite import create, delete
-from test.utils.test_model import group_id_1
+from test.utils.testing_data.db.model import group_id_1
 
 def test_create(db_session_filled):
     email = "test@example.com"

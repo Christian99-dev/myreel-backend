@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from test.utils.test_model import test_model
+from test.utils.testing_data.db.model import model
 
 #TODO SONG
 
@@ -34,7 +34,7 @@ def notest_list(app_client_prod_routes: TestClient):
     songs = data.get("songs")
     
     # # Verify: Ensure the number of songs returned matches the test data
-    assert len(songs) == len(test_model.songs)
+    assert len(songs) == len(model.songs)
     
     # # Verify: Ensure the content matches the test data
     for song in songs:
@@ -45,12 +45,12 @@ def notest_list(app_client_prod_routes: TestClient):
             song["cover_src"] == test_song.cover_src and
             song["audio_src"] == test_song.audio_src and
             song["times_used"] == test_song.times_used
-            for test_song in test_model.songs
+            for test_song in model.songs
         )
 
 # get
 def notest_get_song(app_client_prod_routes: TestClient):
-    test_song = test_model.songs[0]
+    test_song = model.songs[0]
     response = app_client_prod_routes.get(f"/song/get/{test_song.song_id}")
     
     assert response.status_code == 200

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Group
 from api.services.database.group import create, get, is_group_creator, is_group_member
-from test.utils.test_model import group_id_1, group_id_2
+from test.utils.testing_data.db.model import group_id_1, group_id_2
 
 # create
 def test_create(db_session_empty: Session):

@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from api.auth.role import Role, RoleInfos
 from api.auth.role_enum import RoleEnum
 from api.models.database.model import Song
-from test.utils.role_tester_has_acccess import role_tester_has_access
-from test.utils.mock_roles_creds import admin_req_creds, group_creator_req_creds, group_member_req_creds, external_req_creds, edit_creator_req_creds
-from test.utils.test_model import test_model
+from test.utils.auth.role_tester_has_acccess import role_tester_has_access
+from test.utils.auth.mock_roles_creds import admin_req_creds, group_creator_req_creds, group_member_req_creds, external_req_creds, edit_creator_req_creds
+from test.utils.testing_data.db.model import model
 from fastapi.testclient import TestClient
 from main import app
 logger = logging.getLogger("testing")
@@ -44,7 +44,7 @@ def test_db_session_isolation_filled(db_session_filled: Session):
     """Test to ensure that each test function gets a separate session."""
     
     # Check if the database is empty at the beginning of the test
-    assert db_session_filled.query(Song).count() == len(test_model.songs), "Database should be empty at the beginning of this test."
+    assert db_session_filled.query(Song).count() == len(model.songs), "Database should be empty at the beginning of this test."
 
     # Add a song to the database in this session
     song = Song(name="Test Song", author="Test Author", times_used=0, cover_src="http://example.com/cover.jpg", audio_src="http://example.com/audio.mp3")
@@ -59,7 +59,7 @@ def test_db_session_isolation_other_filled(db_session_filled: Session):
     """Test to ensure that changes in one session do not affect another session."""
     
     # Check if the database is empty at the beginning of the test
-    assert db_session_filled.query(Song).count() == len(test_model.songs), "Database should be empty at the beginning of this test."
+    assert db_session_filled.query(Song).count() == len(model.songs), "Database should be empty at the beginning of this test."
 
     # Check that the previous test did not affect this session
     result = db_session_filled.query(Song).filter_by(name="Test Song").first()
@@ -100,7 +100,7 @@ def notest_app_client_isolation_filled(app_client_prod_routes: TestClient):
     assert response.status_code == 200
     response = response.json()
     songs = response.get("songs")
-    assert len(songs) == len(test_model.songs), "Database should be filled with test data at the beginning of this test."
+    assert len(songs) == len(model.songs), "Database should be filled with test data at the beginning of this test."
 
     # Add a song using the client
     create_response = app_client_prod_routes.post("/song/create", json={
@@ -120,7 +120,7 @@ def notest_app_client_isolation_filled(app_client_prod_routes: TestClient):
     list_response = app_client_prod_routes.get("/song/list")
     assert list_response.status_code == 200
     new_songs = list_response.json().get("songs")
-    assert len(new_songs) == len(test_model.songs) + 1
+    assert len(new_songs) == len(model.songs) + 1
 
 def notest_app_client_isolation_other_filled(app_client_prod_routes: TestClient):
     """Test to ensure that changes in one client session do not affect another session."""
@@ -128,7 +128,7 @@ def notest_app_client_isolation_other_filled(app_client_prod_routes: TestClient)
     response = app_client_prod_routes.get("/song/list")
     assert response.status_code == 200
     songs = response.json().get("songs")
-    assert len(songs) == len(test_model.songs), "Database should be filled with test data at the beginning of this test."
+    assert len(songs) == len(model.songs), "Database should be filled with test data at the beginning of this test."
     assert not any(song["name"] == "Test Song" for song in songs), "The song should not be present in this session if isolation is correct."
 
 # -- TEST MODEL -- #

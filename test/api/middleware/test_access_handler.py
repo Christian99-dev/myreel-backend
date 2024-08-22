@@ -6,7 +6,7 @@ from api.auth.role_enum import RoleEnum
 from api.config.database import get_db
 from api.config.path_roles import PathInfo
 from api.middleware.access_handler import AccessHandlerMiddleware
-from test.utils.mock_roles_creds import admin_req_creds, group_creator_req_creds, group_member_req_creds, external_req_creds, edit_creator_req_creds
+from test.utils.auth.mock_roles_creds import admin_req_creds, group_creator_req_creds, group_member_req_creds, external_req_creds, edit_creator_req_creds
 import logging
 logger = logging.getLogger("testing")
 

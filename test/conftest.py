@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, StaticPool
 from sqlalchemy.orm import sessionmaker
 from api.models.database.model import Base
-from test.utils.fill_test_model import fill_test_model
+from test.utils.testing_data.db.fill import fill
 from logging_config import setup_logging_testing
 from api.routes.song import router as song_router
 from api.routes.group import router as group_router
@@ -54,7 +54,7 @@ def db_session_filled(db_engine):
     connection = db_engine.connect()
     transaction = connection.begin()
     session = TestingSessionLocal(bind=connection)
-    fill_test_model(session)
+    fill(session)
     
     yield session
     

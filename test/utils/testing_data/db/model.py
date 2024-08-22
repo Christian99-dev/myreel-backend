@@ -76,7 +76,7 @@ group_id_3 = create_uuid()
 
 now = datetime.utcnow()
 
-test_model = Model(
+model = Model(
     groups=[
         Group(group_id=group_id_1, name="Group 1"),
         Group(group_id=group_id_2, name="Group 2"),

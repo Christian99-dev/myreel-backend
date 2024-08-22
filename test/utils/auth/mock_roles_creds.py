@@ -1,7 +1,7 @@
 import os
 from api.auth import jwt
 from api.auth.role_enum import RoleEnum
-from test.utils.test_model import group_id_1
+from test.utils.testing_data.db.model import group_id_1
 
 # these are example request parameter, simulation the 5 roles. based on the test_model.py
 

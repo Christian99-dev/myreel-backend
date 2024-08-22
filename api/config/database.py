@@ -6,7 +6,7 @@ from fastapi.params import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from api.models.database import model
-from test.utils.fill_test_model import fill_test_model
+from test.utils.testing_data.db.fill import fill
 from api.utils.database.print_database_contents import print_database_contents
 from distutils.util import strtobool
 logger = logging.getLogger("testing")
@@ -44,7 +44,7 @@ with SessionLocal() as session:
     
     if LOCAL_DB: # Guard 
         # only uncommend if you want to renew the data data
-        # fill_test_model(session) 
+        fill(session) 
         pass
     
     print_database_contents(session, {
