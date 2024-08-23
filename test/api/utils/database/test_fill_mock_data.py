@@ -73,6 +73,7 @@ def test_test_model_data_matches_db(db_session_filled: Session):
         assert expected_login_request.expires_at == actual_login_request.expires_at
 
     for expected_occupied_slot, actual_occupied_slot in zip(model.occupied_slots, occupied_slots_from_db):
+        assert expected_occupied_slot.occupied_slot_id == actual_occupied_slot.occupied_slot_id
         assert expected_occupied_slot.user_id == actual_occupied_slot.user_id
         assert expected_occupied_slot.slot_id == actual_occupied_slot.slot_id
         assert expected_occupied_slot.edit_id == actual_occupied_slot.edit_id

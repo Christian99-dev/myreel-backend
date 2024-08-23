@@ -58,9 +58,10 @@ def fill(db_session: Session):
     db_session.add_all(login_requests)
     db_session.commit()
 
-    # Insert occupied slots (assuming you have occupied slot data in test_model)
-    occupied_slots = [OccupiedSlot(user_id=occupied_slot.user_id, slot_id=occupied_slot.slot_id, 
-                                   edit_id=occupied_slot.edit_id, video_src=occupied_slot.video_src) 
+    # Insert occupied slots
+    occupied_slots = [OccupiedSlot(occupied_slot_id=occupied_slot.occupied_slot_id, user_id=occupied_slot.user_id, 
+                                   slot_id=occupied_slot.slot_id, edit_id=occupied_slot.edit_id, 
+                                   video_src=occupied_slot.video_src) 
                       for occupied_slot in model.occupied_slots]
     db_session.add_all(occupied_slots)
     db_session.commit()

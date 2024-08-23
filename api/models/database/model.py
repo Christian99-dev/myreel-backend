@@ -92,11 +92,12 @@ class LoginRequest(Base):
 
 class OccupiedSlot(Base):
     __tablename__ = 'occupied_slot'
-
-    user_id:    Mapped[int]     = mapped_column(ForeignKey('user.user_id'), primary_key=True)
-    slot_id:    Mapped[int]     = mapped_column(ForeignKey('slot.slot_id'), primary_key=True)
-    edit_id:    Mapped[int]     = mapped_column(ForeignKey('edit.edit_id'), primary_key=True)
-    video_src:  Mapped[str]     = mapped_column(String(255), nullable=False)
+    
+    occupied_slot_id: Mapped[int]  = mapped_column(primary_key=True, autoincrement=True)
+    user_id:          Mapped[int]  = mapped_column(ForeignKey('user.user_id'), nullable=False)
+    slot_id:          Mapped[int]  = mapped_column(ForeignKey('slot.slot_id'), nullable=False)
+    edit_id:          Mapped[int]  = mapped_column(ForeignKey('edit.edit_id'), nullable=False)
+    video_src:        Mapped[str]  = mapped_column(String(255), nullable=False)
 
     user:       Mapped["User"]  = relationship("User", back_populates="occupied_slot_list")
     slot:       Mapped["Slot"]  = relationship("Slot", back_populates="occupied_slots")

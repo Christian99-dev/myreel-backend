@@ -54,6 +54,7 @@ class LoginRequest(BaseModel):
     expires_at: datetime
 
 class OccupiedSlot(BaseModel):
+    occupied_slot_id: Optional[int]
     user_id: int
     slot_id: int
     edit_id: int
@@ -133,8 +134,8 @@ model = Model(
         LoginRequest(user_id=3, pin="91011", created_at=now, expires_at=now + timedelta(minutes=10))
     ],
     occupied_slots=[
-        OccupiedSlot(user_id=1, slot_id=1, edit_id=1, video_src="http://example.com/occupied1.mp4"),
-        OccupiedSlot(user_id=2, slot_id=2, edit_id=2, video_src="http://example.com/occupied2.mp4"),
-        OccupiedSlot(user_id=3, slot_id=3, edit_id=3, video_src="http://example.com/occupied3.mp4")
+        OccupiedSlot(occupied_slot_id=1, user_id=1, slot_id=1, edit_id=1, video_src="http://example.com/occupied1.mp4"),
+        OccupiedSlot(occupied_slot_id=2, user_id=2, slot_id=2, edit_id=2, video_src="http://example.com/occupied2.mp4"),
+        OccupiedSlot(occupied_slot_id=3, user_id=3, slot_id=3, edit_id=3, video_src="http://example.com/occupied3.mp4")
     ]
 )
