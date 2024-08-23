@@ -84,9 +84,9 @@ model = Model(
         Group(group_id=group_id_3, name="Group 3")
     ],
     songs=[
-        Song(song_id=1, name="Song 1", author="Author 1", times_used=0, cover_src="http://example.com/cover1.jpg", audio_src="http://example.com/audio1.mp3"),
-        Song(song_id=2, name="Song 2", author="Author 2", times_used=0, cover_src="http://example.com/cover2.jpg", audio_src="http://example.com/audio2.mp3"),
-        Song(song_id=3, name="Song 3", author="Author 3", times_used=0, cover_src="http://example.com/cover3.jpg", audio_src="http://example.com/audio3.mp3")
+        Song(song_id=1, name="Song 1", author="Author 1", times_used=0, cover_src="http://example.com/cover1.jpg", audio_src="http://example.com/1.mp3"),
+        Song(song_id=2, name="Song 2", author="Author 2", times_used=0, cover_src="http://example.com/cover2.jpg", audio_src="http://example.com/2.mp3"),
+        Song(song_id=3, name="Song 3", author="Author 3", times_used=0, cover_src="http://example.com/cover3.jpg", audio_src="http://example.com/3.mp3")
     ],
     users=[
         User(user_id=1, group_id=group_id_1, role="creator", name="Creator of Group 1", email="creator1@example.com"),
@@ -100,15 +100,15 @@ model = Model(
         User(user_id=9, group_id=group_id_3, role="member", name="Member 2 of Group 3", email="member2_3@example.com")
     ],
     edits=[
-        Edit(edit_id=1, song_id=1, created_by=1, group_id=group_id_1, name="Edit 1 of Group 1", isLive=False, video_src="http://example.com/video.mp4"),
-        Edit(edit_id=2, song_id=2, created_by=3, group_id=group_id_1, name="Edit 2 of Group 1", isLive=False, video_src="http://example.com/video.mp4"),
-        Edit(edit_id=3, song_id=3, created_by=2, group_id=group_id_1, name="Edit 3 of Group 1", isLive=False, video_src="http://example.com/video.mp4"),
-        Edit(edit_id=4, song_id=1, created_by=4, group_id=group_id_2, name="Edit 1 of Group 2", isLive=False, video_src="http://example.com/video.mp4"),
-        Edit(edit_id=5, song_id=2, created_by=6, group_id=group_id_2, name="Edit 2 of Group 2", isLive=False, video_src="http://example.com/video.mp4"),
-        Edit(edit_id=6, song_id=3, created_by=6, group_id=group_id_2, name="Edit 3 of Group 2", isLive=False, video_src="http://example.com/video.mp4"),
-        Edit(edit_id=7, song_id=1, created_by=7, group_id=group_id_3, name="Edit 1 of Group 3", isLive=False, video_src="http://example.com/video.mp4"),
-        Edit(edit_id=8, song_id=2, created_by=9, group_id=group_id_3, name="Edit 2 of Group 3", isLive=False, video_src="http://example.com/video.mp4"),
-        Edit(edit_id=9, song_id=3, created_by=8, group_id=group_id_3, name="Edit 3 of Group 3", isLive=False, video_src="http://example.com/video.mp4")
+        Edit(edit_id=1, song_id=1, created_by=1, group_id=group_id_1, name="Edit 1 of Group 1", isLive=False, video_src="http://example.com/1.mp4"),
+        Edit(edit_id=2, song_id=2, created_by=3, group_id=group_id_1, name="Edit 2 of Group 1", isLive=False, video_src="http://example.com/2.mp4"),
+        Edit(edit_id=3, song_id=3, created_by=2, group_id=group_id_1, name="Edit 3 of Group 1", isLive=False, video_src="http://example.com/3.mp4"),
+        Edit(edit_id=4, song_id=1, created_by=4, group_id=group_id_2, name="Edit 1 of Group 2", isLive=False, video_src="http://example.com/4.mp4"),
+        Edit(edit_id=5, song_id=2, created_by=6, group_id=group_id_2, name="Edit 2 of Group 2", isLive=False, video_src="http://example.com/5.mp4"),
+        Edit(edit_id=6, song_id=3, created_by=6, group_id=group_id_2, name="Edit 3 of Group 2", isLive=False, video_src="http://example.com/6.mp4"),
+        Edit(edit_id=7, song_id=1, created_by=7, group_id=group_id_3, name="Edit 1 of Group 3", isLive=False, video_src="http://example.com/7.mp4"),
+        Edit(edit_id=8, song_id=2, created_by=9, group_id=group_id_3, name="Edit 2 of Group 3", isLive=False, video_src="http://example.com/8.mp4"),
+        Edit(edit_id=9, song_id=3, created_by=8, group_id=group_id_3, name="Edit 3 of Group 3", isLive=False, video_src="http://example.com/9.mp4")
     ],
     slots=[
         Slot(slot_id=1, song_id=1, start_time=0,   end_time=0.5),
@@ -134,8 +134,8 @@ model = Model(
         LoginRequest(user_id=3, pin="91011", created_at=now, expires_at=now + timedelta(minutes=10))
     ],
     occupied_slots=[
-        OccupiedSlot(occupied_slot_id=1, user_id=1, slot_id=1, edit_id=1, video_src="http://example.com/occupied1.mp4"),
-        OccupiedSlot(occupied_slot_id=2, user_id=2, slot_id=2, edit_id=2, video_src="http://example.com/occupied2.mp4"),
-        OccupiedSlot(occupied_slot_id=3, user_id=3, slot_id=3, edit_id=3, video_src="http://example.com/occupied3.mp4")
+        OccupiedSlot(occupied_slot_id=1, user_id=1, slot_id=1, edit_id=1, video_src="http://example.com/1.mp4"),
+        OccupiedSlot(occupied_slot_id=2, user_id=2, slot_id=2, edit_id=2, video_src="http://example.com/2.mp4"),
+        OccupiedSlot(occupied_slot_id=3, user_id=3, slot_id=3, edit_id=3, video_src="http://example.com/3.mp4")
     ]
 )
