@@ -84,9 +84,9 @@ model = Model(
         Group(group_id=group_id_3, name="Group 3")
     ],
     songs=[
-        Song(song_id=1, name="Song 1", author="Author 1", times_used=0, cover_src="http://example.com/cover1.jpg", audio_src="http://example.com/1.mp3"),
-        Song(song_id=2, name="Song 2", author="Author 2", times_used=0, cover_src="http://example.com/cover2.jpg", audio_src="http://example.com/2.mp3"),
-        Song(song_id=3, name="Song 3", author="Author 3", times_used=0, cover_src="http://example.com/cover3.jpg", audio_src="http://example.com/3.mp3")
+        Song(song_id=1, name="Song 1", author="Author 1", times_used=0, cover_src="http://example.com/1.png", audio_src="http://example.com/1.wav"),
+        Song(song_id=2, name="Song 2", author="Author 2", times_used=0, cover_src="http://example.com/2.png", audio_src="http://example.com/2.wav"),
+        Song(song_id=3, name="Song 3", author="Author 3", times_used=0, cover_src="http://example.com/3.png", audio_src="http://example.com/3.wav")
     ],
     users=[
         User(user_id=1, group_id=group_id_1, role="creator", name="Creator of Group 1", email="creator1@example.com"),

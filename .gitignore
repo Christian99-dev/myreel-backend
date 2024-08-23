@@ -1,9 +1,23 @@
-.env
-.pytest_cache
 env
-__pycache__
-*.db
+.env
 .vscode
+.pytest_cache
+__pycache__
+
+# logs
+*.log
+
+# local database(s)
+*.db
+
+# helper-scripts
 context-printer*.*
 folder-structure-printer*.*
-*.log
+
+# files
+*.mp4
+*.wav
+*.jpg
+*.png
+
+

@@ -1,8 +1,10 @@
 from contextlib import asynccontextmanager
 import os
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from dotenv import load_dotenv
 from distutils.util import strtobool
+from api.config import media_access
+from api.config.media_access import MediaAccess, get_media_access, media_dependency
 from api.models.database import model
 from api.utils.database.print_database_contents import print_database_contents
 from logging_config import setup_logging_prod
@@ -30,27 +32,27 @@ load_dotenv()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     
-    # Create tables
+    # Database setup and fill if neede
     model.Base.metadata.create_all(bind=engine)
     LOCAL_DB = strtobool(os.getenv("LOCAL_DB"))
-
-    # Fill and print data
     with SessionLocal() as session:
         if LOCAL_DB:  # Guard
             # Only uncomment if you want to renew the data
             fill(session)
         
         print_database_contents(session, {
-            'Slot':         True,
-            'Song':         True,
-            'Edit':         True,
-            'Group':        True,
-            'Invitation':   True,
-            'User':         True,
-            'LoginRequest': True,
-            'OccupiedSlot': True
+            'Slot':         False,
+            'Song':         False,
+            'Edit':         False,
+            'Group':        False,
+            'Invitation':   False,
+            'User':         False,
+            'LoginRequest': False,
+            'OccupiedSlot': False
         })
 
+    # Media setup and fill if neede
+    # get media and fill
     yield
 
 # app
@@ -66,5 +68,5 @@ app.include_router(group_router)
 
 # root
 @app.get("/")
-async def root():
+async def root(media_access: MediaAccess = Depends(get_media_access)):
     return 17
