@@ -5,7 +5,7 @@ from api.auth.role_enum import RoleEnum
 from api.models.database.model import Song
 from test.utils.auth.role_tester_has_acccess import role_tester_has_access
 from test.utils.auth.mock_roles_creds import admin_req_creds, group_creator_req_creds, group_member_req_creds, external_req_creds, edit_creator_req_creds
-from test.utils.testing_data.db.model import model
+from api.mock.database.model import model
 from fastapi.testclient import TestClient
 from main import app
 logger = logging.getLogger("testing")

@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from test.utils.testing_data.db.model import model
+from api.mock.database.model import model
 
 #TODO SONG
 

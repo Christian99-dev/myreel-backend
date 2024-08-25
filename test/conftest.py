@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from api.middleware.access_handler import AccessHandlerMiddleware
 from api.mock.path_roles.mock_path_roles import mock_path_roles
 from api.models.database.model import Base, Song
-from test.utils.testing_data.db.fill import fill
+from api.mock.database.fill import fill
 from logging_config import setup_logging_testing
 from api.routes.song import router as song_router
 from api.routes.group import router as group_router

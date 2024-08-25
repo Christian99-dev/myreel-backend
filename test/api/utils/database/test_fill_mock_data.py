@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Group, Song, User, Edit, Slot, Invitation, LoginRequest, OccupiedSlot
-from test.utils.testing_data.db.model import model
+from api.mock.database.model import model
 
 def test_test_model_data_matches_db(db_session_filled: Session):
     # Daten aus der Datenbank abrufen

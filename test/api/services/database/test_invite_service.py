@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from api.models.database.model import Invitation
 from api.services.database.invite import create, delete
-from test.utils.testing_data.db.model import model
+from api.mock.database.model import model
 
 # create
 def test_create(db_memory):

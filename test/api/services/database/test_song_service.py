@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from api.services.database.song import create, list_all, get
 from api.models.database.model import Song
-from test.utils.testing_data.db.model import model
+from api.mock.database.model import model
 
 # create
 def test_create(db_memory: Session):

@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from api.models.database.model import User
 from api.services.database.user import create, get
 from api.utils.database.create_uuid import create_uuid
-from test.utils.testing_data.db.model import model
+from api.mock.database.model import model
 
 # create
 def test_create(db_memory: Session):

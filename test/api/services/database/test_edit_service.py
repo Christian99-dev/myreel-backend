@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Edit
 from api.services.database.edit import create, get, is_edit_creator
-from test.utils.testing_data.db.model import model
+from api.mock.database.model import model
 
 # create
 def test_create(db_memory: Session):
