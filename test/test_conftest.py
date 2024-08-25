@@ -7,6 +7,7 @@ from api.mock.role_creds.role_creds import admin_req_creds, group_creator_req_cr
 from api.mock.database.model import model
 from fastapi.testclient import TestClient
 from test.utils.role_tester_has_acccess import role_tester_has_access
+
 from main import app
 logger = logging.getLogger("testing")
 
@@ -113,6 +114,37 @@ def test_db_memory_data_test(db_memory: Session):
         assert expected_occupied_slot.slot_id == actual_occupied_slot.slot_id
         assert expected_occupied_slot.edit_id == actual_occupied_slot.edit_id
         assert expected_occupied_slot.video_src == actual_occupied_slot.video_src
+
+# -- media_access_memory -- #
+
+def test_media_access_memory_isolation(media_access_memory):
+    """Testet die Isolation von MediaAccess."""
+    
+    # Überprüfen, ob der Speicher zu Beginn leer ist
+    assert media_access_memory.list('test_dir') == []
+
+    # Füge eine Datei zum Speicher hinzu
+    media_access_memory.save('test_file.txt', 'test_dir', b'Test content')
+
+    # Überprüfen, ob die Datei im Speicher vorhanden ist
+    assert 'test_file.txt' in media_access_memory.list('test_dir')
+    assert media_access_memory.get('test_file.txt', 'test_dir') == b'Test content'
+
+def test_media_access_memory_isolation_other(media_access_memory):
+    """Testet die Isolation, um sicherzustellen, dass ein anderer Test nicht die Daten beeinflusst."""
+    
+    # Überprüfen, ob der Speicher zu Beginn leer ist
+    assert media_access_memory.list('test_dir') == []
+
+    # Überprüfen, ob die vorherige Testdatei nicht vorhanden ist
+    assert 'test_file.txt' not in media_access_memory.list('test_dir')
+
+    # Füge eine neue Datei hinzu
+    media_access_memory.save('another_test_file.txt', 'test_dir', b'Another Test content')
+
+    # Überprüfen, ob die neue Datei vorhanden ist
+    assert 'another_test_file.txt' in media_access_memory.list('test_dir')
+    assert media_access_memory.get('another_test_file.txt', 'test_dir') == b'Another Test content'
 
 # -- http_client  -- #
 

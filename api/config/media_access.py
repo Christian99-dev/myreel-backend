@@ -44,7 +44,6 @@ class BaseMediaAccess(ABC):
         """Löscht alle Dateien und Verzeichnisse."""
         pass
 
-
 class LocalMediaAccess(BaseMediaAccess):
     def setup(self):
         """Initialisiere lokale Ressourcen."""
@@ -116,7 +115,6 @@ class LocalMediaAccess(BaseMediaAccess):
         except Exception as e:
             print(f"Error clearing files: {e}")
 
-
 class MemoryMediaAccess(BaseMediaAccess):
     def setup(self):
         """Initialisiere Ressourcen für den Speicherzugriff."""
@@ -159,7 +157,6 @@ class MemoryMediaAccess(BaseMediaAccess):
         self.memory_storage.clear()
         print("All files cleared from memory access.")
 
-
 class RemoteMediaAccess(BaseMediaAccess):
     def setup(self):
         """Initialisiere Ressourcen für den Fernzugriff."""
@@ -186,7 +183,6 @@ class RemoteMediaAccess(BaseMediaAccess):
 
     def clear(self) -> None:
         print("Remote clearing not implemented.")
-
 
 def create_media_access(access_type: str) -> BaseMediaAccess:
     print("create_media_access()")

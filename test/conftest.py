@@ -3,10 +3,12 @@ import logging
 from fastapi import Depends, FastAPI, Request
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+from api.config.media_access import MemoryMediaAccess
 from api.middleware.access_handler import AccessHandlerMiddleware
 from api.mock.path_roles.mock_path_roles import mock_path_roles
 from api.models.database.model import Song
-from api.mock.database.fill import fill
+from api.mock.database.fill import fill as fill_db
+from api.mock.media.fill import fill as fill_media
 from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
 from logging_config import setup_logging_testing
 from api.routes.song import router as song_router
@@ -20,17 +22,29 @@ logger = logging.getLogger("testing")
 ## -- MAIN FIXTURES -- ## 
 
 # Database   : Test_Data 
+# Media      : None
 # Routes     : None
 # Middleware : None
 @pytest.fixture(scope="function")
 def db_memory():
     session_generator = get_db_memory()  
     session = next(session_generator)
-    fill(session)   
+    fill_db(session)   
     yield session
+    
+# Database   : None
+# Media      : Mock Media
+# Routes     : None
+# Middleware : None
+@pytest.fixture
+def media_access_memory():
+    media_access_memory = MemoryMediaAccess()
+    fill_media(media_access_memory)
+    return media_access_memory
 
 
-# Database   : Test_Data 
+# Database   : Test_Data
+# Media      : None 
 # Routes     : Prod
 # Middleware : None 
 @pytest.fixture(scope="function")
@@ -59,6 +73,7 @@ def http_client(db_memory: Session):
 ## -- SPECIFIC FIXTURES -- ## 
 
 # Database   : Test_Data 
+# Media      : None
 # Routes     : add and list
 # Middleware : None  
 # Description : 
@@ -88,6 +103,7 @@ def http_client_mocked_path_crud(db_memory: Session):
         yield test_client
         
 # Database   : Test_Data 
+# Media      : None
 # Routes     : for every mocked path one
 # Middleware : Access_Handler  
 # Description : 
@@ -120,6 +136,7 @@ def http_client_mocked_path_roles(db_memory: Session):
         yield test_client
         
 # Database   : Test_Data 
+# Media      : None
 # Routes     : for body and path params
 # Middleware : extracing credentials  
 # Description : 
