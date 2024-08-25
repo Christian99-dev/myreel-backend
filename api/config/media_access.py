@@ -72,10 +72,10 @@ class RemoteMediaAccess(BaseMediaAccess):
         # Hier könnte die Verbindung zu einem Remote-Speicher hergestellt werden
 
     def save(self, file_name: str, dir: str, file_data: bytes) -> None:
-        logger.warning("Remote saving not implemented.")
+        print("Remote saving not implemented.")
 
     def get(self, file_name: str, dir: str):
-        logger.warning("Remote retrieval not implemented.")
+        print("Remote retrieval not implemented.")
 
 
 def create_media_access(access_type: str) -> BaseMediaAccess:
