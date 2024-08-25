@@ -12,7 +12,9 @@ class RoleCredentials(BaseModel):
     editid: Optional[int]
 
 async def extract_role_credentials_from_request(request: Request) -> RoleCredentials:
-    
+    # flags
+    is_multipart = str(request.headers.get("content-type")).startswith("multipart/form-data") # body is file
+
     # -- SUCHE NACH token oder jwt im HEADER -- #
     # Extrahiere die relevanten Informationen aus dem Header
     admintoken = request.headers.get('admintoken')
@@ -25,10 +27,11 @@ async def extract_role_credentials_from_request(request: Request) -> RoleCredent
     groupid = request.query_params.get('groupid')
     editid = request.query_params.get('editid')
     
-    # -- SUCHE NACH groupid oder editid im BODY -- #
-    body = await request.json() if await request.body() else {}
-    groupid = groupid or body.get('groupid')
-    editid = editid or body.get('editid')    
+    # -- SUCHE NACH groupid oder editid im BODY NUR wenn es keine file ist -- #
+    if not is_multipart:
+        body = await request.json() if await request.body() else {}
+        groupid = groupid or body.get('groupid')
+        editid = editid or body.get('editid')    
     
     # -- SUCHE NACH groupid oder editid im PATH -- #
     path = request.url.path
