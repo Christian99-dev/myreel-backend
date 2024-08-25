@@ -1,49 +1,7 @@
-import pytest
-from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
-from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
 
-@pytest.fixture(scope="function")
-def app_client():
-    app = FastAPI()
-
-    @app.middleware("http")
-    async def add_role_credentials(request: Request, call_next):
-        credentials = await extract_role_credentials_from_request(request)
-        request.state.credentials = credentials
-        response = await call_next(request)
-        return response
-
-    # BODY  / QUERY
-    @app.get("/example")
-    async def example_route(request: Request):
-        return {"credentials": request.state.credentials}
-    
-    @app.post("/example")
-    async def example_route(request: Request):
-        return {"credentials": request.state.credentials}
-
-    # PATH 
-    @app.post("/group/{groupid}")
-    async def group_route(request: Request, groupid: str):
-        return {"credentials": request.state.credentials}
-
-    @app.post("/edit/{editid}")
-    async def edit_route(request: Request, editid: int):
-        return {"credentials": request.state.credentials}
-    
-    @app.post("/example/group/{groupid}/example")
-    async def nested_group_route(request: Request, groupid: str):
-        return {"credentials": request.state.credentials}
-
-    @app.post("/example/edit/{editid}/example")
-    async def nested_edit_route(request: Request, editid: int):
-        return {"credentials": request.state.credentials}
-    
-    yield TestClient(app)
-
-# QUERY
-def test_extract_credentials_from_request(app_client):
+# from query
+def test_extract_credentials_from_request(http_client_mocked_path_for_extracting_creds: TestClient):
     headers = {
         "admintoken": "admin_token_value",
         "Authorization": "Bearer jwt_token_value"
@@ -52,7 +10,7 @@ def test_extract_credentials_from_request(app_client):
         "groupid": "group_id_value",
         "editid": "123"
     }
-    response = app_client.get("/example", headers=headers, params=params)
+    response = http_client_mocked_path_for_extracting_creds.get("/example", headers=headers, params=params)
     assert response.status_code == 200
     assert response.json() == {
         "credentials": {
@@ -63,14 +21,14 @@ def test_extract_credentials_from_request(app_client):
         }
     }
     
-def test_extract_credentials_from_request_optional_fields(app_client):
+def test_extract_credentials_from_request_optional_fields(http_client_mocked_path_for_extracting_creds: TestClient):
     headers = {
         "admintoken": "another_admintoken"
     }
     params = {
         "groupid": "group_xyz"
     }
-    response = app_client.get("/example", headers=headers, params=params)
+    response = http_client_mocked_path_for_extracting_creds.get("/example", headers=headers, params=params)
     assert response.status_code == 200
     assert response.json() == {
         "credentials": {
@@ -81,8 +39,8 @@ def test_extract_credentials_from_request_optional_fields(app_client):
         }
     }
 
-def test_extract_credentials_from_request_no_fields(app_client):
-    response = app_client.get("/example")
+def test_extract_credentials_from_request_no_fields(http_client_mocked_path_for_extracting_creds: TestClient):
+    response = http_client_mocked_path_for_extracting_creds.get("/example")
     assert response.status_code == 200
     assert response.json() == {
         "credentials": {
@@ -93,7 +51,7 @@ def test_extract_credentials_from_request_no_fields(app_client):
         }
     }
     
-def test_extract_credentials_from_request_more_fields(app_client):
+def test_extract_credentials_from_request_more_fields(http_client_mocked_path_for_extracting_creds: TestClient):
     headers = {
         "admintoken": "admin_token_value",
         "Authorization": "Bearer jwt_token_value",
@@ -104,7 +62,7 @@ def test_extract_credentials_from_request_more_fields(app_client):
         "editid": "123",
         "some": "other field"
     }
-    response = app_client.get("/example", headers=headers, params=params)
+    response = http_client_mocked_path_for_extracting_creds.get("/example", headers=headers, params=params)
     assert response.status_code == 200
     assert response.json() == {
         "credentials": {
@@ -115,8 +73,8 @@ def test_extract_credentials_from_request_more_fields(app_client):
         }
     }
     
-# BODY 
-def test_extract_credentials_from_body(app_client):
+# from body 
+def test_extract_credentials_from_body(http_client_mocked_path_for_extracting_creds: TestClient):
     headers = {
         "admintoken": "admin_token_value",
         "Authorization": "Bearer jwt_token_value"
@@ -125,7 +83,7 @@ def test_extract_credentials_from_body(app_client):
         "groupid": "body_group_id_value",
         "editid": 456
     }
-    response = app_client.post("/example", headers=headers, json=body)
+    response = http_client_mocked_path_for_extracting_creds.post("/example", headers=headers, json=body)
     assert response.status_code == 200
     assert response.json() == {
         "credentials": {
@@ -136,7 +94,7 @@ def test_extract_credentials_from_body(app_client):
         }
     }
 
-def test_extract_credentials_with_body_and_query(app_client):
+def test_extract_credentials_with_body_and_query(http_client_mocked_path_for_extracting_creds: TestClient):
     headers = {
         "admintoken": "admin_token_value",
         "Authorization": "Bearer jwt_token_value"
@@ -149,7 +107,7 @@ def test_extract_credentials_with_body_and_query(app_client):
         "groupid": "body_group_id_value",
         "editid": 456
     }
-    response = app_client.post("/example", headers=headers, params=params, json=body)
+    response = http_client_mocked_path_for_extracting_creds.post("/example", headers=headers, params=params, json=body)
     assert response.status_code == 200
     assert response.json() == {
         "credentials": {
@@ -160,13 +118,13 @@ def test_extract_credentials_with_body_and_query(app_client):
         }
     }
     
-# PATH 
-def test_extract_credentials_from_path_group(app_client):
+# from path
+def test_extract_credentials_from_path_group(http_client_mocked_path_for_extracting_creds: TestClient):
     headers = {
         "admintoken": "admin_token_value",
         "Authorization": "Bearer jwt_token_value"
     }
-    response = app_client.post("/group/group_id_value", headers=headers)
+    response = http_client_mocked_path_for_extracting_creds.post("/group/group_id_value", headers=headers)
     assert response.status_code == 200
     assert response.json() == {
         "credentials": {
@@ -177,12 +135,12 @@ def test_extract_credentials_from_path_group(app_client):
         }
     }
 
-def test_extract_credentials_from_path_edit(app_client):
+def test_extract_credentials_from_path_edit(http_client_mocked_path_for_extracting_creds: TestClient):
     headers = {
         "admintoken": "admin_token_value",
         "Authorization": "Bearer jwt_token_value"
     }
-    response = app_client.post("/edit/123", headers=headers)
+    response = http_client_mocked_path_for_extracting_creds.post("/edit/123", headers=headers)
     assert response.status_code == 200
     assert response.json() == {
         "credentials": {
@@ -193,7 +151,7 @@ def test_extract_credentials_from_path_edit(app_client):
         }
     }
 
-def test_extract_credentials_with_body_and_path(app_client):
+def test_extract_credentials_with_body_and_path(http_client_mocked_path_for_extracting_creds: TestClient):
     headers = {
         "admintoken": "admin_token_value",
         "Authorization": "Bearer jwt_token_value"
@@ -202,7 +160,7 @@ def test_extract_credentials_with_body_and_path(app_client):
         "groupid": "body_group_id_value",
         "editid": 456
     }
-    response = app_client.post("/edit/123", headers=headers, json=body)
+    response = http_client_mocked_path_for_extracting_creds.post("/edit/123", headers=headers, json=body)
     assert response.status_code == 200
     assert response.json() == {
         "credentials": {
@@ -213,12 +171,12 @@ def test_extract_credentials_with_body_and_path(app_client):
         }
     }
     
-def test_extract_credentials_from_nested_path_group(app_client):
+def test_extract_credentials_from_nested_path_group(http_client_mocked_path_for_extracting_creds: TestClient):
     headers = {
         "admintoken": "admin_token_value",
         "Authorization": "Bearer jwt_token_value"
     }
-    response = app_client.post("/example/group/group_id_value/example", headers=headers)
+    response = http_client_mocked_path_for_extracting_creds.post("/example/group/group_id_value/example", headers=headers)
     assert response.status_code == 200
     assert response.json() == {
         "credentials": {
@@ -229,12 +187,12 @@ def test_extract_credentials_from_nested_path_group(app_client):
         }
     }
 
-def test_extract_credentials_from_nested_path_edit(app_client):
+def test_extract_credentials_from_nested_path_edit(http_client_mocked_path_for_extracting_creds: TestClient):
     headers = {
         "admintoken": "admin_token_value",
         "Authorization": "Bearer jwt_token_value"
     }
-    response = app_client.post("/example/edit/123/example", headers=headers)
+    response = http_client_mocked_path_for_extracting_creds.post("/example/edit/123/example", headers=headers)
     assert response.status_code == 200
     assert response.json() == {
         "credentials": {
@@ -245,19 +203,18 @@ def test_extract_credentials_from_nested_path_edit(app_client):
         }
     }
     
-def test_extract_credentials_from_invalid_path_editid(app_client):
+def test_extract_credentials_from_invalid_path_editid(http_client_mocked_path_for_extracting_creds: TestClient):
     headers = {
         "admintoken": "admin_token_value",
         "Authorization": "Bearer jwt_token_value"
     }
-    response = app_client.post("/example/edit/invalid_editid/example", headers=headers)
+    response = http_client_mocked_path_for_extracting_creds.post("/example/edit/invalid_editid/example", headers=headers)
     assert response.status_code == 422
     
-    
-# Noting
-def test_extract_credentials_no_information(app_client):
+# empty
+def test_extract_credentials_no_information(http_client_mocked_path_for_extracting_creds: TestClient):
     # Kein Header, Query-Parameter, Body oder Path-Parameter
-    response = app_client.post("/example", headers={})
+    response = http_client_mocked_path_for_extracting_creds.post("/example", headers={})
     assert response.status_code == 200
     assert response.json() == {
         "credentials": {

@@ -1,4 +1,5 @@
 import logging
+import pytest
 from sqlalchemy.orm import Session
 from api.auth.role import Role, RoleInfos
 from api.auth.role_enum import RoleEnum
@@ -191,7 +192,7 @@ def test_http_client_mocked_path_crud_isolation_other(http_client_mocked_path_cr
 
 # -- http_client_mocked_path_roles -- #
 
-def test_http_client_mocked_path_endpoints_config_test(http_client_mocked_path_roles: TestClient):
+def test_http_client_mocked_path_roles_config(http_client_mocked_path_roles: TestClient):
     assert http_client_mocked_path_roles.get("/admin_no_subroles").status_code          == 403
     assert http_client_mocked_path_roles.get("/group_creator_no_subroles").status_code  == 403
     assert http_client_mocked_path_roles.get("/edit_creator_no_subroles").status_code   == 403
@@ -204,8 +205,15 @@ def test_http_client_mocked_path_endpoints_config_test(http_client_mocked_path_r
     assert http_client_mocked_path_roles.get("/group_member_subroles").status_code     == 403
     assert http_client_mocked_path_roles.get("/external_subroles").status_code         == 200
 
+# -- http_client_mocked_path_for_extracting_creds -- #
 
-
+def test_http_client_mocked_path_for_extracting_creds_config(http_client_mocked_path_for_extracting_creds: TestClient):
+    assert http_client_mocked_path_for_extracting_creds.get("/example").status_code                                 == 200
+    assert http_client_mocked_path_for_extracting_creds.post("/example", json={"key": "value"}).status_code         == 200
+    assert http_client_mocked_path_for_extracting_creds.post("/group/test-group-id").status_code                    == 200
+    assert http_client_mocked_path_for_extracting_creds.post("/edit/123").status_code                               == 200
+    assert http_client_mocked_path_for_extracting_creds.post("/example/group/test-group-id/example").status_code    == 200
+    assert http_client_mocked_path_for_extracting_creds.post("/example/edit/456/example").status_code               == 200
 
 
 # -- TEST MODEL -- #
