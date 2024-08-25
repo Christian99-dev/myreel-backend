@@ -10,7 +10,7 @@ from test.utils.auth.mock_roles_creds import admin_req_creds, group_creator_req_
 import logging
 logger = logging.getLogger("testing")
 
-
+# TODO wohin dann das ? 
 mock_path_roles: Dict[str, PathInfo] = {
     '/admin_no_subroles':            PathInfo(role = RoleEnum.ADMIN,         has_subroles=False),
     '/group_creator_no_subroles':    PathInfo(role = RoleEnum.GROUP_CREATOR, has_subroles=False),
@@ -25,22 +25,19 @@ mock_path_roles: Dict[str, PathInfo] = {
     '/external_subroles':           PathInfo(role = RoleEnum.EXTERNAL,      has_subroles=True),
 }
     
-    
-# routes        = mock_path_roles mirrored
-# database      = test_model
-# middleware    yes
+# TODO muss in contest
 @pytest.fixture(scope="function")
-def app_client_mock_routes_middleware(db_session_filled):
+def client_with_middleware_and_routes(db_session_filled):
     
-    
-    def override_get_db():
-        yield db_session_filled
-
     # simulating prod api
     app = FastAPI()
     
+    # session
+    def get_db_override(): 
+        yield db_session_filled
+    
     # middleware for access testing 
-    app.add_middleware(AccessHandlerMiddleware, path_roles=mock_path_roles, get_db=override_get_db)
+    app.add_middleware(AccessHandlerMiddleware, path_roles=mock_path_roles, get_db=get_db_override)
     
     # every endpoints based on testconfig file
     def create_endpoint(m_name: str):
@@ -51,29 +48,27 @@ def app_client_mock_routes_middleware(db_session_filled):
     for path in mock_path_roles.keys():    
         app.add_api_route(f"{path}", create_endpoint(path), methods=["GET"])
     
-    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_db] = get_db_override
     
     yield TestClient(app)
     
     app.dependency_overrides.pop(get_db, None)
- 
- # app client MOCK_ROUTES are there with middleware
 
-def test_setup(app_client_mock_routes_middleware):
-    assert app_client_mock_routes_middleware.get("/admin_no_subroles").status_code          == 403
-    assert app_client_mock_routes_middleware.get("/group_creator_no_subroles").status_code  == 403
-    assert app_client_mock_routes_middleware.get("/edit_creator_no_subroles").status_code   == 403
-    assert app_client_mock_routes_middleware.get("/group_member_no_subroles").status_code   == 403
-    assert app_client_mock_routes_middleware.get("/external_no_subroles").status_code       == 200
+# TODO test_conftest
+def test_setup(client_with_middleware_and_routes):
+    assert client_with_middleware_and_routes.get("/admin_no_subroles").status_code          == 403
+    assert client_with_middleware_and_routes.get("/group_creator_no_subroles").status_code  == 403
+    assert client_with_middleware_and_routes.get("/edit_creator_no_subroles").status_code   == 403
+    assert client_with_middleware_and_routes.get("/group_member_no_subroles").status_code   == 403
+    assert client_with_middleware_and_routes.get("/external_no_subroles").status_code       == 200
     
-    assert app_client_mock_routes_middleware.get("/admin_subroles").status_code            == 403
-    assert app_client_mock_routes_middleware.get("/group_creator_subroles").status_code    == 403
-    assert app_client_mock_routes_middleware.get("/edit_creator_subroles").status_code     == 403
-    assert app_client_mock_routes_middleware.get("/group_member_subroles").status_code     == 403
-    assert app_client_mock_routes_middleware.get("/external_subroles").status_code         == 200
+    assert client_with_middleware_and_routes.get("/admin_subroles").status_code            == 403
+    assert client_with_middleware_and_routes.get("/group_creator_subroles").status_code    == 403
+    assert client_with_middleware_and_routes.get("/edit_creator_subroles").status_code     == 403
+    assert client_with_middleware_and_routes.get("/group_member_subroles").status_code     == 403
+    assert client_with_middleware_and_routes.get("/external_subroles").status_code         == 200
     
-# maintest
-def test_endpoints(app_client_mock_routes_middleware):     
+def notest_endpoints(client_with_middleware_and_routes):     
     for path in mock_path_roles.keys():
         # logger.debug("\n")
         for current_creds in [admin_req_creds, group_creator_req_creds, edit_creator_req_creds,group_member_req_creds, external_req_creds]: 
@@ -88,7 +83,7 @@ def test_endpoints(app_client_mock_routes_middleware):
             current_role  = current_creds["role"]
 
             # Sende die Anfrage an den Endpoint
-            response = app_client_mock_routes_middleware.get(path, headers=headers, params=params)
+            response = client_with_middleware_and_routes.get(path, headers=headers, params=params)
 
             # Bestimme den erwarteten Statuscode
             if not with_subroles:

@@ -7,6 +7,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from distutils.util import strtobool
 
+
+from api.models.database.model import Base
+
 logger = logging.getLogger("testing")
 
 load_dotenv()
@@ -25,6 +28,7 @@ else:
 engine = create_engine(URL_DATABASE, connect_args={"check_same_thread": False} if LOCAL_DB else {})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# get session for local / server
 def get_db():
     db = SessionLocal()
     try:
@@ -33,3 +37,36 @@ def get_db():
         db.close()
 
 db_dependency = Annotated[Session, Depends(get_db)]
+
+
+# ram database for unittest        
+def get_db_memory():
+    """Creates and configures the database engine and session."""
+    # Erstelle die Engine
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+
+    # Erstelle die Tabellen im Vorfeld
+    Base.metadata.create_all(bind=engine)
+
+    # Session-Maker für zukünftige Sessions
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+    # Setup einer leeren Session
+    connection = engine.connect()
+    transaction = connection.begin()
+    session = TestingSessionLocal(bind=connection)
+
+    try:
+        yield session  # Gibt die Session zurück
+    finally:
+        # Teardown: Schließe die Session und rolle die Transaktion zurück
+        session.close()
+        transaction.rollback()
+        connection.close()
+
+        # Entferne die Tabellen nach den Tests
+        Base.metadata.drop_all(bind=engine)
+        
+
+
+
