@@ -112,6 +112,25 @@ def test_http_client_mocked_crud_isolation_other(http_client_mocked_crud: TestCl
     assert len(songs) == len(songs)
     assert songs[len(songs) - 1]["name"] == "Test Song B"
 
+# -- http_client_mocked_path_roles -- #
+
+def test_http_client_mocked_path_roles_correct(http_client_mocked_path_roles: TestClient):
+    assert http_client_mocked_path_roles.get("/admin_no_subroles").status_code          == 403
+    assert http_client_mocked_path_roles.get("/group_creator_no_subroles").status_code  == 403
+    assert http_client_mocked_path_roles.get("/edit_creator_no_subroles").status_code   == 403
+    assert http_client_mocked_path_roles.get("/group_member_no_subroles").status_code   == 403
+    assert http_client_mocked_path_roles.get("/external_no_subroles").status_code       == 200
+    
+    assert http_client_mocked_path_roles.get("/admin_subroles").status_code            == 403
+    assert http_client_mocked_path_roles.get("/group_creator_subroles").status_code    == 403
+    assert http_client_mocked_path_roles.get("/edit_creator_subroles").status_code     == 403
+    assert http_client_mocked_path_roles.get("/group_member_subroles").status_code     == 403
+    assert http_client_mocked_path_roles.get("/external_subroles").status_code         == 200
+
+
+
+
+
 # -- TEST MODEL -- #
 
 # testing mock roles are configured corretly TODO kommt das hier hin ? 

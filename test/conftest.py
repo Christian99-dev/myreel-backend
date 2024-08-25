@@ -1,9 +1,11 @@
 import pytest
 import logging
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, StaticPool
 from sqlalchemy.orm import sessionmaker, Session
+from api.middleware.access_handler import AccessHandlerMiddleware
+from api.mock.path_roles.mock_path_roles import mock_path_roles
 from api.models.database.model import Base, Song
 from test.utils.testing_data.db.fill import fill
 from logging_config import setup_logging_testing
@@ -111,7 +113,7 @@ def db_memory():
 # Routes     : Prod
 # Middleware : None 
 @pytest.fixture(scope="function")
-def http_client(db_memory):
+def http_client(db_memory: Session):
     
     # adding prod routes
     app = FastAPI()
@@ -136,14 +138,14 @@ def http_client(db_memory):
 ## -- SPECIFIC FIXTURES -- ## 
 
 # Database   : Test_Data 
-# Routes     : Mocked
+# Routes     : add and list
 # Middleware : None  
 # Descriptsion : 
 # 
 # This is mainly for testing the behavoiur of a roundtrip from route to service to database, 
 # if no routes in prod are available. so we are just mocking crud operations.
 @pytest.fixture(scope="function")
-def http_client_mocked_crud(db_memory):
+def http_client_mocked_crud(db_memory: Session):
     # fresh client
     app = FastAPI()
     
@@ -161,5 +163,37 @@ def http_client_mocked_crud(db_memory):
         return db.query(Song).all()
     
     # yield client with routes
+    with TestClient(app) as test_client:
+        yield test_client
+        
+# Database   : Test_Data 
+# Routes     : for every role one
+# Middleware : Access_Handler  
+# Descriptsion : 
+# 
+# A fixture where every possible role is has a dedicated path, to test out security access in a non prod env
+@pytest.fixture(scope="function")
+def http_client_mocked_path_roles(db_memory: Session):
+    
+    # simulating prod api
+    app = FastAPI()
+    
+    # session
+    def get_db_override(): 
+        yield db_memory
+    
+    # middleware for access testing 
+    app.add_middleware(AccessHandlerMiddleware, path_roles=mock_path_roles, get_db=get_db_override)
+    
+    # every endpoints based on testconfig file
+    def create_endpoint(m_name: str):
+        async def endpoint(request: Request):
+            return f"You called {m_name}"
+        return endpoint
+
+    for path in mock_path_roles.keys():    
+        app.add_api_route(f"{path}", create_endpoint(path), methods=["GET"])
+    
+        # yield client with routes
     with TestClient(app) as test_client:
         yield test_client
