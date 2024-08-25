@@ -1,22 +1,22 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Edit
 from api.services.database.edit import create, get, is_edit_creator
-from api.utils.database.create_uuid import create_uuid
+from test.utils.testing_data.db.model import model
 
 # create
-def test_create(db_session_empty: Session):
-    # Arrange: Set up the parameters for the new edit
-    song_id = 1  # Ensure this song_id exists in your test setup
-    created_by = 1  # Use a valid user_id or create a user if necessary
-    group_id = create_uuid()  # Use a valid group_id or create a group if necessary
-    name = "Test Edit"
+def test_create(db_memory: Session):
+    # Arrange: Verwende vorhandene Testdaten
+    song_id = 1  # Existiert in der gefüllten Datenbank
+    created_by = 1  # Existiert in der gefüllten Datenbank
+    group_id = model.users[0].group_id  # Verwende eine gültige group_id aus den Testdaten
+    name = "New Test Edit"
     is_live = True
-    video_src = "www.examplesrc.de"
+    video_src = "http://example.com/new_edit.mp4"
 
-    # Act: Call the create service function
-    new_edit = create(song_id=song_id, created_by=created_by, group_id=group_id, name=name, is_live=is_live, video_src=video_src, db=db_session_empty)
+    # Act: Erstelle einen neuen Edit
+    new_edit = create(song_id=song_id, created_by=created_by, group_id=group_id, name=name, is_live=is_live, video_src=video_src, db=db_memory)
     
-    # Assert: Check the created edit's attributes
+    # Assert: Prüfe die Attribute des erstellten Edits
     assert new_edit.song_id == song_id
     assert new_edit.created_by == created_by
     assert new_edit.group_id == group_id
@@ -24,8 +24,8 @@ def test_create(db_session_empty: Session):
     assert new_edit.isLive == is_live
     assert new_edit.video_src == video_src
 
-    # Verify: Ensure the edit was actually added to the database
-    edit_in_db = db_session_empty.query(Edit).filter_by(edit_id=new_edit.edit_id).one_or_none()
+    # Verify: Stelle sicher, dass der Edit in der Datenbank gespeichert wurde
+    edit_in_db = db_memory.query(Edit).filter_by(edit_id=new_edit.edit_id).one_or_none()
     assert edit_in_db is not None
     assert edit_in_db.song_id == song_id
     assert edit_in_db.created_by == created_by
@@ -35,47 +35,40 @@ def test_create(db_session_empty: Session):
     assert edit_in_db.video_src == video_src
 
 # get    
-def test_get(db_session_empty: Session):
-    # Define edit data
-    song_id = 1
-    created_by = 1
-    group_id = create_uuid()
-    name = "Test Edit"
-    is_live = True
-    video_src = "www.examplesrc.de"
+def test_get(db_memory: Session):
+    # Verwende einen vorhandenen Edit aus den Testdaten
+    existing_edit = model.edits[0]
     
-    # Create a new edit
-    created_edit = create(song_id, created_by, group_id, name, is_live, video_src, db_session_empty)
+    # Act: Hole den Edit mit seiner ID
+    fetched_edit = get(existing_edit.edit_id, db_memory)
     
-    # Fetch the edit by ID
-    fetched_edit = get(created_edit.edit_id, db_session_empty)
-    
-    # Verify the fetched edit matches the created edit
+    # Assert: Prüfe, ob der gefundene Edit den erwarteten Werten entspricht
     assert fetched_edit is not None
-    assert fetched_edit.edit_id == created_edit.edit_id
-    assert fetched_edit.song_id == created_edit.song_id
-    assert fetched_edit.created_by == created_edit.created_by
-    assert fetched_edit.group_id == created_edit.group_id
-    assert fetched_edit.name == created_edit.name
-    assert fetched_edit.isLive == created_edit.isLive
-    assert fetched_edit.video_src == created_edit.video_src
-    
-def test_get_edit_failed(db_session_empty: Session):
-    # Define a non-existent edit ID
+    assert fetched_edit.edit_id == existing_edit.edit_id
+    assert fetched_edit.song_id == existing_edit.song_id
+    assert fetched_edit.created_by == existing_edit.created_by
+    assert fetched_edit.group_id == existing_edit.group_id
+    assert fetched_edit.name == existing_edit.name
+    assert fetched_edit.isLive == existing_edit.isLive
+    assert fetched_edit.video_src == existing_edit.video_src
+
+def test_get_edit_failed(db_memory: Session):
+    # Arrange: Verwende eine ungültige edit_id
     non_existent_edit_id = 9999
     
-    # Try to fetch the edit by the non-existent ID
-    fetched_edit = get(non_existent_edit_id, db_session_empty)
+    # Act: Versuche, den Edit mit der ungültigen ID abzurufen
+    fetched_edit = get(non_existent_edit_id, db_memory)
     
-    # Verify that no edit is found
+    # Assert: Stelle sicher, dass kein Edit gefunden wird
     assert fetched_edit is None
 
 # is_edit_creator
-def test_is_edit_creator_true(db_session_filled: Session):
-    # Assuming the creator of Edit 1 in Group 1 has user_id 1
-    assert is_edit_creator(1, 1, db_session_filled) == True
+def test_is_edit_creator_true(db_memory: Session):
+    # Verwende die Datenbank mit bestehenden Daten und prüfe den Ersteller eines Edits
+    edit = model.edits[0]  # Zum Beispiel: Edit 1 wurde von User 1 erstellt
+    assert is_edit_creator(edit.created_by, edit.edit_id, db_memory) == True
 
-def test_is_edit_creator_false(db_session_filled: Session):
-    # Assuming Edit 2 in Group 1 was created by a user with user_id 2
-    assert is_edit_creator(1, 2, db_session_filled) == False
-    
+def test_is_edit_creator_false(db_memory: Session):
+    # Prüfe einen Fall, bei dem der User nicht der Ersteller des Edits ist
+    edit = model.edits[1]  # Zum Beispiel: Edit 2 wurde nicht von User 1 erstellt
+    assert is_edit_creator(1, edit.edit_id, db_memory) == False

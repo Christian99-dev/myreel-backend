@@ -37,7 +37,7 @@ def test_db_memory_isolation_other(db_memory: Session):
     result = db_memory.query(Song).filter_by(name="Test Song").first()
     assert result is None, "The song should not be present in this session if isolation is correct."
 
-# -- http_client -- #
+# -- http_client  -- #
 
 def test_http_client_has_prod_routes(http_client: TestClient):
     """Test to ensure that the app has the correct routes."""

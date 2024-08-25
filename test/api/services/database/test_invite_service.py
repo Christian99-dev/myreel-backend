@@ -1,29 +1,32 @@
 from datetime import datetime, timedelta
 from api.models.database.model import Invitation
 from api.services.database.invite import create, delete
-from test.utils.testing_data.db.model import group_id_1
+from test.utils.testing_data.db.model import model
 
-def test_create(db_session_filled):
+# create
+def test_create(db_memory):
+    group_id = model.groups[0].group_id
     email = "test@example.com"
-    invitation = create(group_id=group_id_1, email=email, db=db_session_filled)
+    invitation = create(group_id=group_id, email=email, db=db_memory)
 
-    assert invitation.group_id == group_id_1
+    assert invitation.group_id == group_id
     assert invitation.email == email
     assert isinstance(invitation.token, str)
     assert invitation.created_at <= datetime.now()
     assert invitation.expires_at == invitation.created_at + timedelta(days=7)
 
-def test_delete(db_session_filled):
-    
+# delete
+def test_delete(db_memory):
+    group_id = model.groups[0].group_id
     email = "test@example.com"
-    invitation = create(group_id=group_id_1, email=email, db=db_session_filled)
+    invitation = create(group_id=group_id, email=email, db=db_memory)
     invitation_id = invitation.invitation_id
 
     # Ensure the invitation exists
-    assert db_session_filled.query(Invitation).filter(Invitation.invitation_id == invitation_id).first() is not None
+    assert db_memory.query(Invitation).filter(Invitation.invitation_id == invitation_id).first() is not None
 
     # Delete the invitation
-    delete(invitation_id=invitation_id, db=db_session_filled)
+    delete(invitation_id=invitation_id, db=db_memory)
 
     # Ensure the invitation no longer exists
-    assert db_session_filled.query(Invitation).filter(Invitation.invitation_id == invitation_id).first() is None
+    assert db_memory.query(Invitation).filter(Invitation.invitation_id == invitation_id).first() is None
