@@ -37,7 +37,7 @@ def test_db_memory_isolation_other(db_memory: Session):
     result = db_memory.query(Song).filter_by(name="Test Song").first()
     assert result is None, "The song should not be present in this session if isolation is correct."
 
-def test_db_memory_has_correct_data(db_memory: Session):
+def test_db_memory_data_test(db_memory: Session):
     # Daten aus der Datenbank abrufen
     groups_from_db = db_memory.query(Group).all()
     songs_from_db = db_memory.query(Song).all()
@@ -191,7 +191,7 @@ def test_http_client_mocked_crud_isolation_other(http_client_mocked_crud: TestCl
 
 # -- http_client_mocked_path_roles -- #
 
-def test_http_client_mocked_path_roles_correct(http_client_mocked_path_roles: TestClient):
+def test_http_client_mocked_path_endpoints_config_test(http_client_mocked_path_roles: TestClient):
     assert http_client_mocked_path_roles.get("/admin_no_subroles").status_code          == 403
     assert http_client_mocked_path_roles.get("/group_creator_no_subroles").status_code  == 403
     assert http_client_mocked_path_roles.get("/edit_creator_no_subroles").status_code   == 403
