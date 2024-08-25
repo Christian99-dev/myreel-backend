@@ -49,7 +49,7 @@ class LocalMediaAccess(BaseMediaAccess):
         """Initialisiere lokale Ressourcen."""
         self.static_dir = "./static"
         os.makedirs(self.static_dir, exist_ok=True)  # Erstelle den Ordner, falls nicht vorhanden
-        print(f"Local media access setup complete. Directory: {self.static_dir}")
+        # print(f"Local media access setup complete. Directory: {self.static_dir}")
 
     def save(self, file_name: str, dir: str, file_data: bytes) -> str:
         file_path = os.path.join(self.static_dir, dir, file_name)
@@ -57,27 +57,27 @@ class LocalMediaAccess(BaseMediaAccess):
         with open(file_path, 'wb') as f:
             f.write(file_data)
         location = f"http://localhost:8000/{dir}/{file_name}"  # Beispiel für lokale URL
-        print(f"File saved to {file_path}")
+        # print(f"File saved to {file_path}")
         return location
 
     def get(self, file_name: str, dir: str):
         file_path = os.path.join(self.static_dir, dir, file_name)
         try:
             with open(file_path, 'rb') as f:
-                print(f"File retrieved from {file_path}")
+                # print(f"File retrieved from {file_path}")
                 return f.read()
         except FileNotFoundError:
-            print(f"File not found: {file_path}")
+            # print(f"File not found: {file_path}")
             return None
 
     def list(self, dir: str):
         dir_path = os.path.join(self.static_dir, dir)
         if os.path.exists(dir_path):
             files = os.listdir(dir_path)
-            print(f"Files in '{dir}': {files}")
+            # print(f"Files in '{dir}': {files}")
             return files
         else:
-            print(f"Directory not found: {dir_path}")
+            # print(f"Directory not found: {dir_path}")
             return []
 
     def list_all(self):
@@ -86,16 +86,17 @@ class LocalMediaAccess(BaseMediaAccess):
             for filename in filenames:
                 relative_path = os.path.relpath(os.path.join(dirpath, filename), self.static_dir)
                 all_files.append(relative_path)
-        print("All files in media access:", all_files)
+        # print("All files in media access:", all_files)
         return all_files
 
     def delete(self, dir: str, file_name: str) -> None:
         file_path = os.path.join(self.static_dir, dir, file_name)
         try:
             os.remove(file_path)
-            print(f"File deleted: {file_path}")
+            # print(f"File deleted: {file_path}")
         except FileNotFoundError:
-            print(f"File not found for deletion: {file_path}")
+            # print(f"File not found for deletion: {file_path}")
+            pass
 
     def clear(self) -> None:
         """Löscht alle Dateien und Verzeichnisse im lokalen Zugriff, behält jedoch das Hauptverzeichnis."""
@@ -104,28 +105,29 @@ class LocalMediaAccess(BaseMediaAccess):
                 for filename in filenames:
                     file_path = os.path.join(dirpath, filename)
                     os.remove(file_path)
-                    print(f"File cleared: {file_path}")
+                    # print(f"File cleared: {file_path}")
                 for dirname in dirnames:
                     dir_path = os.path.join(dirpath, dirname)
                     os.rmdir(dir_path)
-                    print(f"Directory cleared: {dir_path}")
+                    # print(f"Directory cleared: {dir_path}")
 
             # Hier wird nur das Hauptverzeichnis nicht gelöscht.
-            print(f"Cleared all files and directories under: {self.static_dir}")
+            # print(f"Cleared all files and directories under: {self.static_dir}")
         except Exception as e:
-            print(f"Error clearing files: {e}")
+            # print(f"Error clearing files: {e}")
+            pass
 
 class MemoryMediaAccess(BaseMediaAccess):
     def setup(self):
         """Initialisiere Ressourcen für den Speicherzugriff."""
         self.memory_storage = {}
-        print("Memory media access setup complete.")
+        # print("Memory media access setup complete.")
 
     def save(self, file_name: str, dir: str, file_data: bytes) -> str:
         if dir not in self.memory_storage:
             self.memory_storage[dir] = {}
         self.memory_storage[dir][file_name] = file_data
-        print(f"File '{file_name}' saved in memory under directory '{dir}'.")
+        # print(f"File '{file_name}' saved in memory under directory '{dir}'.")
         return f"memory://{dir}/{file_name}"  # Beispiel für Speicherort
 
     def get(self, file_name: str, dir: str):
@@ -134,58 +136,62 @@ class MemoryMediaAccess(BaseMediaAccess):
     def list(self, dir: str):
         if dir in self.memory_storage:
             files = list(self.memory_storage[dir].keys())
-            print(f"Files in memory under '{dir}': {files}")
+            # print(f"Files in memory under '{dir}': {files}")
             return files
         else:
-            print(f"Directory not found in memory: {dir}")
+            # print(f"Directory not found in memory: {dir}")
             return []
 
     def list_all(self):
         all_files = {dir: list(files.keys()) for dir, files in self.memory_storage.items()}
-        print("All files in memory access:", all_files)
+        # print("All files in memory access:", all_files)
         return all_files
 
     def delete(self, dir: str, file_name: str) -> None:
         if dir in self.memory_storage and file_name in self.memory_storage[dir]:
             del self.memory_storage[dir][file_name]
-            print(f"File '{file_name}' deleted from memory under directory '{dir}'.")
+            # print(f"File '{file_name}' deleted from memory under directory '{dir}'.")
         else:
-            print(f"File not found for deletion in memory: {dir}/{file_name}")
+            # print(f"File not found for deletion in memory: {dir}/{file_name}")
+            pass
 
     def clear(self) -> None:
         """Löscht alle Dateien und Verzeichnisse im Speicherzugriff."""
         self.memory_storage.clear()
-        print("All files cleared from memory access.")
+        # print("All files cleared from memory access.")
 
 class RemoteMediaAccess(BaseMediaAccess):
     def setup(self):
         """Initialisiere Ressourcen für den Fernzugriff."""
-        print("Remote media access setup complete.")
+        # print("Remote media access setup complete.")
         # Hier könnte die Verbindung zu einem Remote-Speicher hergestellt werden
 
     def save(self, file_name: str, dir: str, file_data: bytes) -> str:
-        print("Remote saving not implemented.")
+        # print("Remote saving not implemented.")
         return "remote://not-implemented"  # Platzhalter-Rückgabe
 
     def get(self, file_name: str, dir: str):
-        print("Remote retrieval not implemented.")
+        pass
+        # print("Remote retrieval not implemented.")
 
     def list(self, dir: str):
-        print("Remote listing not implemented.")
+        # print("Remote listing not implemented.")
         return []
 
     def list_all(self):
-        print("Remote listing all files not implemented.")
+        # print("Remote listing all files not implemented.")
         return []
 
     def delete(self, dir: str, file_name: str) -> None:
-        print("Remote deletion not implemented.")
+        pass
+        # print("Remote deletion not implemented.")
 
     def clear(self) -> None:
-        print("Remote clearing not implemented.")
+        pass
+        # print("Remote clearing not implemented.")
 
 def create_media_access(access_type: str) -> BaseMediaAccess:
-    print("create_media_access()")
+    # print("create_media_access()")
     if access_type == "local":
         return LocalMediaAccess()
     elif access_type == "memory":
