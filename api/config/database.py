@@ -6,8 +6,6 @@ from fastapi.params import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from distutils.util import strtobool
-
-
 from api.models.database.model import Base
 
 logger = logging.getLogger("testing")

@@ -3,8 +3,6 @@ import os
 from fastapi import Depends, FastAPI
 from dotenv import load_dotenv
 from distutils.util import strtobool
-from api.config import media_access
-from api.config.media_access import MediaAccess, get_media_access, media_dependency
 from api.models.database import model
 from api.utils.database.print_database_contents import print_database_contents
 from logging_config import setup_logging_prod
@@ -68,5 +66,5 @@ app.include_router(group_router)
 
 # root
 @app.get("/")
-async def root(media_access: MediaAccess = Depends(get_media_access)):
+async def root():
     return 17
