@@ -3,13 +3,13 @@ import logging
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, StaticPool
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 from api.models.database.model import Base, Song
 from test.utils.testing_data.db.fill import fill
 from logging_config import setup_logging_testing
 from api.routes.song import router as song_router
 from api.routes.group import router as group_router
-from api.config.database import Session, get_db, get_db_memory
+from api.config.database import get_db, get_db_memory
 
 # setup logging
 setup_logging_testing()
