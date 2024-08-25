@@ -134,56 +134,56 @@ def test_http_client_has_prod_routes(http_client: TestClient):
     for route in test_client_routes:
         assert route in filtered_prod_routes, f"Unexpected route {route} found in the test client app."
 
-# -- http_client_mocked_crud -- #
+# -- http_client_mocked_path_crud -- #
 
-def test_http_client_mocked_crud_isolation(http_client_mocked_crud: TestClient):
+def test_http_client_mocked_path_crud_isolation(http_client_mocked_path_crud: TestClient):
     """Test to ensure that adding a song does not affect other sessions."""
     
     # Check that the database is empty at the beginning of the test
-    response = http_client_mocked_crud.get("/list")
+    response = http_client_mocked_path_crud.get("/list")
     assert response.status_code == 200
     assert len(response.json()) == len(model.songs)
     
     
     # Add a new song using the HTTP client
-    response = http_client_mocked_crud.post("/add/Test Song A/Test Author")
+    response = http_client_mocked_path_crud.post("/add/Test Song A/Test Author")
     assert response.status_code == 200
     new_song = response.json()
     assert new_song["name"] == "Test Song A"
     assert new_song["author"] == "Test Author"
 
     # Verify the song was added
-    response = http_client_mocked_crud.get("/list")
+    response = http_client_mocked_path_crud.get("/list")
     assert response.status_code == 200
     songs = response.json()
     assert len(songs) == len(model.songs) + 1
     assert songs[len(songs) - 1]["name"] == "Test Song A"
 
-def test_http_client_mocked_crud_isolation_other(http_client_mocked_crud: TestClient):
+def test_http_client_mocked_path_crud_isolation_other(http_client_mocked_path_crud: TestClient):
     """Test to ensure that changes in one session do not affect another session."""
     
     
     # Check that the database is still empty for this test
-    response = http_client_mocked_crud.get("/list")
+    response = http_client_mocked_path_crud.get("/list")
     assert response.status_code == 200
     assert len(response.json()) == len(model.songs), "Database should be empty at the beginning of this test."
     
 
     # This session should not have access to the song added in the previous test
-    response = http_client_mocked_crud.get("/list")
+    response = http_client_mocked_path_crud.get("/list")
     assert response.status_code == 200
     songs = response.json()
     assert len(songs) == len(model.songs), "Database should remain empty in this isolated session."
     
     # Add a song in this separate test
-    response = http_client_mocked_crud.post("/add/Test Song B/Test Artist")
+    response = http_client_mocked_path_crud.post("/add/Test Song B/Test Artist")
     assert response.status_code == 200
     new_song = response.json()
     assert new_song["name"] == "Test Song B"
     assert new_song["author"] == "Test Artist"
     
     # Ensure the song is present in this session
-    response = http_client_mocked_crud.get("/list")
+    response = http_client_mocked_path_crud.get("/list")
     assert response.status_code == 200
     songs = response.json()
     assert len(songs) == len(songs)

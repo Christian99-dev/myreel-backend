@@ -145,7 +145,7 @@ def http_client(db_memory: Session):
 # This is mainly for testing the behavoiur of a roundtrip from route to service to database, 
 # if no routes in prod are available. so we are just mocking crud operations.
 @pytest.fixture(scope="function")
-def http_client_mocked_crud(db_memory: Session):
+def http_client_mocked_path_crud(db_memory: Session):
     # fresh client
     app = FastAPI()
     
