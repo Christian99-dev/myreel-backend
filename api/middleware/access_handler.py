@@ -21,7 +21,7 @@ class AccessHandlerMiddleware(BaseHTTPMiddleware):
         pathInfo        = self.path_roles.get(request.url.path)
         
         if pathInfo is None:
-            return Response(status_code=404)
+            return Response(status_code=401)
             
         # all cred
         credentials = await extract_role_credentials_from_request(request)
