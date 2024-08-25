@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 from api.mock.path_roles.mock_path_roles import mock_path_roles
-from test.utils.auth.mock_roles_creds import admin_req_creds, group_creator_req_creds, group_member_req_creds, external_req_creds, edit_creator_req_creds
+from api.mock.role_creds.role_creds import admin_req_creds, group_creator_req_creds, edit_creator_req_creds, external_req_creds, group_member_req_creds
 import logging
 logger = logging.getLogger("testing")
     

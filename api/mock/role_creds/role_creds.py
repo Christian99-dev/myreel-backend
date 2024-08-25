@@ -3,7 +3,6 @@ from api.auth import jwt
 from api.auth.role_enum import RoleEnum
 from api.mock.database.model import group_id_1
 
-# these are example request parameter, simulation the 5 roles. based on the test_model.py
 
 jwt_user_1 = jwt.create_jwt(1, 30)
 jwt_user_2 = jwt.create_jwt(2, 30)

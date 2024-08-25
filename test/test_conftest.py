@@ -1,13 +1,12 @@
 import logging
-import pytest
 from sqlalchemy.orm import Session
 from api.auth.role import Role, RoleInfos
 from api.auth.role_enum import RoleEnum
-from api.models.database.model import Edit, Group, Song, User, Slot, Invitation ,LoginRequest, OccupiedSlot
-from test.utils.auth.role_tester_has_acccess import role_tester_has_access
-from test.utils.auth.mock_roles_creds import admin_req_creds, group_creator_req_creds, group_member_req_creds, external_req_creds, edit_creator_req_creds
+from api.models.database.model import Edit, Group, Song, User, Slot, Invitation, LoginRequest, OccupiedSlot
+from api.mock.role_creds.role_creds import admin_req_creds, group_creator_req_creds, edit_creator_req_creds, external_req_creds, group_member_req_creds
 from api.mock.database.model import model
 from fastapi.testclient import TestClient
+from test.utils.role_tester_has_acccess import role_tester_has_access
 from main import app
 logger = logging.getLogger("testing")
 
@@ -214,12 +213,10 @@ def test_http_client_mocked_path_for_extracting_creds_config(http_client_mocked_
     assert http_client_mocked_path_for_extracting_creds.post("/edit/123").status_code                               == 200
     assert http_client_mocked_path_for_extracting_creds.post("/example/group/test-group-id/example").status_code    == 200
     assert http_client_mocked_path_for_extracting_creds.post("/example/edit/456/example").status_code               == 200
+    
+# -- NOT FIXTURE : mock data wich is not testet already -- #
 
-
-# -- TEST MODEL -- #
-
-# testing mock roles are configured corretly TODO kommt das hier hin ? 
-def test_setup_roles(db_memory: Session):
+def test_mock_data_user_creds(db_memory: Session):
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_memory), RoleEnum.ADMIN)
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_memory), RoleEnum.GROUP_CREATOR)
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_memory), RoleEnum.EDIT_CREATOR)
