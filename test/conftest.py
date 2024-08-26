@@ -12,7 +12,6 @@ from api.mock.media.fill import fill as fill_media
 from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
 from logging_config import setup_logging_testing
 from api.routes.song import router as song_router
-from api.routes.group import router as group_router
 from api.config.database import get_db, get_db_memory
 
 # setup logging
@@ -52,7 +51,6 @@ def http_client(db_memory: Session):
     
     # adding prod routes
     app = FastAPI()
-    app.include_router(group_router)
     app.include_router(song_router)
     
     def get_db_override():
