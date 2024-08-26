@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from api.services.database.song import create, list_all, get
+from api.services.database.song import create, list_all, get, update
 from api.models.database.model import Song
 from api.mock.database.model import model
 
@@ -47,3 +47,53 @@ def test_list(db_memory: Session):
     song_ids = {song.song_id for song in model.songs}
     retrieved_song_ids = {song.song_id for song in songs}
     assert song_ids == retrieved_song_ids  # Ensure all test song IDs are returned
+
+# update
+def test_update(db_memory: Session):
+    # Assume the first song from the test data is used
+    original_song = model.songs[0]
+    song_id = original_song.song_id
+    
+    # Update parameters
+    new_name = "Updated Song Name"
+    new_author = "Updated Author"
+    new_cover_src = "http://example.com/updated_cover.jpg"
+    
+    # Act: Call the update_song service function
+    updated_song = update(
+        song_id=song_id,
+        name=new_name,
+        author=new_author,
+        cover_src=new_cover_src,
+        db_session=db_memory
+    )
+    
+    # Assert: Check that the song was updated correctly
+    assert updated_song is not None
+    assert updated_song.song_id == song_id
+    assert updated_song.name == new_name
+    assert updated_song.author == new_author
+    assert updated_song.cover_src == new_cover_src
+    assert updated_song.audio_src == original_song.audio_src  # Ensure unchanged fields are still correct
+
+    # Verify: Ensure the updated song is actually saved in the database
+    song_in_db = db_memory.query(Song).filter_by(song_id=song_id).one_or_none()
+    assert song_in_db is not None
+    assert song_in_db.name == new_name
+    assert song_in_db.author == new_author
+    assert song_in_db.cover_src == new_cover_src
+    assert song_in_db.audio_src == original_song.audio_src
+
+def test_update_song_not_found(db_memory: Session):
+    # Arrange: Set up a non-existing song ID
+    non_existing_song_id = 99999
+    
+    # Act: Try to update a song that doesn't exist
+    updated_song = update(
+        song_id=non_existing_song_id,
+        name="New Name",
+        db_session=db_memory
+    )
+    
+    # Assert: Ensure that None is returned when the song doesn't exist
+    assert updated_song is None
