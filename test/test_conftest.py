@@ -7,6 +7,7 @@ from api.mock.role_creds.role_creds import admin_req_creds, group_creator_req_cr
 from api.mock.database.model import model
 from fastapi.testclient import TestClient
 from test.utils.role_tester_has_acccess import role_tester_has_access
+from api.config.media_access import BaseMediaAccess
 
 from main import app
 logger = logging.getLogger("testing")
@@ -117,7 +118,7 @@ def test_db_memory_data_test(db_memory: Session):
 
 # -- media_access_memory -- #
 
-def test_media_access_memory_isolation(media_access_memory):
+def test_media_access_memory_isolation(media_access_memory: BaseMediaAccess):
     """Testet die Isolation von MediaAccess."""
     
     # Überprüfen, ob der Speicher zu Beginn leer ist
@@ -130,7 +131,7 @@ def test_media_access_memory_isolation(media_access_memory):
     assert 'test_file.txt' in media_access_memory.list('test_dir')
     assert media_access_memory.get('test_file.txt', 'test_dir') == b'Test content'
 
-def test_media_access_memory_isolation_other(media_access_memory):
+def test_media_access_memory_isolation_other(media_access_memory: BaseMediaAccess):
     """Testet die Isolation, um sicherzustellen, dass ein anderer Test nicht die Daten beeinflusst."""
     
     # Überprüfen, ob der Speicher zu Beginn leer ist
@@ -146,6 +147,52 @@ def test_media_access_memory_isolation_other(media_access_memory):
     assert 'another_test_file.txt' in media_access_memory.list('test_dir')
     assert media_access_memory.get('another_test_file.txt', 'test_dir') == b'Another Test content'
 
+def test_media_access_memory_files_as_valid(media_access_memory: BaseMediaAccess, db_memory: Session):
+    
+    # songs
+    db_songs = db_memory.query(Song).all()
+    db_song_ids = {song.song_id for song in db_songs}
+    songs_in_db = {f"{song_id}.wav" for song_id in db_song_ids}
+    
+    songs_in_folder = set(media_access_memory.list("songs"))
+    
+    songs_difference = len(songs_in_folder.difference(songs_in_db))
+    
+    assert songs_difference == 0, f"Missing song files in media access: {songs_difference}"
+    
+    # covers
+    db_covers = db_memory.query(Song).all()  # Assuming covers are linked to songs
+    db_cover_ids = {song.song_id for song in db_covers}  # Adjust based on your model
+    covers_in_db = {f"{cover_id}.png" for cover_id in db_cover_ids}  # Assuming covers are .png files
+
+    covers_in_folder = set(media_access_memory.list("covers"))
+
+    covers_difference = covers_in_folder.difference(covers_in_db)
+
+    assert len(covers_difference) == 0, f"Missing cover files in media access: {covers_difference}"
+    
+    # edits 
+    db_edits = db_memory.query(Edit).all()  # Query for edits
+    db_edit_ids = {edit.edit_id for edit in db_edits}  # Get all edit IDs
+    edits_in_db = {f"{edit_id}.mp4" for edit_id in db_edit_ids}  # Assuming edits are stored with .edit extension
+
+    edits_in_folder = set(media_access_memory.list("edits"))
+
+    edits_difference = edits_in_folder.difference(edits_in_db)
+
+    assert len(edits_difference) == 0, f"Missing edit files in media access: {edits_difference}"
+
+    # occupied slots 
+    db_slots = db_memory.query(OccupiedSlot).all()  # Query for occupied slots
+    db_slot_ids = {slot.slot_id for slot in db_slots}  # Get all occupied slot IDs
+    slots_in_db = {f"{slot_id}.mp4" for slot_id in db_slot_ids}  # Assuming slots are stored with .slot extension
+
+    slots_in_folder = set(media_access_memory.list("occupied_slots"))
+
+    slots_difference = slots_in_folder.difference(slots_in_db)
+
+    assert len(slots_difference) == 0, f"Missing occupied slot files in media access: {slots_difference}"
+    
 # -- http_client  -- #
 
 def test_http_client_has_prod_routes(http_client: TestClient):
