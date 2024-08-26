@@ -18,7 +18,11 @@ class AccessHandlerMiddleware(BaseHTTPMiddleware):
         self.get_db = get_db
 
     async def dispatch(self, request: Request, call_next):
-        pathInfo        = self.path_roles.get(request.url.path)
+        pathInfo = self.path_roles.get(request.url.path)
+        
+        # static is free
+        if request.url.path.startswith("/static"):
+            return await call_next(request)
         
         if pathInfo is None:
             return Response(status_code=401)

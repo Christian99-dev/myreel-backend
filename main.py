@@ -3,12 +3,18 @@ import os
 from fastapi import Depends, FastAPI
 from dotenv import load_dotenv
 from distutils.util import strtobool
+from fastapi.staticfiles import StaticFiles
 from api.models.database import model
 from api.utils.database.print_database_contents import print_database_contents
 from logging_config import setup_logging_prod
 
+# media 
+from api.mock.media.fill import fill as fill_media
+from api.config.media_access import media_access
+
 # database
-from api.config.database import get_db, engine, SessionLocal
+from api.config.database import engine, SessionLocal, get_db
+from api.mock.database.fill import fill as fill_db
 
 #routes
 from api.config.path_roles import path_roles
@@ -18,7 +24,6 @@ from api.routes.group import router as group_router
 # middleware 
 from api.middleware.log_access_path import LogAccessMiddleware
 from api.middleware.access_handler import AccessHandlerMiddleware
-from api.mock.database.fill import fill
 
 # setup loggers
 setup_logging_prod()
@@ -36,7 +41,8 @@ async def lifespan(app: FastAPI):
     with SessionLocal() as session:
         if LOCAL_DB:  # Guard
             # Only uncomment if you want to renew the data
-            fill(session)
+            # fill_db(session)
+            pass
         
         print_database_contents(session, {
             'Slot':         False,
@@ -50,11 +56,14 @@ async def lifespan(app: FastAPI):
         })
 
     # Media setup and fill if neede
-    # get media and fill
+    # fill_media(media_access)
     yield
 
 # app
 app = FastAPI(lifespan=lifespan)
+
+# Statisches Verzeichnis einbinden
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # add middleware
 app.add_middleware(LogAccessMiddleware)

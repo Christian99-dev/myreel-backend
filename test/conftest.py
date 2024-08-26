@@ -54,9 +54,6 @@ def http_client(db_memory: Session):
     app = FastAPI()
     app.include_router(group_router)
     app.include_router(song_router)
-    @app.get("/")
-    async def root():
-        return 17
     
     def get_db_override():
         yield db_memory

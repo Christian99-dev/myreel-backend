@@ -204,7 +204,7 @@ def test_http_client_has_prod_routes(http_client: TestClient):
     """Test to ensure that the app has the correct routes."""
     # Get the list of routes from the production app
     prod_routes         = [route.path for route in app.router.routes]
-    filtered_prod_routes = [route for route in prod_routes if route not in ['/openapi.json', '/docs', '/docs/oauth2-redirect', '/redoc']]
+    filtered_prod_routes = [route for route in prod_routes if route not in ['/openapi.json', '/docs', '/docs/oauth2-redirect', '/redoc', "/", "/static"]]
 
     # Get the list of routes from the test client
     response = http_client.get("/openapi.json")

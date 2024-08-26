@@ -15,6 +15,7 @@ path_roles: Dict[str, PathInfo] = {
     
     # root
     '/':                        PathInfo(role=RoleEnum.EXTERNAL,    has_subroles=False),
+    '/static':                  PathInfo(role=RoleEnum.EXTERNAL,    has_subroles=False),
             
     # songs
     # '/song/create':             PathInfo(role=RoleEnum.ADMIN,     has_subroles=True), 
@@ -27,4 +28,3 @@ path_roles: Dict[str, PathInfo] = {
     # '/group/delete':            PathInfo(role=RoleEnum.ADMIN,      has_subroles=True), 
     # '/group/get':               PathInfo(role=RoleEnum.ADMIN,      has_subroles=True), 
 }
-
