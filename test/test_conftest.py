@@ -193,6 +193,11 @@ def test_media_access_memory_files_as_valid(media_access_memory: BaseMediaAccess
 
     assert len(slots_difference) == 0, f"Missing occupied slot files in media access: {slots_difference}"
     
+    # demovideo
+    demo_videos = media_access_memory.list("demo_slot")
+    assert len(demo_videos) == 1
+    
+    
 # -- http_client  -- #
 
 def test_http_client_has_prod_routes(http_client: TestClient):
