@@ -85,10 +85,9 @@ path_config = PathConfig({
     '/static/occupied_slots/{filename}':   {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
     '/static/songs/{filename}':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
     
-    # testroutes 
-    '/test':              {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
-    # '/test/1':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
-    # '/test/2':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
-    # '/test/3':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)}
+    # testroutes
+    '/testing/1':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
+    '/testing/2':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
+    '/testing/3':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)}
     
 })

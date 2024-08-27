@@ -11,7 +11,7 @@ from logging_config import setup_logging_prod
 from api.auth.path_config import path_config
 # media 
 from api.mock.media.fill import fill as fill_media
-from api.config.media_access import media_access
+from api.config.media_access import BaseMediaAccess, media_access
 
 # database
 from api.config.database import engine, SessionLocal, get_db
@@ -20,6 +20,7 @@ from api.mock.database.fill import fill as fill_db
 #routes
 from api.routes.song import router as song_router
 from api.routes.static import router as static_router
+from api.routes.testing import router as testing_router
 
 # middleware 
 from api.middleware.log_access_path import LogAccessMiddleware
@@ -67,17 +68,14 @@ app.add_middleware(LogAccessMiddleware)
 app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_db=get_db)
 
 # router
+app.include_router(testing_router)
 app.include_router(static_router)
 app.include_router(song_router)
+
 
 # root
 @app.get("/")
 async def root():
     return 17
-
-@app.get("/test")
-async def root():
-    return 17
-
 
 
