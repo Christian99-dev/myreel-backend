@@ -31,3 +31,11 @@ def is_edit_creator(user_id: int, edit_id: int, db: Session) -> bool:
     if edit and edit.created_by == user_id:
         return True
     return False
+
+def remove(edit_id: int, db: Session) -> bool:
+    edit = db.query(Edit).filter(Edit.edit_id == edit_id).first()
+    if edit:
+        db.delete(edit)
+        db.commit()
+        return True
+    return False

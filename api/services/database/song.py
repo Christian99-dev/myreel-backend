@@ -57,3 +57,11 @@ def update(
     db_session.refresh(song)
 
     return song
+
+def remove(song_id: int, db_session: Session) -> bool:
+    song = db_session.query(Song).filter(Song.song_id == song_id).first()
+    if song:
+        db_session.delete(song)
+        db_session.commit()
+        return True
+    return False

@@ -19,3 +19,11 @@ def create(
 
 def get(slot_id: int, db: Session) -> Slot:
     return db.query(Slot).filter(Slot.slot_id == slot_id).first()
+
+def remove(slot_id: int, db: Session) -> bool:
+    slot = db.query(Slot).filter(Slot.slot_id == slot_id).first()
+    if slot:
+        db.delete(slot)
+        db.commit()
+        return True
+    return False

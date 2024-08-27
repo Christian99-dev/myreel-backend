@@ -16,17 +16,26 @@ def test_create(db_memory):
     assert invitation.expires_at == invitation.created_at + timedelta(days=7)
 
 # delete
-def test_delete(db_memory):
-    group_id = model.groups[0].group_id
-    email = "test@example.com"
-    invitation = create(group_id=group_id, email=email, db=db_memory)
-    invitation_id = invitation.invitation_id
+def test_delete_invitation(db_memory):
+    # Arrange: Verwende eine vorhandene Einladung
+    existing_invitation = db_memory.query(Invitation).first()
 
-    # Ensure the invitation exists
-    assert db_memory.query(Invitation).filter(Invitation.invitation_id == invitation_id).first() is not None
+    # Act: Lösche die Einladung
+    delete(existing_invitation.invitation_id, db_memory)
 
-    # Delete the invitation
-    delete(invitation_id=invitation_id, db=db_memory)
+    # Verify: Stelle sicher, dass die Einladung nicht mehr in der Datenbank vorhanden ist
+    invitation_in_db = db_memory.query(Invitation).filter_by(invitation_id=existing_invitation.invitation_id).one_or_none()
+    assert invitation_in_db is None
 
-    # Ensure the invitation no longer exists
-    assert db_memory.query(Invitation).filter(Invitation.invitation_id == invitation_id).first() is None
+
+def test_delete_invitation_failed(db_memory):
+    # Arrange: Verwende eine ungültige invitation_id
+    non_existent_invitation_id = 9999
+
+    # Act: Versuche, die Einladung mit der ungültigen ID zu löschen
+    delete(non_existent_invitation_id, db_memory)
+
+    # Assert: Stelle sicher, dass kein Fehler auftritt (keine Ausnahme)
+    assert True  # Prüfung, dass die Funktion ohne Fehler durchläuft
+    
+

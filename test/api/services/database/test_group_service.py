@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from api.models.database.model import Group
-from api.services.database.group import create, get, is_group_creator, is_group_member
+from api.models.database.model import Group, Edit, Invitation, User
+from api.services.database.group import create, get, is_group_creator, is_group_member, remove
 from api.mock.database.model import model
 
 # create
@@ -73,3 +73,44 @@ def test_is_group_creator_false_not_creator(db_memory: Session):
     group_id = model.groups[0].group_id
     user_id = model.users[1].user_id  # User 2 is a member but not the creator of Group 1
     assert is_group_creator(user_id, group_id, db_memory) == False
+   
+    # Arrange: Verwende eine ungültige group_id
+    non_existent_group_id = "invalid-group-id"
+    
+    # Act: Versuche, die Gruppe mit der ungültigen ID zu löschen
+    result = remove(non_existent_group_id, db_memory)
+    
+    # Assert: Stelle sicher, dass keine Gruppe gelöscht wird
+    assert result is False
+    
+def test_remove_group(db_memory: Session):
+    # Arrange: Verwende eine vorhandene Gruppe
+    existing_group = db_memory.query(Group).first()
+
+    # Act: Lösche die Gruppe
+    result = remove(existing_group.group_id, db_memory)
+
+    # Assert: Überprüfe, dass die Gruppe erfolgreich gelöscht wurde
+    assert result is True
+
+    # Verify: Stelle sicher, dass die Gruppe nicht mehr in der Datenbank vorhanden ist
+    group_in_db = db_memory.query(Group).filter_by(group_id=existing_group.group_id).one_or_none()
+    assert group_in_db is None
+
+    # cascading: Group -> Edit, User, Invitation
+    edits_in_db = db_memory.query(Edit).filter_by(group_id=existing_group.group_id).all()
+    users_in_db = db_memory.query(User).filter_by(group_id=existing_group.group_id).all()
+    invitations_in_db = db_memory.query(Invitation).filter_by(group_id=existing_group.group_id).all()
+    assert len(edits_in_db) == 0
+    assert len(users_in_db) == 0
+    assert len(invitations_in_db) == 0
+
+def test_remove_group_failed(db_memory: Session):
+    # Arrange: Verwende eine ungültige group_id
+    non_existent_group_id = 'non_existent'
+
+    # Act: Versuche, die Gruppe mit der ungültigen ID zu löschen
+    result = remove(non_existent_group_id, db_memory)
+
+    # Assert: Stelle sicher, dass keine Gruppe gelöscht wird
+    assert result is False

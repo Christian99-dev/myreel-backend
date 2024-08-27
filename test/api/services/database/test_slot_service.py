@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from api.models.database.model import Slot
-from api.services.database.slot import create, get
 from api.mock.database.model import model
+from api.models.database.model import Slot, OccupiedSlot
+from api.services.database.slot import create, get, remove
 
 # create
 def test_create_slot(db_memory: Session):
@@ -49,3 +49,32 @@ def test_get_slot_failed(db_memory: Session):
     
     # Assert: Stelle sicher, dass kein Slot gefunden wird
     assert fetched_slot is None
+
+#remove
+def test_remove_slot(db_memory: Session):
+    # Arrange: Verwende einen vorhandenen Slot
+    existing_slot = db_memory.query(Slot).first()
+
+    # Act: Lösche den Slot
+    result = remove(existing_slot.slot_id, db_memory)
+
+    # Assert: Überprüfe, dass der Slot erfolgreich gelöscht wurde
+    assert result is True
+
+    # Verify: Stelle sicher, dass der Slot nicht mehr in der Datenbank vorhanden ist
+    slot_in_db = db_memory.query(Slot).filter_by(slot_id=existing_slot.slot_id).one_or_none()
+    assert slot_in_db is None
+
+    # cascading: Slot -> OccupiedSlot
+    occupied_slots_in_db = db_memory.query(OccupiedSlot).filter_by(slot_id=existing_slot.slot_id).all()
+    assert len(occupied_slots_in_db) == 0
+
+def test_remove_slot_failed(db_memory: Session):
+    # Arrange: Verwende eine ungültige slot_id
+    non_existent_slot_id = 9999
+
+    # Act: Versuche, den Slot mit der ungültigen ID zu löschen
+    result = remove(non_existent_slot_id, db_memory)
+
+    # Assert: Stelle sicher, dass kein Slot gelöscht wird
+    assert result is False

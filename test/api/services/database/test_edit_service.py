@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from api.models.database.model import Edit
-from api.services.database.edit import create, get, is_edit_creator
+from api.models.database.model import Edit, OccupiedSlot
+from api.services.database.edit import create, get, is_edit_creator, remove
 from api.mock.database.model import model
 
 # create
@@ -72,3 +72,32 @@ def test_is_edit_creator_false(db_memory: Session):
     # Prüfe einen Fall, bei dem der User nicht der Ersteller des Edits ist
     edit = model.edits[1]  # Zum Beispiel: Edit 2 wurde nicht von User 1 erstellt
     assert is_edit_creator(1, edit.edit_id, db_memory) == False
+    
+# remove
+def test_remove_edit(db_memory: Session):
+    # Arrange: Verwende einen vorhandenen Edit
+    existing_edit = db_memory.query(Edit).first()
+
+    # Act: Lösche den Edit
+    result = remove(existing_edit.edit_id, db_memory)
+
+    # Assert: Überprüfe, dass der Edit erfolgreich gelöscht wurde
+    assert result is True
+
+    # Verify: Stelle sicher, dass der Edit nicht mehr in der Datenbank vorhanden ist
+    edit_in_db = db_memory.query(Edit).filter_by(edit_id=existing_edit.edit_id).one_or_none()
+    assert edit_in_db is None
+
+    # cascading: Edit -> OccupiedSlot
+    occupied_slots_in_db = db_memory.query(OccupiedSlot).filter_by(edit_id=existing_edit.edit_id).all()
+    assert len(occupied_slots_in_db) == 0
+
+def test_remove_edit_failed(db_memory: Session):
+    # Arrange: Verwende eine ungültige edit_id
+    non_existent_edit_id = 9999
+
+    # Act: Versuche, den Edit mit der ungültigen ID zu löschen
+    result = remove(non_existent_edit_id, db_memory)
+
+    # Assert: Stelle sicher, dass kein Edit gelöscht wird
+    assert result is False

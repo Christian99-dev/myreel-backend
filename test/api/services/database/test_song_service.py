@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from api.services.database.song import create, list_all, get, update
-from api.models.database.model import Song
+from api.services.database.song import create, list_all, get, update, remove
+from api.models.database.model import Song, Slot, Edit
 from api.mock.database.model import model
 
 # create
@@ -97,3 +97,34 @@ def test_update_song_not_found(db_memory: Session):
     
     # Assert: Ensure that None is returned when the song doesn't exist
     assert updated_song is None
+
+# remove
+def test_remove_song(db_memory: Session):
+    # Arrange: Verwende einen vorhandenen Song
+    existing_song = db_memory.query(Song).first()
+
+    # Act: Lösche den Song
+    result = remove(existing_song.song_id, db_memory)
+
+    # Assert: Überprüfe, dass der Song erfolgreich gelöscht wurde
+    assert result is True
+
+    # Verify: Stelle sicher, dass der Song nicht mehr in der Datenbank vorhanden ist
+    song_in_db = db_memory.query(Song).filter_by(song_id=existing_song.song_id).one_or_none()
+    assert song_in_db is None
+
+    # cascading: Song -> Slot, Edit
+    slots_in_db = db_memory.query(Slot).filter_by(song_id=existing_song.song_id).all()
+    edits_in_db = db_memory.query(Edit).filter_by(song_id=existing_song.song_id).all()
+    assert len(slots_in_db) == 0
+    assert len(edits_in_db) == 0
+
+def test_remove_song_failed(db_memory: Session):
+    # Arrange: Verwende eine ungültige song_id
+    non_existent_song_id = 9999
+
+    # Act: Versuche, den Song mit der ungültigen ID zu löschen
+    result = remove(non_existent_song_id, db_memory)
+
+    # Assert: Stelle sicher, dass kein Song gelöscht wird
+    assert result is False

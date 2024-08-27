@@ -21,3 +21,11 @@ def create(
 
 def get(user_id: int, db: Session) -> User:
     return db.query(User).filter(User.user_id == user_id).first()
+
+def remove(user_id: int, db: Session) -> bool:
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if user:
+        db.delete(user)
+        db.commit()
+        return True
+    return False

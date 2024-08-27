@@ -27,3 +27,11 @@ def is_group_creator(user_id: int, group_id: str, db: Session) -> bool:
     if user and user.role == "creator":
         return True
     return False
+
+def remove(group_id: str, db: Session) -> bool:
+    group = db.query(Group).filter(Group.group_id == group_id).first()
+    if group:
+        db.delete(group)
+        db.commit()
+        return True
+    return False

@@ -13,7 +13,7 @@ class Slot(Base):
     end_time:   Mapped[float]               = mapped_column(nullable=False)
 
     song:           Mapped["Song"]          = relationship("Song", back_populates="slot_list")
-    occupied_slots: Mapped["OccupiedSlot"]  = relationship("OccupiedSlot", back_populates="slot")
+    occupied_slots: Mapped[List["OccupiedSlot"]]  = relationship("OccupiedSlot", back_populates="slot", cascade="all, delete-orphan")
 
 class Song(Base):
     __tablename__ = 'song'
@@ -25,8 +25,8 @@ class Song(Base):
     cover_src:  Mapped[str]             = mapped_column(String(255), nullable=False)
     audio_src:  Mapped[str]             = mapped_column(String(255), nullable=False)
 
-    slot_list:  Mapped[List["Slot"]]    = relationship("Slot", back_populates="song")
-    edit_list:  Mapped[List["Edit"]]    = relationship("Edit", back_populates="song")
+    slot_list:  Mapped[List["Slot"]]    = relationship("Slot", back_populates="song", cascade="all, delete-orphan")
+    edit_list:  Mapped[List["Edit"]]    = relationship("Edit", back_populates="song", cascade="all, delete-orphan")
 
 class Edit(Base):
     __tablename__ = 'edit'
@@ -42,7 +42,7 @@ class Edit(Base):
     song:           Mapped["Song"]                  = relationship("Song", back_populates="edit_list")
     group:          Mapped["Group"]                 = relationship("Group", back_populates="edit_list")
     creator:        Mapped["User"]                  = relationship("User", back_populates="edit_list")
-    occupied_slots: Mapped[List["OccupiedSlot"]]    = relationship("OccupiedSlot", back_populates="edit")
+    occupied_slots: Mapped[List["OccupiedSlot"]]    = relationship("OccupiedSlot", back_populates="edit", cascade="all, delete-orphan")
 
 class Group(Base):
     __tablename__ = 'group'
@@ -50,9 +50,9 @@ class Group(Base):
     group_id:           Mapped[str]                 = mapped_column(primary_key=True)
     name:               Mapped[str]                 = mapped_column(String(255), nullable=False)
 
-    user_list:          Mapped[List["User"]]        = relationship("User", back_populates="group")
-    edit_list:          Mapped[List["Edit"]]        = relationship("Edit", back_populates="group")
-    invitation_list:    Mapped[List["Invitation"]]  = relationship("Invitation", back_populates="group")
+    user_list:          Mapped[List["User"]]        = relationship("User", back_populates="group", cascade="all, delete-orphan")
+    edit_list:          Mapped[List["Edit"]]        = relationship("Edit", back_populates="group", cascade="all, delete-orphan")
+    invitation_list:    Mapped[List["Invitation"]]  = relationship("Invitation", back_populates="group", cascade="all, delete-orphan")
 
 class Invitation(Base):
     __tablename__ = 'invitation'
@@ -76,9 +76,9 @@ class User(Base):
     email:              Mapped[str]                  = mapped_column(String(255), nullable=False, unique=True)
 
     group:              Mapped["Group"]              = relationship("Group", back_populates="user_list")
-    edit_list:          Mapped[List["Edit"]]         = relationship("Edit", back_populates="creator")
-    login_request_list: Mapped[List["LoginRequest"]] = relationship("LoginRequest", back_populates="user")
-    occupied_slot_list: Mapped[List["OccupiedSlot"]] = relationship("OccupiedSlot", back_populates="user")
+    edit_list:          Mapped[List["Edit"]]         = relationship("Edit", back_populates="creator", cascade="all, delete-orphan")
+    login_request_list: Mapped[List["LoginRequest"]] = relationship("LoginRequest", back_populates="user", cascade="all, delete-orphan")
+    occupied_slot_list: Mapped[List["OccupiedSlot"]] = relationship("OccupiedSlot", back_populates="user", cascade="all, delete-orphan")
 
 class LoginRequest(Base):
     __tablename__ = 'login_request'

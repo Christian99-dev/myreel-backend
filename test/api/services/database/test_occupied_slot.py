@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from api.models.database.model import OccupiedSlot
+from api.models.database.model import OccupiedSlot, Slot
 from api.services.database.occupied_slot import create, get, remove
 from api.mock.database.model import model
 
@@ -56,25 +56,30 @@ def test_get_occupied_slot_failed(db_memory: Session):
 
 # remove
 def test_remove_occupied_slot(db_memory: Session):
-    # Arrange: Verwende einen vorhandenen OccupiedSlot aus den Testdaten
-    existing_occupied_slot = model.occupied_slots[0]
-    
-    # Act: Lösche den OccupiedSlot
+    # Arrange: Verwende einen vorhandenen Occupied Slot
+    existing_occupied_slot = db_memory.query(OccupiedSlot).first()
+
+    # Act: Lösche den Occupied Slot
     result = remove(existing_occupied_slot.occupied_slot_id, db_memory)
-    
-    # Assert: Überprüfe, dass der OccupiedSlot erfolgreich gelöscht wurde
+
+    # Assert: Überprüfe, dass der Occupied Slot erfolgreich gelöscht wurde
     assert result is True
 
-    # Verify: Stelle sicher, dass der OccupiedSlot nicht mehr in der Datenbank vorhanden ist
+    # Verify: Stelle sicher, dass der Occupied Slot nicht mehr in der Datenbank vorhanden ist
     occupied_slot_in_db = db_memory.query(OccupiedSlot).filter_by(occupied_slot_id=existing_occupied_slot.occupied_slot_id).one_or_none()
     assert occupied_slot_in_db is None
+
+    # cascading: OccupiedSlot -> Slot
+    slot_in_db = db_memory.query(Slot).filter_by(slot_id=existing_occupied_slot.slot_id).first()
+    assert slot_in_db is not None  # Slot bleibt bestehen
 
 def test_remove_occupied_slot_failed(db_memory: Session):
     # Arrange: Verwende eine ungültige occupied_slot_id
     non_existent_occupied_slot_id = 9999
-    
-    # Act: Versuche, den OccupiedSlot mit der ungültigen ID zu löschen
+
+    # Act: Versuche, den Occupied Slot mit der ungültigen ID zu löschen
     result = remove(non_existent_occupied_slot_id, db_memory)
-    
-    # Assert: Stelle sicher, dass kein OccupiedSlot gelöscht wird
+
+    # Assert: Stelle sicher, dass kein Occupied Slot gelöscht wird
     assert result is False
+
