@@ -56,7 +56,7 @@ class LocalMediaAccess(BaseMediaAccess):
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, 'wb') as f:
             f.write(file_data)
-        location = f"http://localhost:8000/{dir}/{file_name}"  # Beispiel für lokale URL
+        location = f"http://localhost:8000/static/{dir}/{file_name}"  # Beispiel für lokale URL
         # print(f"File saved to {file_path}")
         return location
 
