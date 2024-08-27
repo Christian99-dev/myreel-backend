@@ -5,7 +5,17 @@ from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
 import numpy as np
 import io
 
-def create_edit_video(video_bytes: bytes, audio_bytes: bytes, breakpoints: list[float], video_format: str, audio_format: str, output_video_format: str) -> bytes:
+def create_edit_video(
+    video_bytes: bytes, 
+    video_format: str, 
+    
+    audio_bytes: bytes, 
+    audio_format: str,
+     
+    breakpoints: list[float], 
+    
+    output_video_format: str
+) -> bytes:
     # Temporäre Dateien für Video und Audio erstellen
     with tempfile.NamedTemporaryFile(delete=False, suffix=f".{video_format}") as video_temp_file:
         video_temp_file.write(video_bytes)
