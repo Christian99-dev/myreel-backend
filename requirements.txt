@@ -6,3 +6,5 @@ python-dotenv
 tabulate
 pyjwt
 pytest
+moviepy
+numpy
