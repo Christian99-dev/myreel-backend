@@ -75,5 +75,9 @@ app.include_router(song_router)
 async def root():
     return 17
 
+@app.get("/test")
+async def root():
+    return 17
+
 
 
