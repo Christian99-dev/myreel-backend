@@ -5,10 +5,11 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from api.config.media_access import MemoryMediaAccess
 from api.middleware.access_handler import AccessHandlerMiddleware
-from api.mock.path_roles.mock_path_roles import mock_path_roles
+from api.mock.path_config.mock_path_config import mock_path_config
 from api.models.database.model import Song
 from api.mock.database.fill import fill as fill_db
 from api.mock.media.fill import fill as fill_media
+from api.utils.middleware.get_all_routes import get_all_routes
 from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
 from logging_config import setup_logging_testing
 from api.routes.song import router as song_router
@@ -105,7 +106,7 @@ def http_client_mocked_path_crud(db_memory: Session):
 # 
 # A fixture where every possible role is has a dedicated path, to test out security access in a non prod env
 @pytest.fixture(scope="function")
-def http_client_mocked_path_roles(db_memory: Session):
+def http_client_mocked_path_config(db_memory: Session):
     
     # simulating prod api
     app = FastAPI()
@@ -115,7 +116,7 @@ def http_client_mocked_path_roles(db_memory: Session):
         yield db_memory
     
     # middleware for access testing 
-    app.add_middleware(AccessHandlerMiddleware, path_roles=mock_path_roles, get_db=get_db_override)
+    app.add_middleware(AccessHandlerMiddleware, path_config=mock_path_config, get_db=get_db_override)
     
     # every endpoints based on testconfig file
     def create_endpoint(m_name: str):
@@ -123,8 +124,8 @@ def http_client_mocked_path_roles(db_memory: Session):
             return f"You called {m_name}"
         return endpoint
 
-    for path in mock_path_roles.keys():    
-        app.add_api_route(f"{path}", create_endpoint(path), methods=["GET"])
+    for path, method in mock_path_config.get_all_paths_and_methods():
+        app.add_api_route(f"{path}", create_endpoint(path), methods=[method])
     
     # yield client with routes
     with TestClient(app) as test_client:

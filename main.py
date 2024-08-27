@@ -1,13 +1,14 @@
 from contextlib import asynccontextmanager
 import os
-from fastapi import Depends, FastAPI
+from fastapi import APIRouter, Depends, FastAPI
 from dotenv import load_dotenv
 from distutils.util import strtobool
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from api.models.database import model
 from api.utils.database.print_database_contents import print_database_contents
 from logging_config import setup_logging_prod
-
+from api.auth.path_config import path_config
 # media 
 from api.mock.media.fill import fill as fill_media
 from api.config.media_access import media_access
@@ -17,8 +18,8 @@ from api.config.database import engine, SessionLocal, get_db
 from api.mock.database.fill import fill as fill_db
 
 #routes
-from api.config.path_roles import path_roles
 from api.routes.song import router as song_router
+from api.routes.static import router as static_router
 
 # middleware 
 from api.middleware.log_access_path import LogAccessMiddleware
@@ -61,17 +62,18 @@ async def lifespan(app: FastAPI):
 # app
 app = FastAPI(lifespan=lifespan)
 
-# Statisches Verzeichnis einbinden
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
 # add middleware
 app.add_middleware(LogAccessMiddleware)
-app.add_middleware(AccessHandlerMiddleware, path_roles=path_roles, get_db=get_db)
+app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_db=get_db)
 
 # router
+app.include_router(static_router)
 app.include_router(song_router)
 
 # root
 @app.get("/")
 async def root():
     return 17
+
+
+

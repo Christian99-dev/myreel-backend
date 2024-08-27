@@ -4,8 +4,8 @@ from typing import Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from api.auth.path_config import PathInfo
 from api.auth.role_enum import RoleEnum
-from api.config.path_roles import PathInfo
 from api.services.database.edit import is_edit_creator
 from api.services.database.group import is_group_creator, is_group_member
 logger = logging.getLogger("testing")

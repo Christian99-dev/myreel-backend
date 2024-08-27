@@ -1,28 +1,24 @@
 import logging
 from datetime import datetime
-from typing import Callable, Dict
+from typing import Callable
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from api.auth import jwt
+from api.auth.path_config import PathConfig
 from api.auth.role import Role, RoleInfos
-from api.config.path_roles import PathInfo
 from api.utils.middleware.log_access import log_access
 from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
 
 testing_logger = logging.getLogger("testing")
 
 class AccessHandlerMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, path_roles: Dict[str, PathInfo], get_db: Callable):
+    def __init__(self, app, path_config: PathConfig, get_db: Callable):
         super().__init__(app)
-        self.path_roles = path_roles
+        self.path_config = path_config
         self.get_db = get_db
 
     async def dispatch(self, request: Request, call_next):
-        pathInfo = self.path_roles.get(request.url.path)
-        
-        # static is free
-        if request.url.path.startswith("/static"):
-            return await call_next(request)
+        pathInfo = self.path_config.get_path_info(request.url.path, request.method)
         
         if pathInfo is None:
             return Response(status_code=401)

@@ -1,6 +1,6 @@
+from api.auth.path_config import PathInfo
 from api.auth.role_enum import RoleEnum
 from api.auth.role import Role
-from api.config.path_roles import PathInfo
 
 # this methode is testing, if the role_instance is the expected role.
 def role_tester_has_access(role_instance: Role, role_to_test: RoleEnum):

@@ -201,10 +201,24 @@ def test_media_access_memory_files_as_valid(media_access_memory: BaseMediaAccess
 # -- http_client  -- #
 
 def test_http_client_has_prod_routes(http_client: TestClient):
+    
+    IGNORED_ROUTES_IN_PROD = [
+        '/openapi.json', 
+        '/docs', 
+        '/docs/oauth2-redirect', 
+        '/redoc', 
+        '/',
+        '/static/covers/{filename}',
+        '/static/demo_slot/{filename}',
+        '/static/edits/{filename}',
+        '/static/occupied_slots/{filename}',
+        '/static/songs/{filename}'
+    ]
+    
     """Test to ensure that the app has the correct routes."""
     # Get the list of routes from the production app
     prod_routes         = [route.path for route in app.router.routes]
-    filtered_prod_routes = [route for route in prod_routes if route not in ['/openapi.json', '/docs', '/docs/oauth2-redirect', '/redoc', "/", "/static"]]
+    filtered_prod_routes = [route for route in prod_routes if route not in IGNORED_ROUTES_IN_PROD]
 
     # Get the list of routes from the test client
     response = http_client.get("/openapi.json")
@@ -273,20 +287,20 @@ def test_http_client_mocked_path_crud_isolation_other(http_client_mocked_path_cr
     assert len(songs) == len(songs)
     assert songs[len(songs) - 1]["name"] == "Test Song B"
 
-# -- http_client_mocked_path_roles -- #
+# -- http_client_mocked_path_config -- #
 
-def test_http_client_mocked_path_roles_config(http_client_mocked_path_roles: TestClient):
-    assert http_client_mocked_path_roles.get("/admin_no_subroles").status_code          == 403
-    assert http_client_mocked_path_roles.get("/group_creator_no_subroles").status_code  == 403
-    assert http_client_mocked_path_roles.get("/edit_creator_no_subroles").status_code   == 403
-    assert http_client_mocked_path_roles.get("/group_member_no_subroles").status_code   == 403
-    assert http_client_mocked_path_roles.get("/external_no_subroles").status_code       == 200
+def test_http_client_mocked_path_config_config(http_client_mocked_path_config: TestClient):
+    assert http_client_mocked_path_config.get("/admin_no_subroles").status_code          == 403
+    assert http_client_mocked_path_config.get("/group_creator_no_subroles").status_code  == 403
+    assert http_client_mocked_path_config.get("/edit_creator_no_subroles").status_code   == 403
+    assert http_client_mocked_path_config.get("/group_member_no_subroles").status_code   == 403
+    assert http_client_mocked_path_config.get("/external_no_subroles").status_code       == 200
     
-    assert http_client_mocked_path_roles.get("/admin_subroles").status_code            == 403
-    assert http_client_mocked_path_roles.get("/group_creator_subroles").status_code    == 403
-    assert http_client_mocked_path_roles.get("/edit_creator_subroles").status_code     == 403
-    assert http_client_mocked_path_roles.get("/group_member_subroles").status_code     == 403
-    assert http_client_mocked_path_roles.get("/external_subroles").status_code         == 200
+    assert http_client_mocked_path_config.get("/admin_subroles").status_code            == 403
+    assert http_client_mocked_path_config.get("/group_creator_subroles").status_code    == 403
+    assert http_client_mocked_path_config.get("/edit_creator_subroles").status_code     == 403
+    assert http_client_mocked_path_config.get("/group_member_subroles").status_code     == 403
+    assert http_client_mocked_path_config.get("/external_subroles").status_code         == 200
 
 # -- http_client_mocked_path_for_extracting_creds -- #
 
