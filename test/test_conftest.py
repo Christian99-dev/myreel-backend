@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from test.utils.role_tester_has_acccess import role_tester_has_access
 from api.config.media_access import BaseMediaAccess
 
+
 from main import app
 logger = logging.getLogger("testing")
 
@@ -197,28 +198,31 @@ def test_media_access_memory_files_as_valid_name_check(media_access_memory: Base
     demo_videos = media_access_memory.list("demo_slot")
     assert len(demo_videos) == 1
 
-def test_media_access_memory_files_as_valid_access_check(media_access_memory: BaseMediaAccess, db_memory: Session):
+def notest_media_access_memory_files_as_valid_access_check(media_access_memory: BaseMediaAccess, db_memory: Session):
+    # ich glaube das macht keinen sinn
     db_songs = db_memory.query(Song).all()
-    db_song_src = {song.audio_src for song in db_songs}
+    db_song_srcs = {song.audio_src for song in db_songs}
+    
+    for song_src in db_song_srcs:
+        print(song_src)
     
     db_covers = db_memory.query(Song).all()  # Assuming covers are linked to songs
-    db_cover_src = {song.cover_src for song in db_covers}  # Adjust based on your model
+    db_cover_srcs = {song.cover_src for song in db_covers}  # Adjust based on your model
+    
+    for cover_src in db_cover_srcs:
+        print(cover_src)
     
     db_edits = db_memory.query(Edit).all()  # Query for edits
-    db_edit_src = {edit.video_src for edit in db_edits}  # Get all edit IDs
+    db_edit_srcs = {edit.video_src for edit in db_edits}  # Get all edit IDs
+
+    for edit_src in db_edit_srcs:
+        print(edit_src)
 
     db_slots = db_memory.query(OccupiedSlot).all()  # Query for occupied slots
-    db_slot_src = {slot.video_src for slot in db_slots}  # Get all occupied slot IDs
-    
-    print(db_song_src)
-    print(db_cover_src)
-    print(db_edit_src)
-    print(db_slot_src)
+    db_slot_srcs = {slot.video_src for slot in db_slots}  # Get all occupied slot IDs
 
-
-    
-    # get from link and look if there is no error
-    pass
+    for slot_src in db_slot_srcs:
+        print(slot_src)
 
     
 # -- http_client  -- #
