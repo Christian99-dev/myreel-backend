@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session
-from api.mock.database.model import model
+from api.mock.database.model import mock_model_memory_links
 from api.models.database.model import Slot, OccupiedSlot
 from api.services.database.slot import create, get, remove
 
 # create
 def test_create_slot(db_memory: Session):
     # Arrange
-    song_id = model.songs[0].song_id  # Verwende eine gültige song_id aus den Testdaten
+    song_id = mock_model_memory_links.songs[0].song_id  # Verwende eine gültige song_id aus den Testdaten
     start_time = 10.5
     end_time = 20.0
 
@@ -28,7 +28,7 @@ def test_create_slot(db_memory: Session):
 # get
 def test_get_slot(db_memory: Session):
     # Arrange: Verwende einen vorhandenen Slot aus den Testdaten
-    existing_slot = model.slots[0]
+    existing_slot = mock_model_memory_links.slots[0]
     
     # Act: Hole den Slot mit seiner ID
     fetched_slot = get(existing_slot.slot_id, db_memory)

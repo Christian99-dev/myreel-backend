@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from api.services.database.song import create, list_all, get, update, remove
 from api.models.database.model import Song, Slot, Edit
-from api.mock.database.model import model
+from api.mock.database.model import mock_model_memory_links
 
 # create
 def test_create(db_memory: Session):
@@ -32,26 +32,26 @@ def test_create(db_memory: Session):
 # get
 def test_get(db_memory: Session):
     # Assume the first song from the test data is used
-    song_id = model.songs[0].song_id
+    song_id = mock_model_memory_links.songs[0].song_id
     retrieved_song = get(song_id, db_memory)
     
     assert retrieved_song is not None
     assert retrieved_song.song_id == song_id
-    assert retrieved_song.name == model.songs[0].name
+    assert retrieved_song.name == mock_model_memory_links.songs[0].name
 
 # list
 def test_list(db_memory: Session):
     songs = list_all(db_memory)
     
-    assert len(songs) == len(model.songs)  # Ensure all test songs are present
-    song_ids = {song.song_id for song in model.songs}
+    assert len(songs) == len(mock_model_memory_links.songs)  # Ensure all test songs are present
+    song_ids = {song.song_id for song in mock_model_memory_links.songs}
     retrieved_song_ids = {song.song_id for song in songs}
     assert song_ids == retrieved_song_ids  # Ensure all test song IDs are returned
 
 # update
 def test_update(db_memory: Session):
     # Assume the first song from the test data is used
-    original_song = model.songs[0]
+    original_song = mock_model_memory_links.songs[0]
     song_id = original_song.song_id
     
     # Update parameters

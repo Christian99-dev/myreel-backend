@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 from api.models.database.model import Invitation
 from api.services.database.invite import create, delete
-from api.mock.database.model import model
+from api.mock.database.model import mock_model_memory_links
 
 # create
 def test_create(db_memory):
-    group_id = model.groups[0].group_id
+    group_id = mock_model_memory_links.groups[0].group_id
     email = "test@example.com"
     invitation = create(group_id=group_id, email=email, db=db_memory)
 

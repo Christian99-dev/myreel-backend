@@ -1,14 +1,14 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Edit, OccupiedSlot
 from api.services.database.edit import create, get, is_edit_creator, remove
-from api.mock.database.model import model
+from api.mock.database.model import mock_model_memory_links
 
 # create
 def test_create(db_memory: Session):
     # Arrange: Verwende vorhandene Testdaten
     song_id = 1  # Existiert in der gefüllten Datenbank
     created_by = 1  # Existiert in der gefüllten Datenbank
-    group_id = model.users[0].group_id  # Verwende eine gültige group_id aus den Testdaten
+    group_id = mock_model_memory_links.users[0].group_id  # Verwende eine gültige group_id aus den Testdaten
     name = "New Test Edit"
     is_live = True
     video_src = "http://example.com/new_edit.mp4"
@@ -37,7 +37,7 @@ def test_create(db_memory: Session):
 # get    
 def test_get(db_memory: Session):
     # Verwende einen vorhandenen Edit aus den Testdaten
-    existing_edit = model.edits[0]
+    existing_edit = mock_model_memory_links.edits[0]
     
     # Act: Hole den Edit mit seiner ID
     fetched_edit = get(existing_edit.edit_id, db_memory)
@@ -65,12 +65,12 @@ def test_get_edit_failed(db_memory: Session):
 # is_edit_creator
 def test_is_edit_creator_true(db_memory: Session):
     # Verwende die Datenbank mit bestehenden Daten und prüfe den Ersteller eines Edits
-    edit = model.edits[0]  # Zum Beispiel: Edit 1 wurde von User 1 erstellt
+    edit = mock_model_memory_links.edits[0]  # Zum Beispiel: Edit 1 wurde von User 1 erstellt
     assert is_edit_creator(edit.created_by, edit.edit_id, db_memory) == True
 
 def test_is_edit_creator_false(db_memory: Session):
     # Prüfe einen Fall, bei dem der User nicht der Ersteller des Edits ist
-    edit = model.edits[1]  # Zum Beispiel: Edit 2 wurde nicht von User 1 erstellt
+    edit = mock_model_memory_links.edits[1]  # Zum Beispiel: Edit 2 wurde nicht von User 1 erstellt
     assert is_edit_creator(1, edit.edit_id, db_memory) == False
     
 # remove

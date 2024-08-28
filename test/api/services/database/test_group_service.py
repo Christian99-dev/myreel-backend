@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Group, Edit, Invitation, User
 from api.services.database.group import create, get, is_group_creator, is_group_member, remove
-from api.mock.database.model import model
+from api.mock.database.model import mock_model_memory_links
 
 # create
 def test_create(db_memory: Session):
@@ -22,7 +22,7 @@ def test_create(db_memory: Session):
 # get
 def test_get(db_memory: Session):
     # Use an existing group from test data
-    existing_group = model.groups[0]
+    existing_group = mock_model_memory_links.groups[0]
     
     # Fetch the group by ID
     fetched_group = get(existing_group.group_id, db_memory)
@@ -44,34 +44,34 @@ def test_get_group_failed(db_memory: Session):
 
 # is_group_member
 def test_is_group_member_true(db_memory: Session):
-    group_id = model.groups[0].group_id
-    user_id = model.users[2].user_id  # User 3 is a member of Group 1
+    group_id = mock_model_memory_links.groups[0].group_id
+    user_id = mock_model_memory_links.users[2].user_id  # User 3 is a member of Group 1
     assert is_group_member(user_id, group_id, db_memory) == True
     
 def test_is_group_member_also_creator_true(db_memory: Session):
-    group_id = model.groups[0].group_id
-    user_id = model.users[0].user_id  # User 1 is the creator and a member of Group 1
+    group_id = mock_model_memory_links.groups[0].group_id
+    user_id = mock_model_memory_links.users[0].user_id  # User 1 is the creator and a member of Group 1
     assert is_group_member(user_id, group_id, db_memory) == True
 
 def test_is_group_member_false(db_memory: Session):
-    group_id = model.groups[1].group_id
-    user_id = model.users[0].user_id  # User 1 is not a member of Group 2
+    group_id = mock_model_memory_links.groups[1].group_id
+    user_id = mock_model_memory_links.users[0].user_id  # User 1 is not a member of Group 2
     assert is_group_member(user_id, group_id, db_memory) == False
 
 # is_group_creator
 def test_is_group_creator_true(db_memory: Session):
-    group_id = model.groups[0].group_id
-    user_id = model.users[0].user_id  # User 1 is the creator of Group 1
+    group_id = mock_model_memory_links.groups[0].group_id
+    user_id = mock_model_memory_links.users[0].user_id  # User 1 is the creator of Group 1
     assert is_group_creator(user_id, group_id, db_memory) == True
 
 def test_is_group_creator_false(db_memory: Session):
-    group_id = model.groups[1].group_id
-    user_id = model.users[0].user_id  # User 1 is not the creator of Group 2
+    group_id = mock_model_memory_links.groups[1].group_id
+    user_id = mock_model_memory_links.users[0].user_id  # User 1 is not the creator of Group 2
     assert is_group_creator(user_id, group_id, db_memory) == False
 
 def test_is_group_creator_false_not_creator(db_memory: Session):
-    group_id = model.groups[0].group_id
-    user_id = model.users[1].user_id  # User 2 is a member but not the creator of Group 1
+    group_id = mock_model_memory_links.groups[0].group_id
+    user_id = mock_model_memory_links.users[1].user_id  # User 2 is a member but not the creator of Group 1
     assert is_group_creator(user_id, group_id, db_memory) == False
    
     # Arrange: Verwende eine ungültige group_id

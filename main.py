@@ -16,6 +16,7 @@ from api.config.media_access import BaseMediaAccess, media_access
 # database
 from api.config.database import engine, SessionLocal, get_db
 from api.mock.database.fill import fill as fill_db
+from api.mock.database.model import mock_model_local_links
 
 #routes
 from api.routes.song import router as song_router
@@ -42,18 +43,18 @@ async def lifespan(app: FastAPI):
     with SessionLocal() as session:
         if LOCAL_DB:  # Guard
             # Only uncomment if you want to renew the data
-            # fill_db(session)
+            fill_db(session, mock_model_local_links)
             pass
         
         print_database_contents(session, {
-            'Slot':         False,
-            'Song':         False,
-            'Edit':         False,
-            'Group':        False,
-            'Invitation':   False,
-            'User':         False,
-            'LoginRequest': False,
-            'OccupiedSlot': False
+            'Slot':         True,
+            'Song':         True,
+            'Edit':         True,
+            'Group':        True,
+            'Invitation':   True,
+            'User':         True,
+            'LoginRequest': True,
+            'OccupiedSlot': True
         })
 
     # Media setup and fill if neede

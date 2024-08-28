@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from api.models.database.model import User, OccupiedSlot, LoginRequest
 from api.services.database.user import create, get, remove
 from api.utils.database.create_uuid import create_uuid
-from api.mock.database.model import model
+from api.mock.database.model import mock_model_memory_links
 
 # create
 def test_create(db_memory: Session):
@@ -33,15 +33,15 @@ def test_create(db_memory: Session):
 # get
 def test_get(db_memory: Session):
     # Assume the first user from the test data is used
-    user_id = model.users[0].user_id
+    user_id = mock_model_memory_links.users[0].user_id
     retrieved_user = get(user_id, db_memory)
     
     assert retrieved_user is not None
     assert retrieved_user.user_id == user_id
-    assert retrieved_user.name == model.users[0].name
-    assert retrieved_user.email == model.users[0].email
-    assert retrieved_user.role == model.users[0].role
-    assert retrieved_user.group_id == model.users[0].group_id
+    assert retrieved_user.name == mock_model_memory_links.users[0].name
+    assert retrieved_user.email == mock_model_memory_links.users[0].email
+    assert retrieved_user.role == mock_model_memory_links.users[0].role
+    assert retrieved_user.group_id == mock_model_memory_links.users[0].group_id
     
 def test_get_user_failed(db_memory: Session):
     # Define a non-existent user ID

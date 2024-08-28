@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from api.mock.database.model import model
+from api.mock.database.model import mock_model_memory_links
 
 #TODO SONG
 

@@ -1,14 +1,14 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import OccupiedSlot, Slot
 from api.services.database.occupied_slot import create, get, remove
-from api.mock.database.model import model
+from api.mock.database.model import mock_model_memory_links
 
 # create
 def test_create_occupied_slot(db_memory: Session):
     # Arrange
-    user_id = model.users[0].user_id  # Verwende eine gültige user_id aus den Testdaten
-    slot_id = model.slots[0].slot_id  # Verwende eine gültige slot_id aus den Testdaten
-    edit_id = model.edits[0].edit_id  # Verwende eine gültige edit_id aus den Testdaten
+    user_id = mock_model_memory_links.users[0].user_id  # Verwende eine gültige user_id aus den Testdaten
+    slot_id = mock_model_memory_links.slots[0].slot_id  # Verwende eine gültige slot_id aus den Testdaten
+    edit_id = mock_model_memory_links.edits[0].edit_id  # Verwende eine gültige edit_id aus den Testdaten
     video_src = "http://example.com/new_occupied_slot.mp4"
 
     # Act: Erstelle einen neuen OccupiedSlot
@@ -31,7 +31,7 @@ def test_create_occupied_slot(db_memory: Session):
 # get
 def test_get_occupied_slot(db_memory: Session):
     # Arrange: Verwende einen vorhandenen OccupiedSlot aus den Testdaten
-    existing_occupied_slot = model.occupied_slots[0]
+    existing_occupied_slot = mock_model_memory_links.occupied_slots[0]
     
     # Act: Hole den OccupiedSlot mit seiner ID
     fetched_occupied_slot = get(existing_occupied_slot.occupied_slot_id, db_memory)

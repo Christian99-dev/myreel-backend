@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 from api.models.database.model import LoginRequest
 from api.services.database.login import create, delete
-from api.mock.database.model import model
+from api.mock.database.model import mock_model_memory_links
 
 # create
 def test_create(db_memory):
-    user_id = model.users[3].user_id  # Use the fourth user
+    user_id = mock_model_memory_links.users[3].user_id  # Use the fourth user
     login_request = create(user_id=user_id, db=db_memory)
 
     assert login_request.user_id == user_id

@@ -8,6 +8,7 @@ from api.middleware.access_handler import AccessHandlerMiddleware
 from api.mock.path_config.mock_path_config import mock_path_config
 from api.models.database.model import Song
 from api.mock.database.fill import fill as fill_db
+from api.mock.database.model import mock_model_memory_links
 from api.mock.media.fill import fill as fill_media
 from api.utils.middleware.get_all_routes import get_all_routes
 from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
@@ -29,7 +30,7 @@ logger = logging.getLogger("testing")
 def db_memory():
     session_generator = get_db_memory()  
     session = next(session_generator)
-    fill_db(session)   
+    fill_db(session, mock_model_memory_links)   
     yield session
     
 # Database   : None
