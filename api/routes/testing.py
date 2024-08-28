@@ -5,6 +5,8 @@ import string
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 
+from api.config.email_access import email_access, BaseEmailAccess
+from api.config.instagram_access import instagram_access, BaseInstagramAccess
 from api.config.media_access import media_access
 from api.config.database import get_db
 from api.config.media_access import BaseMediaAccess
@@ -39,7 +41,7 @@ async def test1(db = Depends(get_db), media_access: BaseMediaAccess = Depends(la
     return 18
 
 @router.get("/2")
-async def test2(db = Depends(get_db), media_access: BaseMediaAccess = Depends(lambda: media_access)):
+async def test2(db = Depends(get_db), media_access: BaseEmailAccess = Depends(lambda: media_access)):
     
     input_video_bytes = media_access.get("1kur.mp4", "testres")
     new_video_bytes   = media_access.get("1.mp4", "occupied_slots")
@@ -62,28 +64,13 @@ async def test2(db = Depends(get_db), media_access: BaseMediaAccess = Depends(la
     return 17
 
 @router.get("/3")
-async def test3(db = Depends(get_db), media_access: BaseMediaAccess = Depends(lambda: media_access)):
-    edit_video_bytes   = media_access.get("1.mp4", "edits")
-    demo_video_bytes = media_access.get("demo.mp4", "demo_slot")
-    
-    result = swap_slot_in_edit(
-        edit_video_bytes,
-        0,
-        1,
-        "mp4",
-        
-        demo_video_bytes,
-        0,
-        1,
-        "mp4",
-        
-        "mp4"
-    )
-    
-    media_access.save("v5Jc_out.mp4", "jooo", result)
-    
-        
-    print("testing 3")
+async def test3(instagram_access: BaseInstagramAccess = Depends(lambda: instagram_access)):
+    instagram_access.upload()
+    return 17
+
+@router.get("/4")
+async def test4(email_access: BaseEmailAccess = Depends(lambda: email_access)):
+    email_access.send()
     return 17
 
 
@@ -93,4 +80,3 @@ def generate_random_characters():
     # Wählen von 4 zufälligen Zeichen aus der Liste
     random_chars = ''.join(random.choice(characters) for _ in range(4))
     return random_chars
-

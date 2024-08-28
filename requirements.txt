@@ -8,3 +8,4 @@ pyjwt
 pytest
 moviepy
 numpy
+requests

@@ -216,7 +216,9 @@ def test_http_client_has_prod_routes(http_client: TestClient):
         '/static/songs/{filename}',
         '/testing/1',
         '/testing/2',
-        '/testing/3'
+        '/testing/3',
+        '/testing/4'
+        
     ]
     
     """Test to ensure that the app has the correct routes."""

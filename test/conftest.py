@@ -3,6 +3,8 @@ import logging
 from fastapi import Depends, FastAPI, Request
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+from api.config.email_access import MemoryEmailAcccess
+from api.config.instagram_access import MemoryInstagramAcccess
 from api.config.media_access import MemoryMediaAccess
 from api.middleware.access_handler import AccessHandlerMiddleware
 from api.mock.path_config.mock_path_config import mock_path_config
@@ -43,6 +45,22 @@ def media_access_memory():
     fill_media(media_access_memory)
     return media_access_memory
 
+# Database   : None
+# Media      : None
+# Routes     : None
+# Middleware : None
+@pytest.fixture
+def instagram_access_memory():
+    return MemoryInstagramAcccess()
+
+# Database   : None
+# Media      : None
+# Routes     : None
+# Middleware : None
+@pytest.fixture
+def email_access_memory():
+    return MemoryEmailAcccess()
+
 
 # Database   : Test_Data
 # Media      : None 
@@ -66,6 +84,7 @@ def http_client(db_memory: Session):
 
     # Entferne die Überschreibung nach dem Test
     del app.dependency_overrides[get_db]
+    
 
 ## -- SPECIFIC FIXTURES -- ## 
 
