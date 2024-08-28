@@ -41,7 +41,7 @@ async def test1(db = Depends(get_db), media_access: BaseMediaAccess = Depends(la
 @router.get("/2")
 async def test2(db = Depends(get_db), media_access: BaseMediaAccess = Depends(lambda: media_access)):
     
-    input_video_bytes = media_access.get("v5Jc.mp4", "testres")
+    input_video_bytes = media_access.get("rX6f.mp4", "testres")
     new_video_bytes   = media_access.get("1.mp4", "occupied_slots")
     
     endresult = swap_slot_in_edit(
@@ -50,8 +50,8 @@ async def test2(db = Depends(get_db), media_access: BaseMediaAccess = Depends(la
         1,
         "mp4",
         new_video_bytes,
-        2,
-        3,
+        0,
+        1,
         "mp4",
         "mp4"
     )
@@ -63,6 +63,26 @@ async def test2(db = Depends(get_db), media_access: BaseMediaAccess = Depends(la
 
 @router.get("/3")
 async def test3(db = Depends(get_db), media_access: BaseMediaAccess = Depends(lambda: media_access)):
+    edit_video_bytes   = media_access.get("1.mp4", "edits")
+    demo_video_bytes = media_access.get("demo.mp4", "demo_slot")
+    
+    result = swap_slot_in_edit(
+        edit_video_bytes,
+        0,
+        1,
+        "mp4",
+        
+        demo_video_bytes,
+        0,
+        1,
+        "mp4",
+        
+        "mp4"
+    )
+    
+    media_access.save("v5Jc_out.mp4", "jooo", result)
+    
+        
     print("testing 3")
     return 17
 

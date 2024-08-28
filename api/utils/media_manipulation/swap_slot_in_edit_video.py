@@ -25,10 +25,11 @@ def swap_slot_in_edit(
         new_video_temp_file.write(new_video_bytes)
         new_video_temp_file_path = new_video_temp_file.name
     
+    
+    
     # Lade das ursprüngliche Video und das neue Video von den temporären Dateien
     original_video_clip = VideoFileClip(video_temp_file_path, target_resolution=(1080, 1920))
     new_video_clip = VideoFileClip(new_video_temp_file_path, target_resolution=(1080, 1920))
-
     # Schneide die Teile des ursprünglichen Videos
     part1 = original_video_clip.subclip(0, input_video_start_point)  # Von 0 bis video_start_point
     part3 = original_video_clip.subclip(input_video_end_point)       # Von video_end_point bis zum Ende
@@ -46,7 +47,7 @@ def swap_slot_in_edit(
     with tempfile.NamedTemporaryFile(delete=False, suffix=f".{output_video_format}") as output_temp_file:
         final_video.write_videofile(output_temp_file.name, codec='libx264', audio_codec='aac', threads=4, fps=24)
         output_file_path = output_temp_file.name
-    
+
     # Lies die fertige Datei in ein Bytes-Objekt
     with open(output_file_path, 'rb') as file:
         result_bytes = file.read()
