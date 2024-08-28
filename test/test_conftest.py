@@ -200,15 +200,13 @@ def test_media_access_memory_files_as_valid_name_check(media_access_memory: Base
 
 # -- email_access_memory -- #
 
-def test_email_accesdoes_something(email_access_memory):
-    email_access_memory.send()
-    pass
+def test_email_access_does_something(email_access_memory):
+    email_access_memory.send("to","subject","body")
 
 # -- instagram_access_memory -- #
 
 def test_instagram_access_does_something(instagram_access_memory):
     instagram_access_memory.upload()
-    pass
    
 # -- http_client  -- #
 

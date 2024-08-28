@@ -5,7 +5,7 @@ import os
 import requests
 
 
-LOCAL_INSTAGRAM_ACCESS = strtobool(os.getenv("LOCAL_INSTAGRAM_ACCESS"))
+LOCAL_INSTAGRAM_ACCESS = bool(strtobool(os.getenv("LOCAL_INSTAGRAM_ACCESS")))
 
 class BaseInstagramAccess(ABC):
     @abstractmethod

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from distutils.util import strtobool
 
 load_dotenv()
-LOCAL_MEDIA_ACCESS = strtobool(os.getenv("LOCAL_MEDIA_ACCESS"))
+LOCAL_MEDIA_ACCESS = bool(strtobool(os.getenv("LOCAL_MEDIA_ACCESS")))
 LOCAL_MEDIA_REPO = os.getenv("LOCAL_MEDIA_REPO")
 
 class BaseMediaAccess(ABC):

@@ -11,7 +11,7 @@ from api.models.database.model import Base
 logger = logging.getLogger("testing")
 
 load_dotenv()
-LOCAL_DB = strtobool(os.getenv("LOCAL_DB"))
+LOCAL_DB = bool(strtobool(os.getenv("LOCAL_DB")))
 LOCAL_DB_REPO = os.getenv("LOCAL_DB_REPO")
 
 if LOCAL_DB:
