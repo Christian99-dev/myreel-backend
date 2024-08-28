@@ -198,7 +198,18 @@ def test_media_access_memory_files_as_valid_name_check(media_access_memory: Base
     demo_videos = media_access_memory.list("demo_slot")
     assert len(demo_videos) == 1
 
-    
+# -- email_access_memory -- #
+
+def test_email_accesdoes_something(email_access_memory):
+    email_access_memory.send()
+    pass
+
+# -- instagram_access_memory -- #
+
+def test_instagram_access_does_something(instagram_access_memory):
+    instagram_access_memory.upload()
+    pass
+   
 # -- http_client  -- #
 
 def test_http_client_has_prod_routes(http_client: TestClient):
