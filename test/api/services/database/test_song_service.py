@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from api.services.database.song import create, list_all, get, update, remove
+from api.services.database.song import create, get_breakpoints, list_all, get, update, remove
 from api.models.database.model import Song, Slot, Edit
 from api.mock.database.model import mock_model_memory_links
 
@@ -128,3 +128,67 @@ def test_remove_song_failed(db_memory: Session):
 
     # Assert: Stelle sicher, dass kein Song gelöscht wird
     assert result is False
+    
+# get breakpoints
+def test_get_breakpoints_with_existing_slots(db_memory: Session):
+    # Arrange: Verwende einen Song, der keine Slots hat
+    song_id = mock_model_memory_links.songs[0].song_id  # Angenommen, der zweite Song hat keine Slots
+
+    # Act: Hole die Breakpoints für den Song
+    breakpoints = get_breakpoints(song_id, db_memory)
+
+    # Assert: Überprüfe, dass eine leere Liste zurückgegeben wird
+    expected_breakpoints = [0.0, 0.5, 1.0, 2.0]
+    assert breakpoints == expected_breakpoints
+    
+    
+    
+    # Arrange: Verwende einen Song, der keine Slots hat
+    song_id = mock_model_memory_links.songs[1].song_id  # Angenommen, der zweite Song hat keine Slots
+
+    # Act: Hole die Breakpoints für den Song
+    breakpoints = get_breakpoints(song_id, db_memory)
+
+    # Assert: Überprüfe, dass eine leere Liste zurückgegeben wird
+    expected_breakpoints = [0.0, 0.5, 1.5, 3.0]
+    assert breakpoints == expected_breakpoints
+    
+    
+    
+    # Arrange: Verwende einen Song, der keine Slots hat
+    song_id = mock_model_memory_links.songs[2].song_id  # Angenommen, der zweite Song hat keine Slots
+
+    # Act: Hole die Breakpoints für den Song
+    breakpoints = get_breakpoints(song_id, db_memory)
+
+    # Assert: Überprüfe, dass eine leere Liste zurückgegeben wird
+    expected_breakpoints = [0.5, 1.0, 2.0, 3.1, 3.3, 3.6, 3.8]
+    assert breakpoints == expected_breakpoints
+        
+def test_get_breakpoints_with_no_slots(db_memory: Session):
+    # Arrange: Erstelle einen Song und füge Slots mit Start- und Endzeiten hinzu
+    song_id = mock_model_memory_links.songs[0].song_id
+    
+    # Arrange: Delete all breakpoints
+    db_memory.query(Slot).filter(Slot.song_id == song_id).delete()
+    db_memory.commit()
+
+    # Act: Hole die Breakpoints für den Song
+    breakpoints = get_breakpoints(song_id, db_memory)
+
+    # Assert: Überprüfe die korrekten Breakpoints
+    expected_breakpoints = []
+    assert breakpoints == expected_breakpoints
+
+
+
+def test_get_breakpoints_with_non_existing_song(db_memory: Session):
+    # Arrange: Verwende eine nicht vorhandene Song-ID
+    non_existing_song_id = 99999
+
+    # Act: Hole die Breakpoints für den Song
+    breakpoints = get_breakpoints(non_existing_song_id, db_memory)
+
+    # Assert: Überprüfe, dass eine leere Liste zurückgegeben wird
+    assert breakpoints == []
+    

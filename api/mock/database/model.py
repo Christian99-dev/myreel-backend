@@ -112,16 +112,19 @@ mock_model_local_links = Model(
     ],
     slots=[
         Slot(slot_id=1, song_id=1, start_time=0,   end_time=0.5),
-        Slot(slot_id=2, song_id=1, start_time=1,   end_time=1.5),
-        Slot(slot_id=3, song_id=1, start_time=2,   end_time=2.5),
+        Slot(slot_id=2, song_id=1, start_time=0.5, end_time=1),
+        Slot(slot_id=3, song_id=1, start_time=1,   end_time=2),
         
         Slot(slot_id=4, song_id=2, start_time=0,   end_time=0.5),
-        Slot(slot_id=5, song_id=2, start_time=1,   end_time=1.5),
-        Slot(slot_id=6, song_id=2, start_time=2,   end_time=2.5),
+        Slot(slot_id=5, song_id=2, start_time=0.5, end_time=1.5),
+        Slot(slot_id=6, song_id=2, start_time=1.5, end_time=3),
         
-        Slot(slot_id=7, song_id=3, start_time=0,   end_time=0.5),
-        Slot(slot_id=8, song_id=3, start_time=1,   end_time=1.5),
-        Slot(slot_id=9, song_id=3, start_time=2,   end_time=2.5)
+        Slot(slot_id=7, song_id=3, start_time=0.5,   end_time=1),
+        Slot(slot_id=8, song_id=3, start_time=1,   end_time=2),
+        Slot(slot_id=9, song_id=3, start_time=2,   end_time=3.1),
+        Slot(slot_id=10, song_id=3, start_time=3.1, end_time=3.3),
+        Slot(slot_id=11, song_id=3, start_time=3.3, end_time=3.6),
+        Slot(slot_id=12, song_id=3, start_time=3.6, end_time=3.8)
     ],
     invitations=[
         Invitation(invitation_id=1, group_id=group_id_1, token="token1", email="invitee1@example.com", created_at=now, expires_at=now + timedelta(days=1)),
@@ -175,16 +178,19 @@ mock_model_memory_links = Model(
     ],
     slots=[
         Slot(slot_id=1, song_id=1, start_time=0,   end_time=0.5),
-        Slot(slot_id=2, song_id=1, start_time=1,   end_time=1.5),
-        Slot(slot_id=3, song_id=1, start_time=2,   end_time=2.5),
+        Slot(slot_id=2, song_id=1, start_time=0.5, end_time=1),
+        Slot(slot_id=3, song_id=1, start_time=1,   end_time=2),
         
         Slot(slot_id=4, song_id=2, start_time=0,   end_time=0.5),
-        Slot(slot_id=5, song_id=2, start_time=1,   end_time=1.5),
-        Slot(slot_id=6, song_id=2, start_time=2,   end_time=2.5),
+        Slot(slot_id=5, song_id=2, start_time=0.5, end_time=1.5),
+        Slot(slot_id=6, song_id=2, start_time=1.5, end_time=3),
         
-        Slot(slot_id=7, song_id=3, start_time=0,   end_time=0.5),
-        Slot(slot_id=8, song_id=3, start_time=1,   end_time=1.5),
-        Slot(slot_id=9, song_id=3, start_time=2,   end_time=2.5)
+        Slot(slot_id=7, song_id=3, start_time=0.5,   end_time=1),
+        Slot(slot_id=8, song_id=3, start_time=1,   end_time=2),
+        Slot(slot_id=9, song_id=3, start_time=2,   end_time=3.1),
+        Slot(slot_id=10, song_id=3, start_time=3.1, end_time=3.3),
+        Slot(slot_id=11, song_id=3, start_time=3.3, end_time=3.6),
+        Slot(slot_id=12, song_id=3, start_time=3.6, end_time=3.8)
     ],
     invitations=[
         Invitation(invitation_id=1, group_id=group_id_1, token="token1", email="invitee1@example.com", created_at=now, expires_at=now + timedelta(days=1)),

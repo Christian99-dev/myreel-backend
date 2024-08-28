@@ -1,6 +1,6 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from api.models.database.model import Song
+from api.models.database.model import Song, Slot
 
 def create(
         name: str, 
@@ -65,3 +65,18 @@ def remove(song_id: int, db_session: Session) -> bool:
         db_session.commit()
         return True
     return False
+
+def get_breakpoints(song_id: int, db_session: Session) -> List[float]:
+    """
+    Gibt eine Liste aller Breakpoints (Start- und Endzeiten) für die Slots eines Songs zurück.
+    """
+    slots = db_session.query(Slot).filter(Slot.song_id == song_id).all()
+    breakpoints = set()
+
+    # Durchlaufe alle Slots und füge die Start- und Endzeiten zu den Breakpoints hinzu
+    for slot in slots:
+        breakpoints.add(slot.start_time)
+        breakpoints.add(slot.end_time)
+
+    # Sortiere die Breakpoints und konvertiere sie in eine Liste
+    return sorted(breakpoints)
