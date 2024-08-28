@@ -5,6 +5,7 @@ from distutils.util import strtobool
 
 load_dotenv()
 LOCAL_MEDIA_ACCESS = strtobool(os.getenv("LOCAL_MEDIA_ACCESS"))
+LOCAL_MEDIA_REPO = os.getenv("LOCAL_MEDIA_REPO")
 
 class BaseMediaAccess(ABC):
     def __init__(self):
@@ -47,21 +48,21 @@ class BaseMediaAccess(ABC):
 class LocalMediaAccess(BaseMediaAccess):
     def setup(self):
         """Initialisiere lokale Ressourcen."""
-        self.static_dir = "./static"
-        os.makedirs(self.static_dir, exist_ok=True)  # Erstelle den Ordner, falls nicht vorhanden
+        self.local_media_repo_folder = f"./{LOCAL_MEDIA_REPO}"
+        os.makedirs(self.local_media_repo_folder, exist_ok=True)  # Erstelle den Ordner, falls nicht vorhanden
         # print(f"Local media access setup complete. Directory: {self.static_dir}")
 
     def save(self, file_name: str, dir: str, file_data: bytes) -> str:
-        file_path = os.path.join(self.static_dir, dir, file_name)
+        file_path = os.path.join(self.local_media_repo_folder, dir, file_name)
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, 'wb') as f:
             f.write(file_data)
-        location = f"http://localhost:8000/static/{dir}/{file_name}"  # Beispiel für lokale URL
+        location = f"http://localhost:8000/{LOCAL_MEDIA_REPO}/{dir}/{file_name}"  # Beispiel für lokale URL
         # print(f"File saved to {file_path}")
         return location
 
     def get(self, file_name: str, dir: str):
-        file_path = os.path.join(self.static_dir, dir, file_name)
+        file_path = os.path.join(self.local_media_repo_folder, dir, file_name)
         try:
             with open(file_path, 'rb') as f:
                 # print(f"File retrieved from {file_path}")
@@ -71,7 +72,7 @@ class LocalMediaAccess(BaseMediaAccess):
             return None
 
     def list(self, dir: str):
-        dir_path = os.path.join(self.static_dir, dir)
+        dir_path = os.path.join(self.local_media_repo_folder, dir)
         if os.path.exists(dir_path):
             files = os.listdir(dir_path)
             # print(f"Files in '{dir}': {files}")
@@ -82,15 +83,15 @@ class LocalMediaAccess(BaseMediaAccess):
 
     def list_all(self):
         all_files = []
-        for dirpath, _, filenames in os.walk(self.static_dir):
+        for dirpath, _, filenames in os.walk(self.local_media_repo_folder):
             for filename in filenames:
-                relative_path = os.path.relpath(os.path.join(dirpath, filename), self.static_dir)
+                relative_path = os.path.relpath(os.path.join(dirpath, filename), self.local_media_repo_folder)
                 all_files.append(relative_path)
         # print("All files in media access:", all_files)
         return all_files
 
     def delete(self, dir: str, file_name: str) -> None:
-        file_path = os.path.join(self.static_dir, dir, file_name)
+        file_path = os.path.join(self.local_media_repo_folder, dir, file_name)
         try:
             os.remove(file_path)
             # print(f"File deleted: {file_path}")
@@ -101,7 +102,7 @@ class LocalMediaAccess(BaseMediaAccess):
     def clear(self) -> None:
         """Löscht alle Dateien und Verzeichnisse im lokalen Zugriff, behält jedoch das Hauptverzeichnis."""
         try:
-            for dirpath, dirnames, filenames in os.walk(self.static_dir, topdown=False):
+            for dirpath, dirnames, filenames in os.walk(self.local_media_repo_folder, topdown=False):
                 for filename in filenames:
                     file_path = os.path.join(dirpath, filename)
                     os.remove(file_path)

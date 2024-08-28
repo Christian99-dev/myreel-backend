@@ -12,9 +12,10 @@ logger = logging.getLogger("testing")
 
 load_dotenv()
 LOCAL_DB = strtobool(os.getenv("LOCAL_DB"))
+LOCAL_DB_REPO = os.getenv("LOCAL_DB_REPO")
 
 if LOCAL_DB:
-    URL_DATABASE    = f"sqlite:///./local.db"
+    URL_DATABASE    = f"sqlite:///./{LOCAL_DB_REPO}"
 else:
     MYSQL_HOST      = os.getenv("MYSQL_HOST")
     MYSQL_USER      = os.getenv("MYSQL_USER")

@@ -58,7 +58,7 @@ async def lifespan(app: FastAPI):
         })
 
     # Media setup and fill if neede
-    # fill_media(media_access)
+    fill_media(media_access)
     yield
 
 # app
