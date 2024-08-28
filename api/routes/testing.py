@@ -70,7 +70,7 @@ async def test3(instagram_access: BaseInstagramAccess = Depends(lambda: instagra
 
 @router.get("/4")
 async def test4(email_access: BaseEmailAccess = Depends(lambda: email_access)):
-    email_access.send()
+    email_access.send("k.christian9@web.de", "was", "geht ab")
     return 17
 
 

@@ -47,18 +47,18 @@ async def lifespan(app: FastAPI):
             pass
         
         print_database_contents(session, {
-            'Slot':         True,
-            'Song':         True,
-            'Edit':         True,
-            'Group':        True,
-            'Invitation':   True,
-            'User':         True,
-            'LoginRequest': True,
-            'OccupiedSlot': True
+            'Slot':         False,
+            'Song':         False,
+            'Edit':         False,
+            'Group':        False,
+            'Invitation':   False,
+            'User':         False,
+            'LoginRequest': False,
+            'OccupiedSlot': False
         })
 
     # Media setup and fill if neede
-    fill_media(media_access)
+    # fill_media(media_access)
     yield
 
 # app
