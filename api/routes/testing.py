@@ -12,6 +12,7 @@ from api.config.database import get_db
 from api.config.media_access import BaseMediaAccess
 from api.services.email.invite import invite
 from api.services.email.login import login
+from api.services.instagram.upload import upload
 from api.utils.media_manipulation.create_edit_video import create_edit_video
 from api.utils.media_manipulation.swap_slot_in_edit_video import swap_slot_in_edit
 
@@ -66,8 +67,9 @@ async def test2(db = Depends(get_db), media_access: BaseEmailAccess = Depends(la
     return 17
 
 @router.get("/3")
-async def test3(instagram_access: BaseInstagramAccess = Depends(lambda: instagram_access)):
-    instagram_access.upload()
+async def test3(instagram_access: BaseInstagramAccess = Depends(lambda: instagram_access), media_access: BaseEmailAccess = Depends(lambda: media_access)):
+    demo_video = media_access.get("demo.mp4", "demo_slot")
+    upload(demo_video, "was geht", instagram_access)
     return 17
 
 @router.get("/4")

@@ -7,9 +7,6 @@ __pycache__
 # logs
 *.log
 
-# local database(s)
-*.db
-
 # helper-scripts
 context-printer*.*
 folder-structure-printer*.*
@@ -19,6 +16,9 @@ folder-structure-printer*.*
 *.wav
 *.jpg
 *.png
-outgoing_emails_test
 
+# local repos
+outgoing_emails_test
+outgoing_instagram_test
+*.db
 
