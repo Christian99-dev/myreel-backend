@@ -76,7 +76,7 @@ class LocalEmailAccess(BaseEmailAccess):
             
             # Generiere einen Dateinamen mit Zeitstempel
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"email_{timestamp}.eml"
+            filename = f"email_{timestamp}_to_{to}.eml"
             filepath = os.path.join(self.email_repo, filename)
             
             # Schreibe die E-Mail in die Datei

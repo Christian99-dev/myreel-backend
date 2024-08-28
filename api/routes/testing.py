@@ -10,6 +10,8 @@ from api.config.instagram_access import instagram_access, BaseInstagramAccess
 from api.config.media_access import media_access
 from api.config.database import get_db
 from api.config.media_access import BaseMediaAccess
+from api.services.email.invite import invite
+from api.services.email.login import login
 from api.utils.media_manipulation.create_edit_video import create_edit_video
 from api.utils.media_manipulation.swap_slot_in_edit_video import swap_slot_in_edit
 
@@ -70,7 +72,9 @@ async def test3(instagram_access: BaseInstagramAccess = Depends(lambda: instagra
 
 @router.get("/4")
 async def test4(email_access: BaseEmailAccess = Depends(lambda: email_access)):
-    email_access.send("k.christian9@web.de", "was", "geht ab")
+    email_access.send("example@web.de", "was", "geht ab")
+    login("example@web.de", 5432, email_access)
+    # invite("example@web.de", 123, email_access)
     return 17
 
 
