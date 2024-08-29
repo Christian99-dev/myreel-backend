@@ -91,7 +91,7 @@ class LocalEmailAccess(BaseEmailAccess):
     
 class MemoryEmailAcccess(BaseEmailAccess):
     def send(self, to: str, subject: str, body: str) -> bool:
-        print("email.send() memory")
+        # print("email.send() memory")
         pass
 
 email_access = LocalEmailAccess() if LOCAL_EMAIL_ACCESS else RemoteEmailAccess()
