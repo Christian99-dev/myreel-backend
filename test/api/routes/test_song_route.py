@@ -6,7 +6,7 @@ from api.services.database.song import remove as remove_song_service
 from sqlalchemy.orm import Session
 
 # create
-def test_create(http_client: TestClient, media_access_memory: BaseMediaAccess): 
+def test_create(http_client: TestClient, media_access_memory: BaseMediaAccess, admintoken: int): 
     cover_file_bytes = get_cover(1, media_access_memory)  # Mock cover file
     song_file_bytes = get_song(1, media_access_memory)    # Mock song file
 
@@ -14,6 +14,7 @@ def test_create(http_client: TestClient, media_access_memory: BaseMediaAccess):
 
     response = http_client.post(
         "/song/",  # Your endpoint here
+        headers={"admintoken": admintoken},
         files={
             "cover_file": ("test_cover.jpg", cover_file_bytes, "image/jpeg"),
             "song_file": ("test_song.wav", song_file_bytes, "audio/wav"),
@@ -36,7 +37,7 @@ def test_create(http_client: TestClient, media_access_memory: BaseMediaAccess):
     assert isinstance(response_data["cover_src"], str)
     assert isinstance(response_data["audio_src"], str)
     
-def test_create_not_good_breakpoints(http_client: TestClient, media_access_memory: BaseMediaAccess): 
+def test_create_not_good_breakpoints(http_client: TestClient, media_access_memory: BaseMediaAccess, admintoken: int): 
     cover_file_bytes = get_cover(1, media_access_memory)  # Mock cover file
     song_file_bytes = get_song(1, media_access_memory)    # Mock song file
 
@@ -44,6 +45,7 @@ def test_create_not_good_breakpoints(http_client: TestClient, media_access_memor
 
     response = http_client.post(
         "/song/",  # Your endpoint here
+        headers={"admintoken": admintoken},
         files={
             "cover_file": ("test_cover.jpg", cover_file_bytes, "image/jpeg"),
             "song_file": ("test_song.wav", song_file_bytes, "audio/wav"),
@@ -56,23 +58,29 @@ def test_create_not_good_breakpoints(http_client: TestClient, media_access_memor
     )
 
     assert response.status_code == 400  # Expecting a successful creation
-    
+
+def test_create_role(http_client: TestClient): 
+    assert http_client.post("/song/").status_code == 403
+
 # remove
-def test_delete_song(http_client: TestClient):
+def test_delete_song(http_client: TestClient, admintoken: int):
     # Step 1: Now, try to delete the created song
-    delete_response = http_client.delete(f"/song/2")
+    delete_response = http_client.delete(f"/song/2", headers={"admintoken": admintoken})
 
     # Step 2: Validate the response from the DELETE request
     assert delete_response.status_code == 200  # Expecting a successful deletion
 
-def test_delete_non_existent_song(http_client: TestClient):
+def test_delete_non_existent_song(http_client: TestClient, admintoken: int):
     non_existent_song_id = 9999  # A song ID that doesn't exist
 
-    delete_response = http_client.delete(f"/song/{non_existent_song_id}")
+    delete_response = http_client.delete(f"/song/{non_existent_song_id}", headers={"admintoken": admintoken})
     
     # Expect a 404 response as the song does not exist
     assert delete_response.status_code == 404
-    
+
+def test_delete_role(http_client: TestClient):
+    assert http_client.delete("/song/1").status_code == 403
+
 # list
 def test_list_songs(http_client: TestClient):
     response = http_client.get("/song/list")  # Adjust the endpoint as necessary
@@ -90,7 +98,6 @@ def test_list_songs(http_client: TestClient):
     assert response_data["songs"][2]["name"] == "Song 3"
 
 # get
-
 def test_get_song(http_client: TestClient):
     response = http_client.get("/song/1")  # Get song with ID 1
     assert response.status_code == 200  # Expecting a successful response

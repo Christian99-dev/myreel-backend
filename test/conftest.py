@@ -36,11 +36,16 @@ load_dotenv()
 # Routes     : None
 # Middleware : None
 @pytest.fixture(scope="function")
-def credentials():
-    yield {
-        "admin_token" : os.getenv("ADMIN_TOKEN"),
-        "user_1_jwt" : jwt.create_jwt(1, 10),
-    }
+def user_1_jwt():
+    yield jwt.create_jwt(1, 10)
+    
+# Database   : None 
+# Media      : None
+# Routes     : None
+# Middleware : None
+@pytest.fixture(scope="function")
+def admintoken():
+    yield os.getenv("ADMIN_TOKEN")
     
 # Database   : Test_Data 
 # Media      : None

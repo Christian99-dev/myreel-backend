@@ -14,17 +14,20 @@ from api.config.media_access import BaseMediaAccess
 from main import app
 logger = logging.getLogger("testing")
 
-# -- credentials -- #
+# -- user_1_jwt -- #
 
-def test_credentials(credentials: dict):
-    assert credentials.get("admin_token") is not None 
-    assert type(credentials.get("admin_token")) is str
+def test_user_1_jwt(user_1_jwt: str):
+    assert user_1_jwt is not None
+    assert type(user_1_jwt) is str
     
-    assert credentials.get("user_1_jwt") is not None
-    assert type(credentials.get("user_1_jwt")) is str
+    assert read_jwt(user_1_jwt) is 1
+    assert type(read_jwt(user_1_jwt)) is int
     
-    assert read_jwt(credentials.get("user_1_jwt")) is 1
-    assert type(read_jwt(credentials.get("user_1_jwt"))) is int
+# -- admintoken -- #
+
+def admintoken(admintoken: str):
+    assert admintoken is not None
+    assert type(admintoken) is str
 
 
 # -- db_memory -- #
