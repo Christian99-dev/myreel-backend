@@ -22,7 +22,7 @@ router = APIRouter(
 )    
 
 @router.get("/1")
-async def test1(db = Depends(get_db), media_access: BaseMediaAccess = Depends(lambda: media_access)):
+def test1(db = Depends(get_db), media_access: BaseMediaAccess = Depends(lambda: media_access)):
     
     video_bytes = media_access.get("demo.mp4", "demo_slot")
     song_bytes = media_access.get("1.wav", "songs")
@@ -44,8 +44,8 @@ async def test1(db = Depends(get_db), media_access: BaseMediaAccess = Depends(la
     return 18
 
 @router.get("/2")
-async def test2(db = Depends(get_db), media_access: BaseEmailAccess = Depends(lambda: media_access)):
-    name = "zvdy"
+def test2(db = Depends(get_db), media_access: BaseEmailAccess = Depends(lambda: media_access)):
+    name = "sPN5"
     input_video_bytes = media_access.get(f"{name}.mp4", "testres")
     new_video_bytes   = media_access.get("1.mp4", "occupied_slots")
     
@@ -67,7 +67,7 @@ async def test2(db = Depends(get_db), media_access: BaseEmailAccess = Depends(la
     return 17
 
 @router.get("/3")
-async def test3(instagram_access: BaseInstagramAccess = Depends(lambda: instagram_access), media_access: BaseEmailAccess = Depends(lambda: media_access)):
+def test3(instagram_access: BaseInstagramAccess = Depends(lambda: instagram_access), media_access: BaseEmailAccess = Depends(lambda: media_access)):
     name = "jp67"
     demo_video = media_access.get(f"{name}.mp4", "testres")
     upload(demo_video, "mp4", "was geht", instagram_access)
