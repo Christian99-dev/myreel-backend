@@ -206,7 +206,7 @@ def test_email_access_does_something(email_access_memory):
 # -- instagram_access_memory -- #
 
 def test_instagram_access_does_something(instagram_access_memory):
-    instagram_access_memory.upload(b"", "hi")
+    instagram_access_memory.upload(b"", "mp4", "hi")
    
 # -- http_client  -- #
 

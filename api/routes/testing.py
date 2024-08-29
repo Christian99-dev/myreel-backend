@@ -27,7 +27,7 @@ async def test1(db = Depends(get_db), media_access: BaseMediaAccess = Depends(la
     video_bytes = media_access.get("demo.mp4", "demo_slot")
     song_bytes = media_access.get("1.wav", "songs")
     
-    breapoints = [1,2,3,4]
+    breapoints = [1,2,3,6]
     
     endresult = create_edit_video(
         video_bytes,
@@ -45,8 +45,8 @@ async def test1(db = Depends(get_db), media_access: BaseMediaAccess = Depends(la
 
 @router.get("/2")
 async def test2(db = Depends(get_db), media_access: BaseEmailAccess = Depends(lambda: media_access)):
-    
-    input_video_bytes = media_access.get("1kur.mp4", "testres")
+    name = "zvdy"
+    input_video_bytes = media_access.get(f"{name}.mp4", "testres")
     new_video_bytes   = media_access.get("1.mp4", "occupied_slots")
     
     endresult = swap_slot_in_edit(
@@ -61,15 +61,16 @@ async def test2(db = Depends(get_db), media_access: BaseEmailAccess = Depends(la
         "mp4"
     )
     
-    media_access.save("1kur_out.mp4", "testres", endresult)
+    media_access.save(f"{name}_out.mp4", "testres", endresult)
 
     print("testing 2")
     return 17
 
 @router.get("/3")
 async def test3(instagram_access: BaseInstagramAccess = Depends(lambda: instagram_access), media_access: BaseEmailAccess = Depends(lambda: media_access)):
-    demo_video = media_access.get("demo.mp4", "demo_slot")
-    upload(demo_video, "was geht", instagram_access)
+    name = "slCP"
+    demo_video = media_access.get(f"{name}.mp4", "testres")
+    upload(demo_video, "mp4", "was geht", instagram_access)
     return 17
 
 @router.get("/4")

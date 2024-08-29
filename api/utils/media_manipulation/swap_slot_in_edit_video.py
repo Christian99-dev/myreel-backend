@@ -1,7 +1,9 @@
 import os
 import tempfile
 from typing import List
+from api.utils.media_manipulation.resize_for_instagram_reel import resize_for_instagram_reel
 from moviepy.editor import VideoFileClip, concatenate_videoclips
+from moviepy.video.fx.resize import resize
 
 def swap_slot_in_edit(
     input_video_bytes: bytes, 
@@ -31,8 +33,11 @@ def swap_slot_in_edit(
             new_video_temp_file_path = new_video_temp_file.name
         
         # Lade das ursprüngliche Video und das neue Video von den temporären Dateien
-        original_video_clip = VideoFileClip(video_temp_file_path, target_resolution=(1080, 1920))
-        new_video_clip = VideoFileClip(new_video_temp_file_path, target_resolution=(1080, 1920))
+        original_video_clip = VideoFileClip(video_temp_file_path)
+        new_video_clip = VideoFileClip(new_video_temp_file_path)
+        
+        # Sizing new clip to 9:16
+        new_video_clip = resize_for_instagram_reel(new_video_clip)
         
         # Schneide die Teile des ursprünglichen Videos
         part1 = original_video_clip.subclip(0, input_video_start_point)  # Von 0 bis video_start_point
@@ -42,14 +47,14 @@ def swap_slot_in_edit(
         new_segment = new_video_clip.subclip(new_video_start_point, new_video_end_point)
 
         # Kombiniere die Video-Clips
-        final_video = concatenate_videoclips([part1, new_segment, part3], method="chain")
+        final_video = concatenate_videoclips([part1, new_segment, part3], method="compose")
         
         # Übertrage die Audiostreams aus dem Originalvideo
         final_video = final_video.set_audio(original_video_clip.audio)
         
         # Schreibe das finale Video in eine temporäre Datei
         with tempfile.NamedTemporaryFile(delete=False, suffix=f".{output_video_format}") as output_temp_file:
-            final_video.write_videofile(output_temp_file.name, codec='libx264', audio_codec='aac', threads=4, fps=24)
+            final_video.write_videofile(output_temp_file.name, codec='libx264', audio_codec='aac', threads=4, fps=30)
             output_file_path = output_temp_file.name
 
         # Lies die fertige Datei in ein Bytes-Objekt

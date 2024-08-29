@@ -1,6 +1,7 @@
 import os
 import tempfile
-from typing import List
+from api.utils.media_manipulation.resize_for_instagram_reel import resize_for_instagram_reel
+from api.utils.media_manipulation.write_videofile_for_instagram_reel import write_videofile_for_instagram_reel
 from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
 import numpy as np
 import io
@@ -61,9 +62,12 @@ def create_edit_video(
         audio_end_time = breakpoints[-1]
         final_video = final_video.set_audio(audio_clip.subclip(audio_start_time, audio_end_time))
 
+        # final video resize to 9:16
+        # final_video = resize_for_instagram_reel(final_video)
+
         # Write final video to temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix=f".{output_video_format}") as output_temp_file:
-            final_video.write_videofile(output_temp_file.name, codec='libx264', audio_codec='aac', threads=4, fps=24)
+            write_videofile_for_instagram_reel(final_video, output_temp_file.name)
             output_file_path = output_temp_file.name
 
         # Read final video as bytes
