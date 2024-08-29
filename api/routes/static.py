@@ -8,35 +8,35 @@ router = APIRouter(
     prefix="/static",
 )    
 
-@router.get("/covers/{filename}")
+@router.get("/covers/{filename}", tags=["media"])
 async def serve_covers(filename: str):      
     file_path = f"static/covers/{filename}"
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(file_path)
 
-@router.get("/demo_slot/{filename}")
+@router.get("/demo_slot/{filename}", tags=["media"])
 async def serve_demo_slot(filename: str):   
     file_path = f"static/demo_slot/{filename}"
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(file_path)
 
-@router.get("/edits/{filename}")
+@router.get("/edits/{filename}", tags=["media"])
 async def serve_edits(filename: str):
     file_path = f"static/edits/{filename}"
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(file_path)
 
-@router.get("/occupied_slots/{filename}")
+@router.get("/occupied_slots/{filename}", tags=["media"])
 async def serve_occupied_slot(filename: str):
     file_path = f"static/occupied_slots/{filename}"
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(file_path)
 
-@router.get("/songs/{filename}")
+@router.get("/songs/{filename}", tags=["media"])
 async def serve_songs(filename: str):
     file_path = f"static/songs/{filename}"
     if not os.path.exists(file_path):
