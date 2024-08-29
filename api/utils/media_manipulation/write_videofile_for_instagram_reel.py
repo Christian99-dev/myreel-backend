@@ -12,10 +12,9 @@ def write_videofile_for_instagram_reel(clip: VideoFileClip, output_path: str) ->
         # Setze die ffmpeg-Parameter entsprechend den Instagram-Spezifikationen
         # Setze die ffmpeg-Parameter entsprechend den Instagram-Spezifikationen
         ffmpeg_params = [
-            "-vf", "scale=1080:1920",          # Größe auf 1080x1920 setzen
-            "-aspect", "9:16",                  # Seitenverhältnis auf 9:16 setzen
-            "-framerate", "1/60",              # Setzt die Framerate auf 1 Bild pro 60 Sekunden
-            "-r", "25",                        # Setzt die Ausgabe-Framerate auf 25 FPS
+            "-aspect", "9:16",                # Seitenverhältnis auf 9:16 setzen
+            "-framerate", "1/60",             # Setzt die Framerate auf 1 Bild pro 60 Sekunden
+            "-r", "25",                       # Setzt die Ausgabe-Framerate auf 25 FPS
             "-c:v", "h264",                   # Video Codec auf h264 setzen
             "-tune", "stillimage",            # Tunen für Standbilder
             "-crf", "18",                     # CRF-Wert auf 18 setzen für hohe Qualität

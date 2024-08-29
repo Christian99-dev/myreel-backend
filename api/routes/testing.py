@@ -68,7 +68,7 @@ async def test2(db = Depends(get_db), media_access: BaseEmailAccess = Depends(la
 
 @router.get("/3")
 async def test3(instagram_access: BaseInstagramAccess = Depends(lambda: instagram_access), media_access: BaseEmailAccess = Depends(lambda: media_access)):
-    name = "slCP"
+    name = "jp67"
     demo_video = media_access.get(f"{name}.mp4", "testres")
     upload(demo_video, "mp4", "was geht", instagram_access)
     return 17

@@ -63,7 +63,7 @@ def create_edit_video(
         final_video = final_video.set_audio(audio_clip.subclip(audio_start_time, audio_end_time))
 
         # final video resize to 9:16
-        # final_video = resize_for_instagram_reel(final_video)
+        final_video = resize_for_instagram_reel(final_video)
 
         # Write final video to temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix=f".{output_video_format}") as output_temp_file:
