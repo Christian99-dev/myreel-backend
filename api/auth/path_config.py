@@ -89,6 +89,6 @@ path_config = PathConfig({
     '/testing/1':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
     '/testing/2':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
     '/testing/3':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
-    '/testing/4':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)}
+    '/testing/4':            {"POST": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)}
     
 })

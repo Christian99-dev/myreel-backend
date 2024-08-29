@@ -13,8 +13,10 @@ from api.config.media_access import BaseMediaAccess
 from api.services.email.invite import invite
 from api.services.email.login import login
 from api.services.instagram.upload import upload
+from api.utils.files.file_validation import file_validation
 from api.utils.media_manipulation.create_edit_video import create_edit_video
 from api.utils.media_manipulation.swap_slot_in_edit_video import swap_slot_in_edit
+from fastapi import FastAPI, File, UploadFile, HTTPException
 
 
 router = APIRouter(
@@ -73,12 +75,22 @@ def test3(instagram_access: BaseInstagramAccess = Depends(lambda: instagram_acce
     upload(demo_video, "mp4", "was geht", instagram_access)
     return 17
 
-@router.get("/4")
-async def test4(email_access: BaseEmailAccess = Depends(lambda: email_access)):
-    email_access.send("example@web.de", "was", "geht ab")
-    login("example@web.de", 5432, email_access)
-    # invite("example@web.de", 123, email_access)
-    return 17
+@router.post("/4")
+async def upload_file(file: UploadFile = File(...)):
+    file_type = "video"
+    """Endpunkt zum Hochladen einer Datei und Validierung basierend auf dem Dateityp."""
+    (validated_file, message) = file_validation(file, file_type)
+    
+    # Überprüfe, ob die Datei gültig ist
+    if validated_file is None:
+        raise HTTPException(status_code=400, detail=message)
+
+    # Hier kannst du die Datei speichern oder weiterverarbeiten
+    # Beispielsweise:
+    # with open(f"./uploads/{validated_file.filename}", "wb") as f:
+    #     f.write(await validated_file.read())
+
+    return {"filename": validated_file.filename, "file_type": file_type}
 
 
 def generate_random_characters():
