@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Group, Edit, Invitation, User
-from api.services.database.group import create, get, is_group_creator, is_group_member, remove
+from api.services.database.group import create, get, is_group_creator, is_group_member, list_members, remove
 from api.mock.database.model import mock_model_memory_links
 
 # create
@@ -114,3 +114,30 @@ def test_remove_group_failed(db_memory: Session):
 
     # Assert: Stelle sicher, dass keine Gruppe gelöscht wird
     assert result is False
+
+# list_memebers
+
+def test_list_members(db_memory: Session):
+    # Arrange: Use an existing group with members
+    group_id = mock_model_memory_links.groups[0].group_id  # Assuming Group 1 has members
+    
+    # Act: List members of the group
+    members = list_members(group_id, db_memory)
+    
+    # Assert: Check that the members are correctly listed
+    assert members is not None
+    assert len(members) > 0  # Ensure there are members in the group
+
+    # Optional: Check specific members based on your mock data
+    assert members[0].user_id == mock_model_memory_links.users[0].user_id  # Creator
+    assert members[1].user_id == mock_model_memory_links.users[1].user_id  # Member
+
+def test_list_members_no_members(db_memory: Session):
+    # Arrange: Create a new group without any members
+    new_group = create("Empty Group", db_memory)  # Create a group without users
+
+    # Act: List members of the new group
+    members = list_members(new_group.group_id, db_memory)
+    
+    # Assert: Check that the member list is empty
+    assert members == []  # Ensure no members in the new group

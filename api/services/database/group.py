@@ -35,3 +35,6 @@ def remove(group_id: str, db: Session) -> bool:
         db.commit()
         return True
     return False
+
+def list_members(group_id: str, db: Session):
+    return db.query(User).filter(User.group_id == group_id).all()
