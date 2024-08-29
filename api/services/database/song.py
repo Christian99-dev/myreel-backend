@@ -7,7 +7,7 @@ def create(
         author: str, 
         cover_src: str, 
         audio_src:str, 
-        db: Session) -> Song:
+        db_session: Session) -> Song:
     
     new_song = Song(
         name=name,
@@ -16,9 +16,9 @@ def create(
         cover_src=cover_src,
         audio_src=audio_src
     )
-    db.add(new_song)
-    db.commit()
-    db.refresh(new_song)
+    db_session.add(new_song)
+    db_session.commit()
+    db_session.refresh(new_song)
     return new_song
 
 def get(song_id: int, db_session: Session) -> Song:
@@ -80,3 +80,39 @@ def get_breakpoints(song_id: int, db_session: Session) -> List[float]:
 
     # Sortiere die Breakpoints und konvertiere sie in eine Liste
     return sorted(breakpoints)
+
+def create_slots_from_breakpoints(song_id: int, breakpoints: List[float], db_session: Session) -> List[Slot]:
+    """
+    Create slots based on the provided breakpoints for the specified song.
+
+    Args:
+        song_id (int): The ID of the song for which slots are to be created.
+        breakpoints (List[float]): A list of breakpoints (start and end times).
+        db_session (Session): The database session to perform operations.
+
+    Returns:
+        List[Slot]: A list of newly created slots.
+    """
+    # Ensure the breakpoints are sorted
+    breakpoints = sorted(breakpoints)
+    slots = []
+
+    # Create slots from breakpoints
+    for i in range(len(breakpoints) - 1):
+        slot = Slot(
+            song_id=song_id,
+            start_time=breakpoints[i],
+            end_time=breakpoints[i + 1]
+        )
+        slots.append(slot)
+
+    # Add all slots to the session and commit
+    db_session.add_all(slots)
+    db_session.commit()
+
+    # Refresh the slots to get the IDs and other database-generated fields
+    for slot in slots:
+        db_session.refresh(slot)
+
+    return slots
+    

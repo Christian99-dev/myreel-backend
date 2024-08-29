@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from api.services.database.song import create, get_breakpoints, list_all, get, update, remove
+from api.services.database.song import create, create_slots_from_breakpoints, get_breakpoints, list_all, get, update, remove
 from api.models.database.model import Song, Slot, Edit
 from api.mock.database.model import mock_model_memory_links
 
@@ -180,8 +180,6 @@ def test_get_breakpoints_with_no_slots(db_memory: Session):
     expected_breakpoints = []
     assert breakpoints == expected_breakpoints
 
-
-
 def test_get_breakpoints_with_non_existing_song(db_memory: Session):
     # Arrange: Verwende eine nicht vorhandene Song-ID
     non_existing_song_id = 99999
@@ -192,3 +190,48 @@ def test_get_breakpoints_with_non_existing_song(db_memory: Session):
     # Assert: Überprüfe, dass eine leere Liste zurückgegeben wird
     assert breakpoints == []
     
+# create_slots_from_breakpoints    
+def test_create_slots_from_breakpoints(db_memory: Session):
+    # Arrange: Create song
+    name = "Test Song"
+    author = "Test Author"
+    cover_src = "http://example.com/cover.jpg"
+    audio_src = "http://example.com/audio.mp3"
+    new_song = create(name, author, cover_src, audio_src, db_memory)
+    song_id = new_song.song_id
+    
+    # Arrange: Breakpoints
+    breakpoints = [0.0, 0.5, 1.0, 1.5, 2.0]  # Example breakpoints
+
+    # Act: Call the create_slots_from_breakpoints function
+    create_slots_from_breakpoints(song_id, breakpoints, db_memory)
+
+    # Assert: Verify the slots were created correctly
+    created_slots = db_memory.query(Slot).filter_by(song_id=song_id).all()
+    
+    # Check if the number of slots matches expected
+    assert len(created_slots) == len(breakpoints) - 1  # Should create slots between breakpoints
+
+    # Verify start and end times of each slot
+    for i in range(len(breakpoints) - 1):
+        assert created_slots[i].start_time == breakpoints[i]
+        assert created_slots[i].end_time == breakpoints[i + 1]
+
+def test_create_slots_from_empty_breakpoints(db_memory: Session):
+    # Arrange: Create song
+    name = "Test Song Empty"
+    author = "Test Author"
+    cover_src = "http://example.com/cover_empty.jpg"
+    audio_src = "http://example.com/audio_empty.mp3"
+    new_song = create(name, author, cover_src, audio_src, db_memory)
+    song_id = new_song.song_id
+
+    # Arrange: Empty breakpoints
+    breakpoints = []  # Empty breakpoints
+
+    # Act: Call the function
+    create_slots_from_breakpoints(song_id, breakpoints, db_memory)
+
+    # Assert: Ensure no slots were created
+    created_slots = db_memory.query(Slot).filter_by(song_id=song_id).all()
+    assert len(created_slots) == 0
