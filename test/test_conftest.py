@@ -1,5 +1,6 @@
 import logging
 from sqlalchemy.orm import Session
+from api.auth.jwt import read_jwt
 from api.auth.role import Role, RoleInfos
 from api.auth.role_enum import RoleEnum
 from api.models.database.model import Edit, Group, Song, User, Slot, Invitation, LoginRequest, OccupiedSlot
@@ -12,6 +13,19 @@ from api.config.media_access import BaseMediaAccess
 
 from main import app
 logger = logging.getLogger("testing")
+
+# -- credentials -- #
+
+def test_credentials(credentials: dict):
+    assert credentials.get("admin_token") is not None 
+    assert type(credentials.get("admin_token")) is str
+    
+    assert credentials.get("user_1_jwt") is not None
+    assert type(credentials.get("user_1_jwt")) is str
+    
+    assert read_jwt(credentials.get("user_1_jwt")) is 1
+    assert type(read_jwt(credentials.get("user_1_jwt"))) is int
+
 
 # -- db_memory -- #
 

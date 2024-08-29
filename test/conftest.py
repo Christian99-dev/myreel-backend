@@ -1,8 +1,12 @@
+import os
 import pytest
 import logging
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Request
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+from api.auth import jwt
+from api.auth.path_config import path_config
 from api.config.email_access import BaseEmailAccess, MemoryEmailAcccess, get_email_access
 from api.config.instagram_access import BaseInstagramAccess, MemoryInstagramAcccess, get_instagram_access
 from api.config.media_access import BaseMediaAccess, MemoryMediaAccess, get_media_access
@@ -21,8 +25,23 @@ from api.config.database import get_db, get_db_memory
 setup_logging_testing()
 logger = logging.getLogger("testing")
 
+# env
+load_dotenv()
+
+
 ## -- MAIN FIXTURES -- ## 
 
+# Database   : None 
+# Media      : None
+# Routes     : None
+# Middleware : None
+@pytest.fixture(scope="function")
+def credentials():
+    yield {
+        "admin_token" : os.getenv("ADMIN_TOKEN"),
+        "user_1_jwt" : jwt.create_jwt(1, 10),
+    }
+    
 # Database   : Test_Data 
 # Media      : None
 # Routes     : None
@@ -67,10 +86,10 @@ def email_access_memory():
 # Middleware : None 
 @pytest.fixture(scope="function")
 def http_client(
-    db_memory: Session, 
-    media_access_memory: MemoryEmailAcccess, 
-    instagram_access_memory: MemoryInstagramAcccess, 
-    email_access_memory: MemoryEmailAcccess
+        db_memory: Session, 
+        media_access_memory: MemoryEmailAcccess, 
+        instagram_access_memory: MemoryInstagramAcccess, 
+        email_access_memory: MemoryEmailAcccess
     ):
     
     # adding prod routes
@@ -88,6 +107,10 @@ def http_client(
 
     def get_media_access_override():
         return media_access_memory
+    
+    # adding middleware
+    app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_db=get_db_override)
+    
     
 
     # Überschreibe die get_db-Abhängigkeit
