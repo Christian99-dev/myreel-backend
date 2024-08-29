@@ -156,3 +156,6 @@ class MemoryInstagramAcccess(BaseInstagramAccess):
         pass
 
 instagram_access = LocalInstagramAcccess() if LOCAL_INSTAGRAM_ACCESS else RemoteInstagramAcccess()
+
+def get_instagram_access(): 
+    return instagram_access

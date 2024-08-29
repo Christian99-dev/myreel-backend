@@ -3,16 +3,15 @@ import logging
 from fastapi import Depends, FastAPI, Request
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-from api.config.email_access import MemoryEmailAcccess
-from api.config.instagram_access import MemoryInstagramAcccess
-from api.config.media_access import MemoryMediaAccess
+from api.config.email_access import BaseEmailAccess, MemoryEmailAcccess, get_email_access
+from api.config.instagram_access import BaseInstagramAccess, MemoryInstagramAcccess, get_instagram_access
+from api.config.media_access import BaseMediaAccess, MemoryMediaAccess, get_media_access
 from api.middleware.access_handler import AccessHandlerMiddleware
 from api.mock.path_config.mock_path_config import mock_path_config
 from api.models.database.model import Song
 from api.mock.database.fill import fill as fill_db
 from api.mock.database.model import mock_model_memory_links
 from api.mock.media.fill import fill as fill_media
-from api.utils.middleware.get_all_routes import get_all_routes
 from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
 from logging_config import setup_logging_testing
 from api.routes.song import router as song_router
@@ -67,7 +66,12 @@ def email_access_memory():
 # Routes     : Prod
 # Middleware : None 
 @pytest.fixture(scope="function")
-def http_client(db_memory: Session):
+def http_client(
+    db_memory: Session, 
+    media_access_memory: MemoryEmailAcccess, 
+    instagram_access_memory: MemoryInstagramAcccess, 
+    email_access_memory: MemoryEmailAcccess
+    ):
     
     # adding prod routes
     app = FastAPI()
@@ -75,15 +79,30 @@ def http_client(db_memory: Session):
     
     def get_db_override():
         yield db_memory
+        
+    def get_instagram_access_override():
+        return email_access_memory
+
+    def get_email_access_override():
+        return instagram_access_memory
+
+    def get_media_access_override():
+        return media_access_memory
+    
 
     # Überschreibe die get_db-Abhängigkeit
     app.dependency_overrides[get_db] = get_db_override
+    app.dependency_overrides[get_instagram_access] = get_instagram_access_override
+    app.dependency_overrides[get_email_access] = get_email_access_override
+    app.dependency_overrides[get_media_access] = get_media_access_override
 
     with TestClient(app) as test_client:
         yield test_client
-
-    # Entferne die Überschreibung nach dem Test
+        
     del app.dependency_overrides[get_db]
+    del app.dependency_overrides[get_instagram_access]
+    del app.dependency_overrides[get_email_access]
+    del app.dependency_overrides[get_media_access]
     
 
 ## -- SPECIFIC FIXTURES -- ## 

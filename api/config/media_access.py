@@ -203,3 +203,6 @@ def create_media_access(access_type: str) -> BaseMediaAccess:
         raise ValueError(f"Invalid access type: {access_type}")
 
 media_access = create_media_access("local" if LOCAL_MEDIA_ACCESS else "remote")
+
+def get_media_access(): 
+    return media_access

@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 
 from api.config.email_access import email_access, BaseEmailAccess
 from api.config.instagram_access import instagram_access, BaseInstagramAccess
-from api.config.media_access import media_access
+from api.config.media_access import get_media_access, media_access
 from api.config.database import get_db
 from api.config.media_access import BaseMediaAccess
 from api.services.email.invite import invite
@@ -24,7 +24,7 @@ router = APIRouter(
 )    
 
 @router.get("/1", tags=["testing"])
-def test1(db = Depends(get_db), media_access: BaseMediaAccess = Depends(lambda: media_access)):
+def test1(db = Depends(get_db), media_access: BaseMediaAccess = Depends(get_media_access)):
     
     video_bytes = media_access.get("demo.mp4", "demo_slot")
     song_bytes = media_access.get("1.wav", "songs")
@@ -46,8 +46,8 @@ def test1(db = Depends(get_db), media_access: BaseMediaAccess = Depends(lambda: 
     return 18
 
 @router.get("/2", tags=["testing"])
-def test2(db = Depends(get_db), media_access: BaseEmailAccess = Depends(lambda: media_access)):
-    name = "sPN5"
+def test2(db = Depends(get_db), media_access: BaseEmailAccess = Depends(get_media_access)):
+    name = "9oB0"
     input_video_bytes = media_access.get(f"{name}.mp4", "testres")
     new_video_bytes   = media_access.get("1.mp4", "occupied_slots")
     
@@ -69,7 +69,10 @@ def test2(db = Depends(get_db), media_access: BaseEmailAccess = Depends(lambda: 
     return 17
 
 @router.get("/3", tags=["testing"])
-def test3(instagram_access: BaseInstagramAccess = Depends(lambda: instagram_access), media_access: BaseEmailAccess = Depends(lambda: media_access)):
+def test3(
+        instagram_access: BaseInstagramAccess = Depends(lambda: instagram_access), 
+        media_access: BaseEmailAccess = Depends(lambda: media_access)
+    ):
     name = "jp67"
     demo_video = media_access.get(f"{name}.mp4", "testres")
     upload(demo_video, "mp4", "was geht", instagram_access)

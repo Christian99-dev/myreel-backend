@@ -95,3 +95,6 @@ class MemoryEmailAcccess(BaseEmailAccess):
         pass
 
 email_access = LocalEmailAccess() if LOCAL_EMAIL_ACCESS else RemoteEmailAccess()
+
+def get_email_access(): 
+    return email_access

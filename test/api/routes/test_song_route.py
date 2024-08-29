@@ -1,72 +1,106 @@
 from fastapi.testclient import TestClient
-from api.mock.database.model import mock_model_memory_links
+from api.config.media_access import BaseMediaAccess
+from api.services.media.cover import get as get_cover
+from api.services.media.song import get as get_song
+from api.services.database.song import remove as remove_song_service
+from sqlalchemy.orm import Session
 
-#TODO SONG
+# create
+def test_create(http_client: TestClient, media_access_memory: BaseMediaAccess): 
+    cover_file_bytes = get_cover(1, media_access_memory)  # Mock cover file
+    song_file_bytes = get_song(1, media_access_memory)    # Mock song file
 
-# # create
-# def notest_create(app_client_prod_routes: TestClient):
-#     # Act: Send a POST request to the create endpoint
-#     response = app_client_prod_routes.post("/song/create", json={
-#         "name": "Test Song",
-#         "author": "Test Author",
-#         "cover_src": "http://example.com/cover.jpg",
-#         "audio_src": "http://example.com/audio.mp3"
-#     })
+    valid_breakpoints = [0.0, 30.0, 60.0]  # Example valid breakpoints
 
-#     # Assert: Check the response status code and content
-#     assert response.status_code == 200
-#     data = response.json()
-#     assert data["name"]         == "Test Song"
-#     assert data["author"]       == "Test Author"
-#     assert data["cover_src"]    == "http://example.com/cover.jpg"
-#     assert data["audio_src"]    == "http://example.com/audio.mp3"
-#     assert data["times_used"]   == 0  
+    response = http_client.post(
+        "/song/",  # Your endpoint here
+        files={
+            "cover_file": ("test_cover.jpg", cover_file_bytes, "image/jpeg"),
+            "song_file": ("test_song.wav", song_file_bytes, "audio/wav"),
+        },
+        data={
+            "name": "Test Song",
+            "author": "Test Artist",
+            "breakpoints": valid_breakpoints,
+        }
+    )
+
+    assert response.status_code == 200  # Expecting a successful creation
+    response_data = response.json()
+
+    # Validate response structure and data
+    assert "song_id" in response_data
+    assert response_data["name"] == "Test Song"
+    assert response_data["author"] == "Test Artist"
+    assert isinstance(response_data["times_used"], int)
+    assert isinstance(response_data["cover_src"], str)
+    assert isinstance(response_data["audio_src"], str)
     
-# # list    
-# def notest_list(app_client_prod_routes: TestClient):
-#     # Act: Send a GET request to the list endpoint
-#     response = app_client_prod_routes.get("/song/list")
+def test_create_not_good_breakpoints(http_client: TestClient, media_access_memory: BaseMediaAccess): 
+    cover_file_bytes = get_cover(1, media_access_memory)  # Mock cover file
+    song_file_bytes = get_song(1, media_access_memory)    # Mock song file
 
-#     # Assert: Check the response status code and content
-#     assert response.status_code == 200
-#     data = response.json()
-    
-#     songs = data.get("songs")
-    
-#     # # Verify: Ensure the number of songs returned matches the test data
-#     assert len(songs) == len(model.songs)
-    
-#     # # Verify: Ensure the content matches the test data
-#     for song in songs:
-#         assert any(
-#             song["song_id"] == test_song.song_id and
-#             song["name"] == test_song.name and
-#             song["author"] == test_song.author and
-#             song["cover_src"] == test_song.cover_src and
-#             song["audio_src"] == test_song.audio_src and
-#             song["times_used"] == test_song.times_used
-#             for test_song in model.songs
-#         )
+    valid_breakpoints = [0.0, 30.0, 1000.0]  # Example valid breakpoints
 
-# # get
-# def notest_get_song(app_client_prod_routes: TestClient):
-#     test_song = model.songs[0]
-#     response = app_client_prod_routes.get(f"/song/get/{test_song.song_id}")
+    response = http_client.post(
+        "/song/",  # Your endpoint here
+        files={
+            "cover_file": ("test_cover.jpg", cover_file_bytes, "image/jpeg"),
+            "song_file": ("test_song.wav", song_file_bytes, "audio/wav"),
+        },
+        data={
+            "name": "Test Song",
+            "author": "Test Artist",
+            "breakpoints": valid_breakpoints,
+        }
+    )
+
+    assert response.status_code == 400  # Expecting a successful creation
     
-#     assert response.status_code == 200
-#     response_data = response.json()
-#     assert response_data["song_id"] == test_song.song_id
-#     assert response_data["name"] == test_song.name
-#     assert response_data["author"] == test_song.author
-#     assert response_data["cover_src"] == test_song.cover_src
-#     assert response_data["audio_src"] == test_song.audio_src
-#     assert response_data["times_used"] == test_song.times_used
+# remove
+def test_delete_song(http_client: TestClient):
+    # Step 1: Now, try to delete the created song
+    delete_response = http_client.delete(f"/song/2")
 
-# def notest_get_song_not_found(app_client_prod_routes: TestClient):
-#     response = app_client_prod_routes.get("/song/get/999999")  
-#     assert response.status_code == 404
-#     assert response.json() == {"detail": "Song not found"}
+    # Step 2: Validate the response from the DELETE request
+    assert delete_response.status_code == 200  # Expecting a successful deletion
 
-# def notest_get_song_invalid_id(app_client_prod_routes: TestClient):
-#     response = app_client_prod_routes.get("/song/get/abc")  
-#     assert response.status_code == 422
+def test_delete_non_existent_song(http_client: TestClient):
+    non_existent_song_id = 9999  # A song ID that doesn't exist
+
+    delete_response = http_client.delete(f"/song/{non_existent_song_id}")
+    
+    # Expect a 404 response as the song does not exist
+    assert delete_response.status_code == 404
+    
+# list
+def test_list_songs(http_client: TestClient):
+    response = http_client.get("/song/list")  # Adjust the endpoint as necessary
+    assert response.status_code == 200  # Expecting a successful response
+    response_data = response.json()
+    
+    # Validate the response structure
+    assert "songs" in response_data
+    assert isinstance(response_data["songs"], list)
+    
+    # Validate that the returned list matches the mock data
+    assert len(response_data["songs"]) == 3  # Assuming you have 3 songs in mock data
+    assert response_data["songs"][0]["name"] == "Song 1"
+    assert response_data["songs"][1]["name"] == "Song 2"
+    assert response_data["songs"][2]["name"] == "Song 3"
+
+# get
+
+def test_get_song(http_client: TestClient):
+    response = http_client.get("/song/1")  # Get song with ID 1
+    assert response.status_code == 200  # Expecting a successful response
+    response_data = response.json()
+    
+    # Validate the response structure
+    assert response_data["song_id"] == 1
+    assert response_data["name"] == "Song 1"
+    assert response_data["author"] == "Author 1"
+
+def test_get_non_existent_song(http_client: TestClient):
+    response = http_client.get("/song/999")  # Attempting to get a non-existent song
+    assert response.status_code == 404  # Expecting a not found response

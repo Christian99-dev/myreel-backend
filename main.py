@@ -43,7 +43,7 @@ async def lifespan(app: FastAPI):
     with SessionLocal() as session:
         if LOCAL_DB:  # Guard
             # Only uncomment if you want to renew the data
-            fill_db(session, mock_model_local_links)
+            # fill_db(session, mock_model_local_links)
             pass
         
         print_database_contents(session, {

@@ -11,6 +11,7 @@ def setup_logging_testing():
     logging.basicConfig(level=logging.DEBUG)
     
     logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
+    logging.getLogger('multipart.multipart').setLevel(logging.WARNING)
     
     logging.getLogger('asyncio').setLevel(logging.INFO)
     
