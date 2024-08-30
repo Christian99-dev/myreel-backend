@@ -5,7 +5,7 @@ from api.auth.role_enum import RoleEnum
 
 class PathInfo(NamedTuple):
     role: RoleEnum
-    has_subroles: bool
+    has_subroles:bool
     
     
 class PathConfig:
@@ -56,47 +56,56 @@ path_config = PathConfig({
     
     # fastapi
     '/openapi.json':{
-        "GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False), 
-        "HEAD": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)
+        "GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True), 
+        "HEAD": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)
     },
 
     '/docs':{
-        "GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False), 
-        "HEAD": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)
+        "GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True), 
+        "HEAD": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)
     },
 
     '/docs/oauth2-redirect':{
-        "GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False), 
-        "HEAD": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)
+        "GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True), 
+        "HEAD": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)
     },
 
     '/redoc':{
-        "GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False), 
-        "HEAD": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)
+        "GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True), 
+        "HEAD": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)
     },
     
     # root 
-    '/':                                   {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
+    '/':                                   {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
 
     # Static routes
-    '/static/covers/{filename}':           {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
-    '/static/demo_slot/{filename}':        {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
-    '/static/edits/{filename}':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
-    '/static/occupied_slots/{filename}':   {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
-    '/static/songs/{filename}':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
+    '/static/covers/{filename}':           {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/static/demo_slot/{filename}':        {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/static/edits/{filename}':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/static/occupied_slots/{filename}':   {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/static/songs/{filename}':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
     
     # testroutes
-    '/testing/1':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
-    '/testing/2':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
-    '/testing/3':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
-    '/testing/4':            {"POST": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
+    '/testing/1':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/testing/2':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/testing/3':            {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/testing/4':            {"POST": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
     
     # song
-    '/song/':                            {"POST":   PathInfo(role=RoleEnum.ADMIN, has_subroles=False)},
+    '/song/':                            {"POST":   PathInfo(role=RoleEnum.ADMIN, has_subroles=True)},
     '/song/{song_id}':                   {
-                                            "DELETE": PathInfo(role=RoleEnum.ADMIN, has_subroles=False),
-                                            "GET":    PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)
-                                        },
-    '/song/list':                        {"GET":    PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)},
+                                            "DELETE": PathInfo(role=RoleEnum.ADMIN, has_subroles=True),
+                                            "GET":    PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)
+                                         },
+    '/song/list':                        {"GET":    PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
     
+    # group
+    '/group':                           {"POST": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/group/{group_id}':                  {
+                                            "GET": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
+                                            "DELETE": PathInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=True)
+                                          },
+    '/group/{group_id}/role':             {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/group/{group_id}/groupExists':      {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/group/{group_id}/listMembers':      {"GET": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},    
 })

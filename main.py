@@ -22,6 +22,7 @@ from api.mock.database.model import mock_model_local_links
 from api.routes.song import router as song_router
 from api.routes.static import router as static_router
 from api.routes.testing import router as testing_router
+from api.routes.group import router as group_router
 
 # middleware 
 from api.middleware.log_access_path import LogAccessMiddleware
@@ -43,7 +44,7 @@ async def lifespan(app: FastAPI):
     with SessionLocal() as session:
         if LOCAL_DB:  # Guard
             # Only uncomment if you want to renew the data
-            # fill_db(session, mock_model_local_links)
+            fill_db(session, mock_model_local_links)
             pass
         
         print_database_contents(session, {
@@ -72,6 +73,7 @@ app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_db=get_
 app.include_router(testing_router)
 app.include_router(static_router)
 app.include_router(song_router)
+app.include_router(group_router)
 
 
 # root
