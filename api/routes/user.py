@@ -118,5 +118,5 @@ async def login(request: LoginRequest = Body(...), db: Session = Depends(get_db)
     jwt = create_jwt(user.user_id, 30)
     delete_loging_service(user.user_id, db=db)
 
-    return {"jwt": jwt}
+    return {"jwt": jwt, "user_id": user.user_id, "name":user.name }
 

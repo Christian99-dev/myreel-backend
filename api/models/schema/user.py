@@ -38,3 +38,5 @@ class LoginRequest(BaseModel):
 
 class LoginResponse(BaseModel):
     jwt: str
+    name: str
+    user_id: int
