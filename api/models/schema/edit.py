@@ -4,24 +4,6 @@ from fastapi import File, Form, UploadFile
 from pydantic import BaseModel
 from sqlalchemy import Float
 
-#
-class Edit(BaseModel):
-    edit_id:int
-    song_id:int
-    created_by:int
-    group_id:str
-    name:str
-    isLive:bool
-    video_src:str
-    
-class EditWithCreatorName(BaseModel):
-    edit_id:int
-    song_id:int
-    created_by: str
-    group_id:str
-    name:str
-    isLive:bool
-    video_src:str
     
 class User(BaseModel):
     user_id: int
@@ -59,12 +41,12 @@ class PostRequest(BaseModel):
     song_id: int
     edit_name: str
 
-class PostResponse(Edit):
+class PostResponse(EditWithUserObject):
     pass
 
 # GET /group/{groupid}/list
 class EditListResponse(BaseModel):
-    edits: List[EditWithCreatorName]
+    edits: List[EditWithUserObject]
     
 # GET /group/{group_id}/{edit_id}
 class GetEditResponse(BaseModel):

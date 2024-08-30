@@ -128,11 +128,23 @@ def create_edit(
     if edit_location is None:
         raise HTTPException(status_code=422, detail="Something went wrong while saving the edit")
     
-    
+    # Update the edit with the new video source
     updated_edit = edit_update_service(new_edit.edit_id, video_src=edit_location, db=db)
     
-    return updated_edit
+    user = get_user_service(updated_edit.created_by, db)  # Retrieve the user details
+    
+    # Create the response object
+    response = PostResponse(
+        edit_id=updated_edit.edit_id,
+        song_id=updated_edit.song_id,
+        created_by=User(user_id=user.user_id, name=user.name),  # Assuming you have a way to get this, or replace with the user info if necessary
+        group_id=updated_edit.group_id,
+        name=updated_edit.name,
+        isLive=updated_edit.isLive,
+        video_src=updated_edit.video_src
+    )
 
+    return response
 @router.get("/group/{group_id}/list", response_model=EditListResponse, tags=["edit"])
 async def get_edits_for_group(group_id: str, db: Session = Depends(get_db)):
     # Abrufen aller Edits für die gegebene Gruppen-ID
@@ -150,20 +162,20 @@ async def get_edits_for_group(group_id: str, db: Session = Depends(get_db)):
         if not user:
             raise HTTPException(status_code=404, detail=f"User with ID {edit.created_by} not found for edit")
         
-        # Erstellung der EditListResponse-Instanz mit dem User-Namen
+        # Erstellung der EditWithUserObject-Instanz mit dem User-Objekt
         edit_info = {
-            "edit_id":edit.edit_id,
-            "song_id":edit.song_id,
-            "created_by":user.name,  
-            "group_id":edit.group_id,
-            "name":edit.name,
-            "isLive":edit.isLive,
-            "video_src":edit.video_src
+            "edit_id": edit.edit_id,
+            "song_id": edit.song_id,
+            "created_by": User(user_id=user.user_id, name=user.name),  # User-Objekt mit ID und Name
+            "group_id": edit.group_id,
+            "name": edit.name,
+            "isLive": edit.isLive,
+            "video_src": edit.video_src
         }
         
         response_list.append(edit_info)
     
-    return {"edits":response_list}
+    return EditListResponse(edits=response_list)
 
 @router.get("/group/{group_id}/{edit_id}", response_model=GetEditResponse,  tags=["edit"])
 async def get_edit_details(group_id: str, edit_id: int, db: Session = Depends(get_db)):
