@@ -115,5 +115,12 @@ path_config = PathConfig({
     '/user/loginRequest':               {"POST": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},    
     '/user/login':                      {"POST": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},    
     
+    # edit
+    '/edit/{edit_id}/goLive':           {"POST": PathInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=True)},    
+    '/edit/{edit_id}':                  {"DELETE": PathInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=True)},    
+    '/edit/':                           {"POST": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},    
+    '/edit/group/{group_id}/list':      {"GET": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},    
+    '/edit/group/{group_id}/{edit_id}': {"GET": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},    
+    
 
 })

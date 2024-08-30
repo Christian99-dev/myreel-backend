@@ -24,6 +24,7 @@ from api.routes.static import router as static_router
 from api.routes.testing import router as testing_router
 from api.routes.group import router as group_router
 from api.routes.user import router as user_router
+from api.routes.edit import router as edit_router
 
 # middleware 
 from api.middleware.log_access_path import LogAccessMiddleware
@@ -76,6 +77,7 @@ app.include_router(static_router)
 app.include_router(song_router)
 app.include_router(group_router)
 app.include_router(user_router)
+app.include_router(edit_router)
 
 
 # root

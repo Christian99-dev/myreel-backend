@@ -5,7 +5,7 @@ from api.auth.role import Role, RoleInfos
 from api.auth.role_enum import RoleEnum
 from api.models.database.model import Edit, Group, Song, User, Slot, Invitation, LoginRequest, OccupiedSlot
 from api.mock.role_creds.role_creds import admin_req_creds, group_creator_req_creds, edit_creator_req_creds, external_req_creds, group_member_req_creds, group_creator_with_edit_id_req_creds, group_member_with_edit_id_req_creds
-from api.mock.database.model import mock_model_memory_links
+from api.mock.database.model import mock_model_local_links
 from fastapi.testclient import TestClient
 from test.utils.role_tester_has_acccess import role_tester_has_access
 from api.config.media_access import BaseMediaAccess
@@ -36,7 +36,7 @@ def test_db_memory_isolation(db_memory: Session):
     """Test to ensure that each test function gets a separate session."""
     
     # Check if the database is empty at the beginning of the test
-    assert db_memory.query(Song).count() == len(mock_model_memory_links.songs), "Database should be empty at the beginning of this test."
+    assert db_memory.query(Song).count() == len(mock_model_local_links.songs), "Database should be empty at the beginning of this test."
 
     # Add a song to the database in this session
     song = Song(name="Test Song", author="Test Author", times_used=0, cover_src="http://example.com/cover.jpg", audio_src="http://example.com/audio.mp3")
@@ -51,7 +51,7 @@ def test_db_memory_isolation_other(db_memory: Session):
     """Test to ensure that changes in one session do not affect another session."""
     
     # Check if the database is empty at the beginning of the test
-    assert db_memory.query(Song).count() == len(mock_model_memory_links.songs), "Database should be empty at the beginning of this test."
+    assert db_memory.query(Song).count() == len(mock_model_local_links.songs), "Database should be empty at the beginning of this test."
 
     # Check that the previous test did not affect this session
     result = db_memory.query(Song).filter_by(name="Test Song").first()
@@ -69,21 +69,21 @@ def test_db_memory_data_test(db_memory: Session):
     occupied_slots_from_db = db_memory.query(OccupiedSlot).all()
 
     # Überprüfen, ob die Anzahl der Einträge stimmt
-    assert len(groups_from_db) == len(mock_model_memory_links.groups)
-    assert len(songs_from_db) == len(mock_model_memory_links.songs)
-    assert len(users_from_db) == len(mock_model_memory_links.users)
-    assert len(edits_from_db) == len(mock_model_memory_links.edits)
-    assert len(slots_from_db) == len(mock_model_memory_links.slots)
-    assert len(invitations_from_db) == len(mock_model_memory_links.invitations)
-    assert len(login_requests_from_db) == len(mock_model_memory_links.login_requests)
-    assert len(occupied_slots_from_db) == len(mock_model_memory_links.occupied_slots)
+    assert len(groups_from_db) == len(mock_model_local_links.groups)
+    assert len(songs_from_db) == len(mock_model_local_links.songs)
+    assert len(users_from_db) == len(mock_model_local_links.users)
+    assert len(edits_from_db) == len(mock_model_local_links.edits)
+    assert len(slots_from_db) == len(mock_model_local_links.slots)
+    assert len(invitations_from_db) == len(mock_model_local_links.invitations)
+    assert len(login_requests_from_db) == len(mock_model_local_links.login_requests)
+    assert len(occupied_slots_from_db) == len(mock_model_local_links.occupied_slots)
 
     # Überprüfen, ob die Daten inhaltlich übereinstimmen
-    for expected_group, actual_group in zip(mock_model_memory_links.groups, groups_from_db):
+    for expected_group, actual_group in zip(mock_model_local_links.groups, groups_from_db):
         assert expected_group.group_id == actual_group.group_id
         assert expected_group.name == actual_group.name
 
-    for expected_song, actual_song in zip(mock_model_memory_links.songs, songs_from_db):
+    for expected_song, actual_song in zip(mock_model_local_links.songs, songs_from_db):
         assert expected_song.song_id == actual_song.song_id
         assert expected_song.name == actual_song.name
         assert expected_song.author == actual_song.author
@@ -91,14 +91,14 @@ def test_db_memory_data_test(db_memory: Session):
         assert expected_song.cover_src == actual_song.cover_src
         assert expected_song.audio_src == actual_song.audio_src
 
-    for expected_user, actual_user in zip(mock_model_memory_links.users, users_from_db):
+    for expected_user, actual_user in zip(mock_model_local_links.users, users_from_db):
         assert expected_user.user_id == actual_user.user_id
         assert expected_user.group_id == actual_user.group_id
         assert expected_user.role == actual_user.role
         assert expected_user.name == actual_user.name
         assert expected_user.email == actual_user.email
 
-    for expected_edit, actual_edit in zip(mock_model_memory_links.edits, edits_from_db):
+    for expected_edit, actual_edit in zip(mock_model_local_links.edits, edits_from_db):
         assert expected_edit.edit_id == actual_edit.edit_id
         assert expected_edit.song_id == actual_edit.song_id
         assert expected_edit.created_by == actual_edit.created_by
@@ -107,13 +107,13 @@ def test_db_memory_data_test(db_memory: Session):
         assert expected_edit.isLive == actual_edit.isLive
         assert expected_edit.video_src == actual_edit.video_src
 
-    for expected_slot, actual_slot in zip(mock_model_memory_links.slots, slots_from_db):
+    for expected_slot, actual_slot in zip(mock_model_local_links.slots, slots_from_db):
         assert expected_slot.slot_id == actual_slot.slot_id
         assert expected_slot.song_id == actual_slot.song_id
         assert expected_slot.start_time == actual_slot.start_time
         assert expected_slot.end_time == actual_slot.end_time
 
-    for expected_invitation, actual_invitation in zip(mock_model_memory_links.invitations, invitations_from_db):
+    for expected_invitation, actual_invitation in zip(mock_model_local_links.invitations, invitations_from_db):
         assert expected_invitation.invitation_id == actual_invitation.invitation_id
         assert expected_invitation.group_id == actual_invitation.group_id
         assert expected_invitation.token == actual_invitation.token
@@ -121,13 +121,13 @@ def test_db_memory_data_test(db_memory: Session):
         assert expected_invitation.created_at == actual_invitation.created_at
         assert expected_invitation.expires_at == actual_invitation.expires_at
 
-    for expected_login_request, actual_login_request in zip(mock_model_memory_links.login_requests, login_requests_from_db):
+    for expected_login_request, actual_login_request in zip(mock_model_local_links.login_requests, login_requests_from_db):
         assert expected_login_request.user_id == actual_login_request.user_id
         assert expected_login_request.pin == actual_login_request.pin
         assert expected_login_request.created_at == actual_login_request.created_at
         assert expected_login_request.expires_at == actual_login_request.expires_at
 
-    for expected_occupied_slot, actual_occupied_slot in zip(mock_model_memory_links.occupied_slots, occupied_slots_from_db):
+    for expected_occupied_slot, actual_occupied_slot in zip(mock_model_local_links.occupied_slots, occupied_slots_from_db):
         assert expected_occupied_slot.occupied_slot_id == actual_occupied_slot.occupied_slot_id
         assert expected_occupied_slot.user_id == actual_occupied_slot.user_id
         assert expected_occupied_slot.slot_id == actual_occupied_slot.slot_id
@@ -202,7 +202,7 @@ def test_media_access_memory_files_as_valid_name_check(media_access_memory: Base
 
     # occupied slots 
     db_slots = db_memory.query(OccupiedSlot).all()  # Query for occupied slots
-    db_slot_ids = {slot.slot_id for slot in db_slots}  # Get all occupied slot IDs
+    db_slot_ids = {slot.occupied_slot_id for slot in db_slots}  # Get all occupied slot IDs
     slots_in_db = {f"{slot_id}.mp4" for slot_id in db_slot_ids}  # Assuming slots are stored with .slot extension
 
     slots_in_folder = set(media_access_memory.list("occupied_slots"))
@@ -272,7 +272,7 @@ def test_http_client_mocked_path_crud_isolation(http_client_mocked_path_crud: Te
     # Check that the database is empty at the beginning of the test
     response = http_client_mocked_path_crud.get("/list")
     assert response.status_code == 200
-    assert len(response.json()) == len(mock_model_memory_links.songs)
+    assert len(response.json()) == len(mock_model_local_links.songs)
     
     
     # Add a new song using the HTTP client
@@ -286,7 +286,7 @@ def test_http_client_mocked_path_crud_isolation(http_client_mocked_path_crud: Te
     response = http_client_mocked_path_crud.get("/list")
     assert response.status_code == 200
     songs = response.json()
-    assert len(songs) == len(mock_model_memory_links.songs) + 1
+    assert len(songs) == len(mock_model_local_links.songs) + 1
     assert songs[len(songs) - 1]["name"] == "Test Song A"
 
 def test_http_client_mocked_path_crud_isolation_other(http_client_mocked_path_crud: TestClient):
@@ -296,14 +296,14 @@ def test_http_client_mocked_path_crud_isolation_other(http_client_mocked_path_cr
     # Check that the database is still empty for this test
     response = http_client_mocked_path_crud.get("/list")
     assert response.status_code == 200
-    assert len(response.json()) == len(mock_model_memory_links.songs), "Database should be empty at the beginning of this test."
+    assert len(response.json()) == len(mock_model_local_links.songs), "Database should be empty at the beginning of this test."
     
 
     # This session should not have access to the song added in the previous test
     response = http_client_mocked_path_crud.get("/list")
     assert response.status_code == 200
     songs = response.json()
-    assert len(songs) == len(mock_model_memory_links.songs), "Database should remain empty in this isolated session."
+    assert len(songs) == len(mock_model_local_links.songs), "Database should remain empty in this isolated session."
     
     # Add a song in this separate test
     response = http_client_mocked_path_crud.post("/add/Test Song B/Test Artist")

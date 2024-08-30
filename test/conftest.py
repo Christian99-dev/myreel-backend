@@ -14,13 +14,14 @@ from api.middleware.access_handler import AccessHandlerMiddleware
 from api.mock.path_config.mock_path_config import mock_path_config
 from api.models.database.model import Song
 from api.mock.database.fill import fill as fill_db
-from api.mock.database.model import mock_model_memory_links
+from api.mock.database.model import mock_model_local_links
 from api.mock.media.fill import fill as fill_media
 from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
 from logging_config import setup_logging_testing
 from api.routes.song import router as song_router
 from api.routes.group import router as group_router
 from api.routes.user import router as user_router
+from api.routes.edit import router as edit_router
 from api.config.database import get_db, get_db_memory
 
 # setup logging
@@ -57,7 +58,7 @@ def admintoken():
 def db_memory():
     session_generator = get_db_memory()  
     session = next(session_generator)
-    fill_db(session, mock_model_memory_links)   
+    fill_db(session, mock_model_local_links)   
     yield session
     
 # Database   : None
@@ -104,6 +105,7 @@ def http_client(
     app.include_router(song_router)
     app.include_router(group_router)
     app.include_router(user_router)
+    app.include_router(edit_router)
     
     def get_db_override():
         yield db_memory

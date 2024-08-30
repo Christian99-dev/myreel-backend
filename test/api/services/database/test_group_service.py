@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Group, Edit, Invitation, User
-from api.services.database.group import create, get, get_group_by_edit_id, is_group_creator, is_group_member, list_members, remove
-from api.mock.database.model import mock_model_memory_links
+from api.services.database.group import create, get, get_group_by_edit_id, get_group_by_user_id, is_group_creator, is_group_member, list_members, remove
+from api.mock.database.model import mock_model_local_links
 
 # create
 def test_create(db_memory: Session):
@@ -22,7 +22,7 @@ def test_create(db_memory: Session):
 # get
 def test_get(db_memory: Session):
     # Use an existing group from test data
-    existing_group = mock_model_memory_links.groups[0]
+    existing_group = mock_model_local_links.groups[0]
     
     # Fetch the group by ID
     fetched_group = get(existing_group.group_id, db_memory)
@@ -44,34 +44,34 @@ def test_get_group_failed(db_memory: Session):
 
 # is_group_member
 def test_is_group_member_true(db_memory: Session):
-    group_id = mock_model_memory_links.groups[0].group_id
-    user_id = mock_model_memory_links.users[2].user_id  # User 3 is a member of Group 1
+    group_id = mock_model_local_links.groups[0].group_id
+    user_id = mock_model_local_links.users[2].user_id  # User 3 is a member of Group 1
     assert is_group_member(user_id, group_id, db_memory) == True
     
 def test_is_group_member_also_creator_true(db_memory: Session):
-    group_id = mock_model_memory_links.groups[0].group_id
-    user_id = mock_model_memory_links.users[0].user_id  # User 1 is the creator and a member of Group 1
+    group_id = mock_model_local_links.groups[0].group_id
+    user_id = mock_model_local_links.users[0].user_id  # User 1 is the creator and a member of Group 1
     assert is_group_member(user_id, group_id, db_memory) == True
 
 def test_is_group_member_false(db_memory: Session):
-    group_id = mock_model_memory_links.groups[1].group_id
-    user_id = mock_model_memory_links.users[0].user_id  # User 1 is not a member of Group 2
+    group_id = mock_model_local_links.groups[1].group_id
+    user_id = mock_model_local_links.users[0].user_id  # User 1 is not a member of Group 2
     assert is_group_member(user_id, group_id, db_memory) == False
 
 # is_group_creator
 def test_is_group_creator_true(db_memory: Session):
-    group_id = mock_model_memory_links.groups[0].group_id
-    user_id = mock_model_memory_links.users[0].user_id  # User 1 is the creator of Group 1
+    group_id = mock_model_local_links.groups[0].group_id
+    user_id = mock_model_local_links.users[0].user_id  # User 1 is the creator of Group 1
     assert is_group_creator(user_id, group_id, db_memory) == True
 
 def test_is_group_creator_false(db_memory: Session):
-    group_id = mock_model_memory_links.groups[1].group_id
-    user_id = mock_model_memory_links.users[0].user_id  # User 1 is not the creator of Group 2
+    group_id = mock_model_local_links.groups[1].group_id
+    user_id = mock_model_local_links.users[0].user_id  # User 1 is not the creator of Group 2
     assert is_group_creator(user_id, group_id, db_memory) == False
 
 def test_is_group_creator_false_not_creator(db_memory: Session):
-    group_id = mock_model_memory_links.groups[0].group_id
-    user_id = mock_model_memory_links.users[1].user_id  # User 2 is a member but not the creator of Group 1
+    group_id = mock_model_local_links.groups[0].group_id
+    user_id = mock_model_local_links.users[1].user_id  # User 2 is a member but not the creator of Group 1
     assert is_group_creator(user_id, group_id, db_memory) == False
    
     # Arrange: Verwende eine ungültige group_id
@@ -119,7 +119,7 @@ def test_remove_group_failed(db_memory: Session):
 
 def test_list_members(db_memory: Session):
     # Arrange: Use an existing group with members
-    group_id = mock_model_memory_links.groups[0].group_id  # Assuming Group 1 has members
+    group_id = mock_model_local_links.groups[0].group_id  # Assuming Group 1 has members
     
     # Act: List members of the group
     members = list_members(group_id, db_memory)
@@ -129,8 +129,8 @@ def test_list_members(db_memory: Session):
     assert len(members) > 0  # Ensure there are members in the group
 
     # Optional: Check specific members based on your mock data
-    assert members[0].user_id == mock_model_memory_links.users[0].user_id  # Creator
-    assert members[1].user_id == mock_model_memory_links.users[1].user_id  # Member
+    assert members[0].user_id == mock_model_local_links.users[0].user_id  # Creator
+    assert members[1].user_id == mock_model_local_links.users[1].user_id  # Member
 
 def test_list_members_no_members(db_memory: Session):
     # Arrange: Create a new group without any members
@@ -141,10 +141,11 @@ def test_list_members_no_members(db_memory: Session):
     
     # Assert: Check that the member list is empty
     assert members == []  # Ensure no members in the new group
-    
+   
+# test get group by email 
 def test_get_group_by_edit_id_success(db_memory: Session):
     # Arrange: Verwende eine vorhandene Edit-ID aus den Testdaten
-    existing_edit = mock_model_memory_links.edits[0]  # Angenommen, dies ist ein gültiger Edit
+    existing_edit = mock_model_local_links.edits[0]  # Angenommen, dies ist ein gültiger Edit
     expected_group_id = existing_edit.group_id  # Holen Sie sich die zugehörige group_id
 
     # Act: Versuchen Sie, die Gruppe anhand der Edit-ID abzurufen
@@ -162,4 +163,27 @@ def test_get_group_by_edit_id_not_found(db_memory: Session):
     retrieved_group = get_group_by_edit_id(non_existent_edit_id, db_memory)
 
     # Assert: Überprüfen, dass keine Gruppe abgerufen wurde
+    assert retrieved_group is None
+    
+    # test get_group by user id
+def test_get_group_by_user_id_success(db_memory: Session):
+    # Arrange: Use an existing user with a valid group
+    existing_user = mock_model_local_links.users[0]  # Assuming User 1 is in Group 1
+    expected_group_id = existing_user.group_id  # Get the associated group_id
+
+    # Act: Attempt to retrieve the group by the user's ID
+    retrieved_group = get_group_by_user_id(existing_user.user_id, db_memory)
+
+    # Assert: Verify that the correct group is retrieved
+    assert retrieved_group is not None
+    assert retrieved_group.group_id == expected_group_id
+
+def test_get_group_by_user_id_not_found(db_memory: Session):
+    # Arrange: Use a non-existent user ID
+    non_existent_user_id = 9999
+
+    # Act: Attempt to retrieve the group by the non-existent user's ID
+    retrieved_group = get_group_by_user_id(non_existent_user_id, db_memory)
+
+    # Assert: Verify that no group is returned
     assert retrieved_group is None

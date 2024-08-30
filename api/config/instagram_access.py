@@ -152,8 +152,7 @@ class LocalInstagramAcccess(BaseInstagramAccess):
     
 class MemoryInstagramAcccess(BaseInstagramAccess):
     def upload(self, video_bytes: str, video_format: str, caption: str) -> bool:
-        # print("instagram.upload() memory")
-        pass
+        return True
 
 instagram_access = LocalInstagramAcccess() if LOCAL_INSTAGRAM_ACCESS else RemoteInstagramAcccess()
 

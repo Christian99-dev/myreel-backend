@@ -1,14 +1,14 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import OccupiedSlot, Slot
-from api.services.database.occupied_slot import create, get, remove
-from api.mock.database.model import mock_model_memory_links
+from api.services.database.occupied_slot import create, get, get_occupied_slots_for_edit, remove
+from api.mock.database.model import mock_model_local_links
 
 # create
 def test_create_occupied_slot(db_memory: Session):
     # Arrange
-    user_id = mock_model_memory_links.users[0].user_id  # Verwende eine gültige user_id aus den Testdaten
-    slot_id = mock_model_memory_links.slots[0].slot_id  # Verwende eine gültige slot_id aus den Testdaten
-    edit_id = mock_model_memory_links.edits[0].edit_id  # Verwende eine gültige edit_id aus den Testdaten
+    user_id = mock_model_local_links.users[0].user_id  # Verwende eine gültige user_id aus den Testdaten
+    slot_id = mock_model_local_links.slots[0].slot_id  # Verwende eine gültige slot_id aus den Testdaten
+    edit_id = mock_model_local_links.edits[0].edit_id  # Verwende eine gültige edit_id aus den Testdaten
     video_src = "http://example.com/new_occupied_slot.mp4"
 
     # Act: Erstelle einen neuen OccupiedSlot
@@ -31,7 +31,7 @@ def test_create_occupied_slot(db_memory: Session):
 # get
 def test_get_occupied_slot(db_memory: Session):
     # Arrange: Verwende einen vorhandenen OccupiedSlot aus den Testdaten
-    existing_occupied_slot = mock_model_memory_links.occupied_slots[0]
+    existing_occupied_slot = mock_model_local_links.occupied_slots[0]
     
     # Act: Hole den OccupiedSlot mit seiner ID
     fetched_occupied_slot = get(existing_occupied_slot.occupied_slot_id, db_memory)
@@ -83,3 +83,11 @@ def test_remove_occupied_slot_failed(db_memory: Session):
     # Assert: Stelle sicher, dass kein Occupied Slot gelöscht wird
     assert result is False
 
+#test get occupied slots for edit
+def test_get_occupied_slots_for_edit(db_memory: Session):
+    res = get_occupied_slots_for_edit(3, db_memory)
+    assert len(res) == 6
+    
+def test_get_occupied_slots_for_edit_other(db_memory: Session):
+    res = get_occupied_slots_for_edit(1, db_memory)
+    assert len(res) == 1

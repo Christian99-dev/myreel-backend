@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 from api.models.database.model import Invitation
 from api.services.database.invite import create, delete, delete_all_by_email, get
-from api.mock.database.model import mock_model_memory_links
+from api.mock.database.model import mock_model_local_links
 
 # create
 def test_create(db_memory):
-    group_id = mock_model_memory_links.groups[0].group_id
+    group_id = mock_model_local_links.groups[0].group_id
     email = "test@example.com"
     invitation = create(group_id=group_id, email=email, db=db_memory)
 
@@ -64,7 +64,7 @@ def test_get_invitation_failed(db_memory):
 # delete all by email 
 def test_delete_all_by_email_success(db_memory):
     # Arrange: Verwende eine E-Mail-Adresse, die mit mehreren Einladungen verknüpft ist
-    email = mock_model_memory_links.invitations[0].email  # Verwende die E-Mail der ersten Einladung
+    email = mock_model_local_links.invitations[0].email  # Verwende die E-Mail der ersten Einladung
 
     # Act: Lösche alle Einladungen für die angegebene E-Mail-Adresse
     delete_all_by_email(email, db_memory)

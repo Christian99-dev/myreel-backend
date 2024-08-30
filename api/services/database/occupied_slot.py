@@ -29,3 +29,6 @@ def remove(occupied_slot_id: int, db: Session) -> bool:
         db.commit()
         return True
     return False
+
+def get_occupied_slots_for_edit(edit_id: int, db: Session):
+    return db.query(OccupiedSlot).filter(OccupiedSlot.edit_id == edit_id).all()

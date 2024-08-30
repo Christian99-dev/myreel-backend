@@ -41,3 +41,13 @@ def list_members(group_id: str, db: Session):
 
 def get_group_by_edit_id(edit_id: str, db: Session) -> Group:
     return db.query(Group).join(Edit).filter(Edit.edit_id == edit_id).first()
+
+def get_group_by_user_id(user_id: int, db: Session) -> Group:
+    # Retrieve the user based on the user_id
+    user = db.query(User).filter(User.user_id == user_id).first()
+    
+    if user:
+        # If the user exists, fetch the group associated with that user
+        return db.query(Group).filter(Group.group_id == user.group_id).first()
+    
+    return None  # Return None if the user does not exist

@@ -119,3 +119,4 @@ def test_get_non_existent_song(http_client: TestClient):
 def test_get_status(http_client: TestClient):
     assert http_client.get("/song/1").status_code == 200
 
+
