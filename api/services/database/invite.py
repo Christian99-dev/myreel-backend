@@ -27,3 +27,15 @@ def delete(invitation_id: int, db: Session) -> None:
     if invitation:
         db.delete(invitation)
         db.commit()
+        
+def get(invitation_id: int, db_session: Session) -> Invitation:
+    return db_session.query(Invitation).filter(Invitation.invitation_id == invitation_id).one_or_none()
+
+def delete_all_by_email(email: str, db: Session) -> None:
+    # Finde alle Einladungen mit der angegebenen E-Mail
+    invitations_to_delete = db.query(Invitation).filter(Invitation.email == email).all()
+
+    for invitation in invitations_to_delete:
+        db.delete(invitation)  # Lösche jede gefundene Einladung
+
+    db.commit()  # Commit für die Löschvorgänge

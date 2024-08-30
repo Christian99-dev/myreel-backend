@@ -1,7 +1,7 @@
 from api.config.email_access import BaseEmailAccess
 
 
-def invite(to: str, code: str, email_access: BaseEmailAccess):
-    email_access.send(to, "TRITT UNSERER GRUPPE BEI", f"Dein Invitecode ist {code}")
+def invite(to: str, code: str, invite_id: str, groupid: str, email_access: BaseEmailAccess) -> bool:
+    return email_access.send(to, "TRITT UNSERER GRUPPE BEI", f"Hier der link zu unserer gruppe. http://localhost:8000/group/{invite_id}/{code}/{groupid}")
 
     

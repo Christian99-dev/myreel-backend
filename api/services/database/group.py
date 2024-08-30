@@ -38,3 +38,16 @@ def remove(group_id: str, db: Session) -> bool:
 
 def list_members(group_id: str, db: Session):
     return db.query(User).filter(User.group_id == group_id).all()
+
+def get_group_by_email(email: str, db: Session) -> Group:
+    # Zuerst den Benutzer anhand der E-Mail-Adresse abrufen
+    user = db.query(User).filter(User.email == email).first()
+    
+    # Wenn der Benutzer nicht gefunden wurde, wird None zurückgegeben
+    if user is None:
+        return None
+
+    # Wenn der Benutzer gefunden wurde, die Gruppe abrufen
+    group = db.query(Group).filter(Group.group_id == user.group_id).first()
+    
+    return group

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Group, Edit, Invitation, User
-from api.services.database.group import create, get, is_group_creator, is_group_member, list_members, remove
+from api.services.database.group import create, get, get_group_by_email, is_group_creator, is_group_member, list_members, remove
 from api.mock.database.model import mock_model_memory_links
 
 # create
@@ -141,3 +141,26 @@ def test_list_members_no_members(db_memory: Session):
     
     # Assert: Check that the member list is empty
     assert members == []  # Ensure no members in the new group
+    
+# get group by email
+def test_get_group_by_email_success(db_memory: Session):
+    # Arrange: Verwende eine existierende E-Mail-Adresse eines Users aus den Testdaten
+    test_email = mock_model_memory_links.users[0].email
+    
+    # Act: Versuche, die Gruppe anhand der E-Mail-Adresse des Users abzurufen
+    retrieved_group = get_group_by_email(test_email, db_memory)
+    
+    # Assert: Überprüfe, dass die Gruppe korrekt abgerufen wurde
+    assert retrieved_group is not None
+    assert retrieved_group.group_id == mock_model_memory_links.users[0].group_id
+    assert retrieved_group.name == mock_model_memory_links.groups[0].name
+
+def test_get_group_by_email_not_found(db_memory: Session):
+    # Arrange: Verwende eine nicht existierende E-Mail-Adresse
+    non_existent_email = "nonexistent@example.com"
+    
+    # Act: Versuche, die Gruppe anhand der nicht existierenden E-Mail-Adresse abzurufen
+    retrieved_group = get_group_by_email(non_existent_email, db_memory)
+    
+    # Assert: Überprüfe, dass keine Gruppe abgerufen wurde
+    assert retrieved_group is None

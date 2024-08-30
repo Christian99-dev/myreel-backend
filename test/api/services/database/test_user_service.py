@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import User, OccupiedSlot, LoginRequest
-from api.services.database.user import create, get, remove
+from api.services.database.user import create, get, get_user_by_email, remove
 from api.utils.database.create_uuid import create_uuid
 from api.mock.database.model import mock_model_memory_links
 
@@ -83,3 +83,29 @@ def test_remove_user_failed(db_memory: Session):
 
     # Assert: Stelle sicher, dass kein User gelöscht wird
     assert result is False
+    
+# get user by email
+def test_get_user_by_email_success(db_memory: Session):
+    # Arrange: Verwende eine existierende E-Mail-Adresse aus den Testdaten
+    test_email = mock_model_memory_links.users[0].email
+    
+    # Act: Versuche, den Benutzer anhand der E-Mail-Adresse abzurufen
+    retrieved_user = get_user_by_email(test_email, db_memory)
+    
+    # Assert: Überprüfe, dass der Benutzer korrekt abgerufen wurde
+    assert retrieved_user is not None
+    assert retrieved_user.email == test_email
+    assert retrieved_user.name == mock_model_memory_links.users[0].name
+    assert retrieved_user.user_id == mock_model_memory_links.users[0].user_id
+    assert retrieved_user.group_id == mock_model_memory_links.users[0].group_id
+    assert retrieved_user.role == mock_model_memory_links.users[0].role
+
+def test_get_user_by_email_not_found(db_memory: Session):
+    # Arrange: Verwende eine E-Mail-Adresse, die nicht existiert
+    non_existent_email = "nonexistent@example.com"
+    
+    # Act: Versuche, den Benutzer anhand der nicht existierenden E-Mail-Adresse abzurufen
+    retrieved_user = get_user_by_email(non_existent_email, db_memory)
+    
+    # Assert: Überprüfe, dass kein Benutzer abgerufen wurde
+    assert retrieved_user is None
