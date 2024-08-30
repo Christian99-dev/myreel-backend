@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from api.models.database.model import Slot
+from api.models.database.model import Slot, OccupiedSlot
 
 def create(
         song_id: int, 
@@ -30,3 +30,14 @@ def remove(slot_id: int, db: Session) -> bool:
 
 def get_slots_for_edit(edit_id: int, db: Session):
     return db.query(Slot).filter(Slot.song_id == edit_id).all()
+
+def get_slot_by_occupied_slot_id(occupied_slot_id: int, db: Session) -> Slot:
+    # Suche nach dem OccupiedSlot mit der angegebenen occupied_slot_id
+    occupied_slot = db.query(OccupiedSlot).filter(OccupiedSlot.occupied_slot_id == occupied_slot_id).first()
+    
+    # Falls ein OccupiedSlot gefunden wurde, den zugehörigen Slot abrufen
+    if occupied_slot:
+        return db.query(Slot).filter(Slot.slot_id == occupied_slot.slot_id).first()
+    
+    # Falls kein entsprechender Slot gefunden wurde, None zurückgeben
+    return None

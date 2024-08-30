@@ -38,7 +38,7 @@ def test_edit_not_auth(http_client: TestClient):
     assert response.status_code == 403
 
 # create edit 
-def notest_create_edit(http_client: TestClient):
+def test_create_edit(http_client: TestClient):
     response = http_client.post(
         "/edit", 
         json={
@@ -166,3 +166,123 @@ def test_get_edit(http_client: TestClient):
     )
     
     assert response.status_code == 403
+ 
+# test delete slot
+def test_delete_slot_success(http_client: TestClient):  
+    
+    response = http_client.delete(
+        f"/edit/group/{mock_model_local_links.groups[0].group_id}/1/slot/1", 
+        headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
+    )
+    
+    assert response.status_code == 200
+    
+def test_delete_slot_not_yours(http_client: TestClient):  
+    
+    response = http_client.delete(
+        f"/edit/group/{mock_model_local_links.groups[0].group_id}/1/slot/2", 
+        headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
+    )
+    
+    assert response.status_code == 403
+    
+def test_delete_slot_not_found(http_client: TestClient):  
+    
+    response = http_client.delete(
+        f"/edit/group/{mock_model_local_links.groups[0].group_id}/1/slot/44", 
+        headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
+    )
+    
+    assert response.status_code == 404
+        
+# test posts slot
+def test_post_slot_success(http_client: TestClient, media_access_memory):  
+    
+    video_file_slot = media_access_memory.get("demo.mp4","demo_slot")
+      
+    response = http_client.post(
+        f"/edit/group/{mock_model_local_links.groups[0].group_id}/2/slot/1",
+        headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
+        files={
+            "video_file": ("4.mp4", video_file_slot, "video/mp4"),
+        },
+        data={
+            "start_time": 1,
+            "end_time": 2
+        }
+    )
+    
+    assert response.status_code == 200
+    
+def test_post_slot_slot_is_not_empty(http_client: TestClient, media_access_memory):  
+    
+    video_file_slot = media_access_memory.get("demo.mp4","demo_slot")
+      
+    response = http_client.post(
+        f"/edit/group/{mock_model_local_links.groups[0].group_id}/1/slot/1",
+        headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
+        files={
+            "video_file": ("4.mp4", video_file_slot, "video/mp4"),
+        },
+        data={
+            "start_time": 1,
+            "end_time": 2
+        }
+    )
+    
+    assert response.status_code == 403
+    
+# test swap slot
+def test_post_swap_slot_is_empty(http_client: TestClient, media_access_memory):  
+    
+    video_file_slot = media_access_memory.get("demo.mp4","demo_slot")
+      
+    response = http_client.put(
+        f"/edit/group/{mock_model_local_links.groups[0].group_id}/2/slot/99",
+        headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
+        files={
+            "video_file": ("4.mp4", video_file_slot, "video/mp4"),
+        },
+        data={
+            "start_time": 1,
+            "end_time": 2
+        }
+    )
+    
+    assert response.status_code == 400
+    
+def test_post_swap_slot_not_yours(http_client: TestClient, media_access_memory):  
+    
+    video_file_slot = media_access_memory.get("demo.mp4","demo_slot")
+      
+    response = http_client.put(
+        f"/edit/group/{mock_model_local_links.groups[0].group_id}/2/slot/2",
+        headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
+        files={
+            "video_file": ("4.mp4", video_file_slot, "video/mp4"),
+        },
+        data={
+            "start_time": 1,
+            "end_time": 2
+        }
+    )
+    
+    assert response.status_code == 403
+    
+def test_post_swap_slot_success(http_client: TestClient, media_access_memory):  
+    
+    video_file_slot = media_access_memory.get("demo.mp4","demo_slot")
+      
+    response = http_client.put(
+        f"/edit/group/{mock_model_local_links.groups[0].group_id}/1/slot/1",
+        headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
+        files={
+            "video_file": ("4.mp4", video_file_slot, "video/mp4"),
+        },
+        data={
+            "start_time": 1,
+            "end_time": 2
+        }
+    )
+    
+    assert response.status_code == 200

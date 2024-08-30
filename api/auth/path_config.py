@@ -121,6 +121,12 @@ path_config = PathConfig({
     '/edit/':                           {"POST": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},    
     '/edit/group/{group_id}/list':      {"GET": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},    
     '/edit/group/{group_id}/{edit_id}': {"GET": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},    
-    
+    '/edit/group/{group_id}/{edit_id}/slot/{occupied_slot_id}' : {
+        "DELETE": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
+        "POST": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
+    },
+    '/edit/group/{group_id}/{edit_id}/slot/{slot_id}' : {
+        "PUT": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
+    }
 
 })

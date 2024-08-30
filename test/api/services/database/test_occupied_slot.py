@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import OccupiedSlot, Slot
-from api.services.database.occupied_slot import create, get, get_occupied_slots_for_edit, remove
+from api.services.database.occupied_slot import create, get, get_occupied_slots_for_edit, is_slot_occupied, remove
 from api.mock.database.model import mock_model_local_links
 
 # create
@@ -91,3 +91,9 @@ def test_get_occupied_slots_for_edit(db_memory: Session):
 def test_get_occupied_slots_for_edit_other(db_memory: Session):
     res = get_occupied_slots_for_edit(1, db_memory)
     assert len(res) == 1
+    
+def test_is_slot_occupied_1(db_memory: Session):
+    assert is_slot_occupied(1,1, db_memory) == True
+    
+def test_is_slot_occupied_2(db_memory: Session):
+    assert is_slot_occupied(1,2, db_memory) == False

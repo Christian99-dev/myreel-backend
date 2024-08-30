@@ -1,27 +1,35 @@
 from typing import List
+from wsgiref import validate
 from fastapi import APIRouter, Body, Depends, HTTPException, Header, Request
 from api.auth import jwt
 from api.config.instagram_access import get_instagram_access
 from api.config.media_access import BaseMediaAccess, get_media_access
-from api.models.schema.edit import DeleteEditResponse, EditListResponse,User, GetEditResponse, GoLiveResponse, PostRequest, Slot
+from api.models.schema.edit import AddSlotRequest, AddSlotResponse, ChangeSlotRequest, ChangeSlotResponse, DeleteEditResponse, DeleteSlotRequest, DeleteSlotResponse, EditListResponse,User, GetEditResponse, GoLiveResponse, PostRequest, Slot
 from api.models.schema.edit import PostResponse
-from api.services.database.edit import get as get_edit_serivce
-from api.services.database.occupied_slot import get_occupied_slots_for_edit
-from api.services.database.slot import get_slots_for_edit
+from api.services.database.edit import get as get_edit_serivce, remove
+from api.services.database.occupied_slot import get_occupied_slots_for_edit, is_slot_occupied
+from api.services.database.slot import get_slot_by_occupied_slot_id, get_slots_for_edit
 from api.services.database.user import get as get_user_service
 from api.services.media.demo_slot import get as get_demo_video
 from api.services.media.song import get as get_song_audio
 from api.services.media.edit import create as create_edit_media_access
 from api.services.database.edit import are_all_slots_occupied, get_edits_by_group, set_is_live, update as edit_update_service
 from api.services.database.song import  get_breakpoints
+from api.services.database.occupied_slot import get as get_occupied_slot, remove as remove_occupied_slot_service
 from api.services.instagram.upload import upload as instram_upload_service
-from api.services.media.edit import get as get_edit_media_access
+from api.services.media.edit import get as get_edit_media_access, update as update_media_service
 from api.services.database.edit import remove as remove_edit_service
 from api.services.database.edit import create as create_edit_service
+from api.services.media.edit import update as update_meida_edit_service
+from api.services.media.occupied_slot import remove as remove_occupied_slot_media_service, create as create_occupied_slot_media_service, update as update_occupied_slot_media_service
+from api.services.database.occupied_slot import create as create_occupied_slot_service
+from api.services.database.occupied_slot import update as update_occupied_slot_service
 
 # sessions
 from api.config.database import Session, get_db
+from api.utils.files.file_validation import file_validation
 from api.utils.media_manipulation.create_edit_video import create_edit_video
+from api.utils.media_manipulation.swap_slot_in_edit_video import swap_slot_in_edit
 
 # database
 
@@ -198,3 +206,148 @@ async def get_edit_details(group_id: str, edit_id: int, db: Session = Depends(ge
     )
 
     return response
+
+
+@router.delete("/group/{group_id}/{edit_id}/slot/{occupied_slot_id}", response_model=DeleteSlotResponse,  tags=["edit"])
+async def delete_slot(
+    occupied_slot_id: int,
+    authorization: str = Header(None), 
+    db: Session = Depends(get_db), 
+    media_access: BaseMediaAccess = Depends(get_media_access)
+):
+    
+    user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
+    occupied_slot = get_occupied_slot(occupied_slot_id, db=db)
+    
+    if occupied_slot is None:
+        raise HTTPException(status_code=404, detail="Slot not found")
+    
+    if user_id != occupied_slot.user_id:
+        raise HTTPException(status_code=403, detail="Slot not yours")
+    
+    try:
+        remove_occupied_slot_service(occupied_slot.occupied_slot_id, db)
+        remove_occupied_slot_media_service(occupied_slot.occupied_slot_id, media_access)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={e})
+    # check if im the slot "owner"
+    
+    return {"message": "Successfull delete"}
+
+@router.post("/group/{group_id}/{edit_id}/slot/{slot_id}", response_model=AddSlotResponse,  tags=["edit"])
+async def post_slot(
+    slot_id: int,
+    edit_id: int,
+    authorization: str = Header(None), 
+    request: AddSlotRequest = Depends(), 
+    db: Session = Depends(get_db), 
+    media_access: BaseMediaAccess = Depends(get_media_access)
+):
+    
+    user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
+    
+    # slot is free ? 
+    if is_slot_occupied(slot_id, edit_id, db=db):
+        raise HTTPException(status_code=403, detail="Slot is nicht leer")
+ 
+    (validated_video_file, message) = file_validation(request.video_file, "video")
+    
+    if not validated_video_file:
+        raise HTTPException(status_code=400, detail="File is not valid")
+    
+    validate_video_file_bytes = await validated_video_file.read()
+    
+    try:     
+        
+        # database eintrag
+        new_occupied_slot = create_occupied_slot_service(
+            user_id,
+            slot_id,
+            edit_id,
+            video_src="",
+            db=db
+        )
+        
+        # file eintrag in occupied slot
+        video_location = create_occupied_slot_media_service(
+            new_occupied_slot.occupied_slot_id, 
+            "mp4", 
+            validated_video_file, 
+            media_access=media_access
+        )
+        
+        # datenbank eintrag mit video src vervollständing
+        updated_occupied_slot = update_occupied_slot_service(db=db,occupied_slot_id=new_occupied_slot.slot_id, video_src=video_location)
+        
+        # start und endzeit von slot
+        slot = get_slot_by_occupied_slot_id(updated_occupied_slot.occupied_slot_id, db=db)        
+        
+        # edit neu erstellen und abspeicher
+        old_edit_file = get_edit_media_access(edit_id, media_access=media_access)
+        
+        new_file = swap_slot_in_edit(
+            old_edit_file,
+            slot.start_time,
+            slot.end_time,
+            "mp4",
+            validate_video_file_bytes,
+            request.start_time,
+            request.end_time,
+            "mp4",
+            "mp4"
+        )
+        
+        update_meida_edit_service(edit_id, "mp4", new_file, media_access=media_access)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={e})
+    
+    # wenn ja dann video rein
+    return {"message": "Successfull post"}
+
+
+@router.put("/group/{group_id}/{edit_id}/slot/{occupied_slot_id}", response_model=ChangeSlotResponse,  tags=["edit"])
+async def put_slot(
+    edit_id: int,
+    occupied_slot_id: int,
+    authorization: str = Header(None), 
+    request: ChangeSlotRequest = Depends(), 
+    db: Session = Depends(get_db), 
+    media_access: BaseMediaAccess = Depends(get_media_access)
+):
+    user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
+
+    # slot ist belegt und von mir ? 
+    occupied_slot = get_occupied_slot(occupied_slot_id, db=db)
+    
+    if not occupied_slot:
+        raise HTTPException(status_code=400, detail="Slot is empty")
+    
+    if occupied_slot.user_id is not user_id:
+        raise HTTPException(status_code=403, detail="Slot is not yours")
+    
+    (validated_video_file, message) = file_validation(request.video_file, "video")
+    validate_video_file_bytes = await validated_video_file.read()
+    
+    slot = get_slot_by_occupied_slot_id(occupied_slot.occupied_slot_id, db=db)        
+    
+    # new edit saved
+    old_edit_file = get_edit_media_access(edit_id, media_access=media_access)
+    new_edit_file = swap_slot_in_edit(
+        old_edit_file,
+        slot.start_time,
+        slot.end_time,
+        "mp4",
+        
+        validate_video_file_bytes,
+        request.start_time,
+        request.end_time,
+        "mp4",
+        
+        "mp4"
+    )
+    update_meida_edit_service(edit_id, "mp4", new_edit_file, media_access=media_access)
+    update_occupied_slot_media_service(occupied_slot.occupied_slot_id, "mp4", validate_video_file_bytes, media_access=media_access )
+    
+    return {"message": "Successfull swap"}
+
