@@ -167,7 +167,7 @@ async def get_edits_for_group(group_id: str, db: Session = Depends(get_db)):
 
 @router.get("/group/{group_id}/{edit_id}", response_model=GetEditResponse,  tags=["edit"])
 async def get_edit_details(group_id: str, edit_id: int, db: Session = Depends(get_db)):
-        # Abrufen des Edits
+    # Abrufen des Edits
     edit = get_edit_serivce(edit_id, db)
 
     if not edit or edit.group_id != group_id:
@@ -177,35 +177,49 @@ async def get_edit_details(group_id: str, edit_id: int, db: Session = Depends(ge
     slots = get_slots_for_edit(edit_id, db)
     occupied_slots_info = get_occupied_slots_for_edit(edit_id, db)
 
-    # Erstellung der SlotDetail-Liste
-    slot_details = []
+    # Umwandlung des edit-Objekts
+    edit_response = {
+        "edit_id": edit.edit_id,
+        "song_id": edit.song_id,
+        "created_by": {
+            "user_id": edit.created_by,  # ID des Erstellers
+            "name": edit.creator.name,    # Name des Erstellers
+        },
+        "group_id": edit.group_id,
+        "name": edit.name,
+        "isLive": edit.isLive,
+        "video_src": edit.video_src
+    }
+
+    # Erstellung der Slot-Details für das Response-Modell
+    slot_response = []
     for slot in slots:
-        occupied_user = None
+        occupied_info = None
+        occupied_id = None
+        
+        # Überprüfen, ob der Slot belegt ist
         for occupied in occupied_slots_info:
             if occupied.slot_id == slot.slot_id:
-                occupied_user = User(user_id=occupied.user.user_id, name=occupied.user.name)
+                occupied_info = {
+                    "user_id": occupied.user.user_id,
+                    "name": occupied.user.name
+                }
+                occupied_id = occupied.occupied_slot_id  # Angenommen, occupied_slot_id existiert
                 break
+        
+        slot_response.append({
+            "slot_id": slot.slot_id,
+            "song_id": slot.song_id,
+            "start_time": slot.start_time,
+            "end_time": slot.end_time,
+            "occupied_by": occupied_info,  # Optionales User-Objekt
+            "occupied_id": occupied_id  # ID des belegten Slots oder null
+        })
 
-        slot_details.append(Slot(
-            slot_id=slot.slot_id,
-            song_id=slot.song_id,
-            start_time=slot.start_time,
-            end_time=slot.end_time,
-            occupied_by=occupied_user
-        ))
-
-    response = GetEditResponse(
-        edit_id=edit.edit_id,
-        song_id=edit.song_id,
-        created_by=User(user_id=edit.created_by, name=edit.creator.name),
-        group_id=edit.group_id,
-        name=edit.name,
-        isLive=edit.isLive,
-        video_src=edit.video_src,
-        slots=slot_details
-    )
-
-    return response
+    return {
+        "edit": edit_response,
+        "slots": slot_response  # Normale Slots (mit IDs und optionalem User)
+    }
 
 
 @router.delete("/group/{group_id}/{edit_id}/slot/{occupied_slot_id}", response_model=DeleteSlotResponse,  tags=["edit"])

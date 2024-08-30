@@ -32,7 +32,17 @@ class Slot(BaseModel):
     song_id: int
     start_time: float
     end_time: float
-    occupied_by: Optional[User]  # Optionales User-Objekt
+    occupied_by: Optional[User]  # Optionales User-Objekt, das den Benutzer darstellt, der den Slot belegt hat
+    occupied_id: Optional[int]  # ID des belegten Slots, falls vorhanden
+    
+class EditWithUserObject(BaseModel):
+    edit_id: int
+    song_id: int
+    created_by: User  # User-Objekt mit ID und Name
+    group_id: str
+    name: str
+    isLive: bool
+    video_src: str
 
 
 # POST /{editid}/goLive/
@@ -58,14 +68,8 @@ class EditListResponse(BaseModel):
     
 # GET /group/{group_id}/{edit_id}
 class GetEditResponse(BaseModel):
-    edit_id: int
-    song_id: int
-    created_by: User
-    group_id: str
-    name: str
-    isLive: bool
-    video_src: str
-    slots: List[Slot] 
+    edit: EditWithUserObject
+    slots: List[Slot]
     
 # POST /group/{group_id}/{edit_id}/slot/{slot_id}
 @dataclass
