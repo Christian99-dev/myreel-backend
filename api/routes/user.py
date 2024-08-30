@@ -22,8 +22,6 @@ from api.services.database.invite import delete_all_by_email as delete_all_by_em
 from api.services.database.login import create as create_loging_service
 from api.services.database.login import delete as delete_loging_service
 
-from api.services.database.group import get_group_by_email
-
 from api.services.database.login import get_login_request_by_groupid_and_token
 
 
