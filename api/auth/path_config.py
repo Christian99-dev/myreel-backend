@@ -108,4 +108,12 @@ path_config = PathConfig({
     '/group/{group_id}/role':             {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
     '/group/{group_id}/groupExists':      {"GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
     '/group/{group_id}/listMembers':      {"GET": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},    
+
+    # user
+    '/user/invite':                     {"POST": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},    
+    '/user/acceptInvite':               {"POST": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},    
+    '/user/loginRequest':               {"POST": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},    
+    '/user/login':                      {"POST": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},    
+    
+
 })

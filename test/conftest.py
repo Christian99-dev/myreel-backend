@@ -20,6 +20,7 @@ from api.utils.routes.extract_role_credentials_from_request import extract_role_
 from logging_config import setup_logging_testing
 from api.routes.song import router as song_router
 from api.routes.group import router as group_router
+from api.routes.user import router as user_router
 from api.config.database import get_db, get_db_memory
 
 # setup logging
@@ -93,7 +94,7 @@ def email_access_memory():
 @pytest.fixture(scope="function")
 def http_client(
         db_memory: Session, 
-        media_access_memory: MemoryEmailAcccess, 
+        media_access_memory: MemoryMediaAccess, 
         instagram_access_memory: MemoryInstagramAcccess, 
         email_access_memory: MemoryEmailAcccess
     ):
@@ -102,15 +103,16 @@ def http_client(
     app = FastAPI()
     app.include_router(song_router)
     app.include_router(group_router)
+    app.include_router(user_router)
     
     def get_db_override():
         yield db_memory
         
     def get_instagram_access_override():
-        return email_access_memory
+        return instagram_access_memory
 
     def get_email_access_override():
-        return instagram_access_memory
+        return email_access_memory
 
     def get_media_access_override():
         return media_access_memory

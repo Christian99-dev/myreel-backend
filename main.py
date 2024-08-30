@@ -23,6 +23,7 @@ from api.routes.song import router as song_router
 from api.routes.static import router as static_router
 from api.routes.testing import router as testing_router
 from api.routes.group import router as group_router
+from api.routes.user import router as user_router
 
 # middleware 
 from api.middleware.log_access_path import LogAccessMiddleware
@@ -44,17 +45,17 @@ async def lifespan(app: FastAPI):
     with SessionLocal() as session:
         if LOCAL_DB:  # Guard
             # Only uncomment if you want to renew the data
-            fill_db(session, mock_model_local_links)
+            # fill_db(session, mock_model_local_links)
             pass
         
         print_database_contents(session, {
             'Slot':         False,
             'Song':         False,
             'Edit':         False,
-            'Group':        False,
+            'Group':        True,
             'Invitation':   False,
-            'User':         False,
-            'LoginRequest': False,
+            'User':         True,
+            'LoginRequest': True,
             'OccupiedSlot': False
         })
 
@@ -74,6 +75,7 @@ app.include_router(testing_router)
 app.include_router(static_router)
 app.include_router(song_router)
 app.include_router(group_router)
+app.include_router(user_router)
 
 
 # root

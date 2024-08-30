@@ -75,7 +75,7 @@ group_id_1 = create_uuid()
 group_id_2 = create_uuid()
 group_id_3 = create_uuid()
 
-now = datetime.utcnow()
+now = datetime.now()
 
 mock_model_local_links = Model(
     groups=[
