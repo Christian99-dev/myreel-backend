@@ -59,7 +59,7 @@ def test_create_not_good_breakpoints(http_client: TestClient, media_access_memor
 
     assert response.status_code == 400  # Expecting a successful creation
 
-def test_create_role(http_client: TestClient): 
+def test_create_status(http_client: TestClient): 
     assert http_client.post("/song/").status_code == 403
 
 # remove
@@ -78,7 +78,7 @@ def test_delete_non_existent_song(http_client: TestClient, admintoken: int):
     # Expect a 404 response as the song does not exist
     assert delete_response.status_code == 404
 
-def test_delete_role(http_client: TestClient):
+def test_delete_status(http_client: TestClient):
     assert http_client.delete("/song/1").status_code == 403
 
 # list
@@ -97,7 +97,7 @@ def test_list_songs(http_client: TestClient):
     assert response_data["songs"][1]["name"] == "Song 2"
     assert response_data["songs"][2]["name"] == "Song 3"
 
-def test_list_role(http_client: TestClient):
+def test_list_status(http_client: TestClient):
     assert http_client.get("/song/list").status_code == 200
 
 
@@ -116,6 +116,6 @@ def test_get_non_existent_song(http_client: TestClient):
     response = http_client.get("/song/999")  # Attempting to get a non-existent song
     assert response.status_code == 404  # Expecting a not found response
     
-def test_get_role(http_client: TestClient):
+def test_get_status(http_client: TestClient):
     assert http_client.get("/song/1").status_code == 200
 
