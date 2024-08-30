@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 from api.mock.path_config.mock_path_config import mock_path_config
-from api.mock.role_creds.role_creds import admin_req_creds, group_creator_req_creds, edit_creator_req_creds, external_req_creds, group_member_req_creds
+from api.mock.role_creds.role_creds import admin_req_creds, group_creator_req_creds, edit_creator_req_creds, external_req_creds, group_member_req_creds, group_creator_with_edit_id_req_creds, group_member_with_edit_id_req_creds
 import logging
 logger = logging.getLogger("testing")
     
@@ -16,6 +16,8 @@ def test_access_handler_with_subroles(http_client_mocked_path_config: TestClient
             edit_creator_req_creds, 
             group_member_req_creds, 
             external_req_creds,
+            group_creator_with_edit_id_req_creds,
+            group_member_with_edit_id_req_creds
         ]: 
             headers = current_creds["req"]["headers"]
             params  = current_creds["req"].get("params", {})

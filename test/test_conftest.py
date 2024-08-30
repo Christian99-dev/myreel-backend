@@ -4,7 +4,7 @@ from api.auth.jwt import read_jwt
 from api.auth.role import Role, RoleInfos
 from api.auth.role_enum import RoleEnum
 from api.models.database.model import Edit, Group, Song, User, Slot, Invitation, LoginRequest, OccupiedSlot
-from api.mock.role_creds.role_creds import admin_req_creds, group_creator_req_creds, edit_creator_req_creds, external_req_creds, group_member_req_creds
+from api.mock.role_creds.role_creds import admin_req_creds, group_creator_req_creds, edit_creator_req_creds, external_req_creds, group_member_req_creds, group_creator_with_edit_id_req_creds, group_member_with_edit_id_req_creds
 from api.mock.database.model import mock_model_memory_links
 from fastapi.testclient import TestClient
 from test.utils.role_tester_has_acccess import role_tester_has_access
@@ -348,13 +348,17 @@ def test_http_client_mocked_path_for_extracting_creds_config(http_client_mocked_
 
 def test_mock_data_user_creds(db_memory: Session):
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_memory), RoleEnum.ADMIN)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_memory), RoleEnum.GROUP_CREATOR)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_memory), RoleEnum.EDIT_CREATOR)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=2, groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_memory), RoleEnum.GROUP_MEMBER)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_req_creds["userid"], groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_memory), RoleEnum.GROUP_CREATOR)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_with_edit_id_req_creds["userid"], groupid=None, editid=group_creator_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=db_memory), RoleEnum.GROUP_CREATOR)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_with_edit_id_req_creds["userid"], groupid=None, editid=group_member_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=db_memory), RoleEnum.GROUP_MEMBER)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=edit_creator_req_creds["userid"], groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_memory), RoleEnum.EDIT_CREATOR)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_req_creds["userid"], groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_memory), RoleEnum.GROUP_MEMBER)
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=db_memory), RoleEnum.EXTERNAL)    
 
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_memory), admin_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_memory), group_creator_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=1, groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_memory), edit_creator_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=2, groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_memory), group_member_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_req_creds["userid"], groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_memory), group_creator_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_with_edit_id_req_creds["userid"], groupid=None, editid=group_creator_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=db_memory), group_creator_with_edit_id_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_with_edit_id_req_creds["userid"], groupid=None, editid=group_member_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=db_memory), group_member_with_edit_id_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=edit_creator_req_creds["userid"], groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_memory), edit_creator_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_req_creds["userid"], groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_memory), group_member_req_creds["role"])
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=db_memory), external_req_creds["role"])

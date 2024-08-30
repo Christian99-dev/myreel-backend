@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from api.auth.path_config import PathInfo
 from api.auth.role_enum import RoleEnum
 from api.services.database.edit import is_edit_creator
-from api.services.database.group import is_group_creator, is_group_member
+from api.services.database.group import get_group_by_edit_id, is_group_creator, is_group_member
 logger = logging.getLogger("testing")
 
 load_dotenv()
@@ -42,7 +42,21 @@ class Role:
             if is_group_creator(userid, groupid, db_session):
                 roles.append(RoleEnum.GROUP_CREATOR)
         
-        #GROUP MEMBER ODER CREATOR
+        # There is still a chance that the edit id is pointing to a group. 
+        if RoleEnum.GROUP_MEMBER not in roles and RoleEnum.GROUP_CREATOR not in roles and editid is not None and groupid is None and userid is not None:
+            group_found_via_editid = get_group_by_edit_id(editid, db_session)
+            
+            if group_found_via_editid is not None:
+                if is_group_member(userid, group_found_via_editid.group_id, db_session):
+                    roles.append(RoleEnum.GROUP_MEMBER)
+                
+                if is_group_creator(userid, group_found_via_editid.group_id, db_session):
+                    roles.append(RoleEnum.GROUP_CREATOR)
+
+            
+            
+        
+        #GROUP EDIT CREATOR
         if userid is not None and editid is not None and db_session is not None:
             if is_edit_creator(userid, editid, db_session):
                 roles.append(RoleEnum.EDIT_CREATOR)

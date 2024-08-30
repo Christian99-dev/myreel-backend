@@ -71,7 +71,7 @@ def test_role_group_creator(db_memory: Session):
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None,   userid=1,   groupid=group_id_1,  editid=None), db_session=db_memory), RoleEnum.GROUP_CREATOR)
     
 def test_role_edit_creator(db_memory: Session):
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None,   userid=1,   groupid=None,  editid=1), db_session=db_memory), RoleEnum.EDIT_CREATOR)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None,   userid=2,   groupid=None,  editid=3), db_session=db_memory), RoleEnum.EDIT_CREATOR)
 
 def test_role_group_member(db_memory: Session):
     role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None,   userid=2,   groupid=group_id_1,  editid=None), db_session=db_memory), RoleEnum.GROUP_MEMBER)   
