@@ -97,6 +97,10 @@ def test_list_songs(http_client: TestClient):
     assert response_data["songs"][1]["name"] == "Song 2"
     assert response_data["songs"][2]["name"] == "Song 3"
 
+def test_list_role(http_client: TestClient):
+    assert http_client.get("/song/list").status_code == 200
+
+
 # get
 def test_get_song(http_client: TestClient):
     response = http_client.get("/song/1")  # Get song with ID 1
@@ -111,3 +115,7 @@ def test_get_song(http_client: TestClient):
 def test_get_non_existent_song(http_client: TestClient):
     response = http_client.get("/song/999")  # Attempting to get a non-existent song
     assert response.status_code == 404  # Expecting a not found response
+    
+def test_get_role(http_client: TestClient):
+    assert http_client.get("/song/1").status_code == 200
+
