@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from api.models.database.model import Invitation
 from api.services.database.invite import create, delete, delete_all_by_email, get
-from api.mock.database.model import mock_model_local_links
+from mock.database.model import mock_model_local_links
 
 # create
 def test_create(db_memory):

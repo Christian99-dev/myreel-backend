@@ -1,6 +1,6 @@
-from api.auth.path_config import PathInfo
-from api.auth.role_enum import RoleEnum
-from api.auth.role import Role
+from api.config.endpoints import EndpointInfo
+from api.security.role_enum import RoleEnum
+from api.security.role_class import Role
 
 # this methode is testing, if the role_instance is the expected role.
 def role_tester_has_access(role_instance: Role, role_to_test: RoleEnum):
@@ -81,15 +81,15 @@ def role_tester_has_access(role_instance: Role, role_to_test: RoleEnum):
         }
 
     # Teste mit Sub-Rollen
-    assert role_instance.hasAccess(PathInfo(role=RoleEnum.ADMIN,         has_subroles=True)) == expected_with_sub_roles[RoleEnum.ADMIN]
-    assert role_instance.hasAccess(PathInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=True)) == expected_with_sub_roles[RoleEnum.GROUP_CREATOR]
-    assert role_instance.hasAccess(PathInfo(role=RoleEnum.EDIT_CREATOR,  has_subroles=True)) == expected_with_sub_roles[RoleEnum.EDIT_CREATOR]
-    assert role_instance.hasAccess(PathInfo(role=RoleEnum.GROUP_MEMBER,  has_subroles=True)) == expected_with_sub_roles[RoleEnum.GROUP_MEMBER]
-    assert role_instance.hasAccess(PathInfo(role=RoleEnum.EXTERNAL,      has_subroles=True)) == expected_with_sub_roles[RoleEnum.EXTERNAL]
+    assert role_instance.hasAccess(EndpointInfo(role=RoleEnum.ADMIN,         has_subroles=True)) == expected_with_sub_roles[RoleEnum.ADMIN]
+    assert role_instance.hasAccess(EndpointInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=True)) == expected_with_sub_roles[RoleEnum.GROUP_CREATOR]
+    assert role_instance.hasAccess(EndpointInfo(role=RoleEnum.EDIT_CREATOR,  has_subroles=True)) == expected_with_sub_roles[RoleEnum.EDIT_CREATOR]
+    assert role_instance.hasAccess(EndpointInfo(role=RoleEnum.GROUP_MEMBER,  has_subroles=True)) == expected_with_sub_roles[RoleEnum.GROUP_MEMBER]
+    assert role_instance.hasAccess(EndpointInfo(role=RoleEnum.EXTERNAL,      has_subroles=True)) == expected_with_sub_roles[RoleEnum.EXTERNAL]
 
     # Teste ohne Sub-Rollen
-    assert role_instance.hasAccess(PathInfo(role=RoleEnum.ADMIN,         has_subroles=False)) == expected_without_sub_roles[RoleEnum.ADMIN]
-    assert role_instance.hasAccess(PathInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=False)) == expected_without_sub_roles[RoleEnum.GROUP_CREATOR]
-    assert role_instance.hasAccess(PathInfo(role=RoleEnum.EDIT_CREATOR,  has_subroles=False)) == expected_without_sub_roles[RoleEnum.EDIT_CREATOR]
-    assert role_instance.hasAccess(PathInfo(role=RoleEnum.GROUP_MEMBER,  has_subroles=False)) == expected_without_sub_roles[RoleEnum.GROUP_MEMBER]
-    assert role_instance.hasAccess(PathInfo(role=RoleEnum.EXTERNAL,      has_subroles=False)) == expected_without_sub_roles[RoleEnum.EXTERNAL]
+    assert role_instance.hasAccess(EndpointInfo(role=RoleEnum.ADMIN,         has_subroles=False)) == expected_without_sub_roles[RoleEnum.ADMIN]
+    assert role_instance.hasAccess(EndpointInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=False)) == expected_without_sub_roles[RoleEnum.GROUP_CREATOR]
+    assert role_instance.hasAccess(EndpointInfo(role=RoleEnum.EDIT_CREATOR,  has_subroles=False)) == expected_without_sub_roles[RoleEnum.EDIT_CREATOR]
+    assert role_instance.hasAccess(EndpointInfo(role=RoleEnum.GROUP_MEMBER,  has_subroles=False)) == expected_without_sub_roles[RoleEnum.GROUP_MEMBER]
+    assert role_instance.hasAccess(EndpointInfo(role=RoleEnum.EXTERNAL,      has_subroles=False)) == expected_without_sub_roles[RoleEnum.EXTERNAL]

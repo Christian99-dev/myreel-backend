@@ -8,15 +8,14 @@ from fastapi.staticfiles import StaticFiles
 from api.models.database import model
 from api.utils.database.print_database_contents import print_database_contents
 from logging_config import setup_logging_prod
-from api.auth.path_config import path_config
+from api.config.endpoints import path_config
 # media 
-from api.mock.media.fill import fill as fill_media
-from api.config.media_access import BaseMediaAccess, media_access
+from api.sessions.files import BaseMediaAccess, media_access
 
 # database
-from api.config.database import engine, SessionLocal, get_db
+from api.sessions.database import engine, SessionLocal, get_db
 from api.mock.database.fill import fill as fill_db
-from api.mock.database.model import mock_model_local_links
+from mock.database.model import mock_model_local_links
 
 #routes
 from api.routes.song import router as song_router
@@ -61,7 +60,7 @@ async def lifespan(app: FastAPI):
         })
 
     # Media setup and fill if neede
-    fill_media(media_access)
+    media_access.fill("mock/files")
     yield
 
 # app

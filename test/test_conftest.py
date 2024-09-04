@@ -1,14 +1,14 @@
 import logging
 from sqlalchemy.orm import Session
-from api.auth.jwt import read_jwt
-from api.auth.role import Role, RoleInfos
-from api.auth.role_enum import RoleEnum
+from api.utils.jwt.jwt import read_jwt
+from api.security.role_class import Role, RoleInfos
+from api.security.role_enum import RoleEnum
 from api.models.database.model import Edit, Group, Song, User, Slot, Invitation, LoginRequest, OccupiedSlot
-from api.mock.role_creds.role_creds import admin_req_creds, group_creator_req_creds, edit_creator_req_creds, external_req_creds, group_member_req_creds, group_creator_with_edit_id_req_creds, group_member_with_edit_id_req_creds
-from api.mock.database.model import mock_model_local_links
+from test.role_creds import admin_req_creds, group_creator_req_creds, edit_creator_req_creds, external_req_creds, group_member_req_creds, group_creator_with_edit_id_req_creds, group_member_with_edit_id_req_creds
+from mock.database.model import mock_model_local_links
 from fastapi.testclient import TestClient
 from test.utils.role_tester_has_acccess import role_tester_has_access
-from api.config.media_access import BaseMediaAccess
+from api.sessions.files import BaseMediaAccess
 
 
 from main import app

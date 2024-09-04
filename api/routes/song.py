@@ -2,15 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from api.models.schema.song import DeleteResponse, GetResponse, ListResponse, PostRequest, PostResponse
 
 # sessions
-from api.config.media_access import get_media_access, BaseMediaAccess
-from api.config.database import Session, get_db
+from api.sessions.files import get_media_access, BaseMediaAccess
+from api.sessions.database import Session, get_db
 
 # database
 from api.services.database.song import create as create_song_service, update as update_song_service, create_slots_from_breakpoints, remove as remove_song_service, get as get_song_service, list_all
 
 # media_service
-from api.services.media.song  import create as create_song_media_service, remove as remove_song_media_service
-from api.services.media.cover import create as create_cover_media_service, remove as remove_cover_media_service
+from api.services.files.song  import create as create_song_media_service, remove as remove_song_media_service
+from api.services.files.cover import create as create_cover_media_service, remove as remove_cover_media_service
 from api.utils.files.file_validation import file_validation
 from api.utils.files.get_audio_duration import get_audio_duration
 

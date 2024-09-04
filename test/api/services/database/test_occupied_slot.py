@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import OccupiedSlot, Slot
 from api.services.database.occupied_slot import create, get, get_occupied_slots_for_edit, is_slot_occupied, remove
-from api.mock.database.model import mock_model_local_links
+from mock.database.model import mock_model_local_links
 
 # create
 def test_create_occupied_slot(db_memory: Session):

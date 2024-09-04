@@ -1,4 +1,4 @@
-from api.config.media_access import BaseMediaAccess
+from api.sessions.files import BaseMediaAccess
 
 def get(occupied_slot_id: int, media_access: BaseMediaAccess) -> bytes:
     """Holt sich eine Mediendatei basierend auf der slot_id."""

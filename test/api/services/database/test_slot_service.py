@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from api.mock.database.model import mock_model_local_links
+from mock.database.model import mock_model_local_links
 from api.models.database.model import Slot, OccupiedSlot
 from api.services.database.slot import create, get, get_slots_for_edit, remove
 

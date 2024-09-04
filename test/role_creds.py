@@ -1,7 +1,7 @@
 import os
-from api.auth import jwt
-from api.auth.role_enum import RoleEnum
-from api.mock.database.model import group_id_1
+from api.utils.jwt import jwt
+from api.security.role_enum import RoleEnum
+from mock.database.model import group_id_1
 
 
 jwt_user_1 = jwt.create_jwt(1, 30)

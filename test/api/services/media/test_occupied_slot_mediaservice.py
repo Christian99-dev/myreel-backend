@@ -1,4 +1,4 @@
-from api.services.media.occupied_slot import get, create, remove, update
+from api.services.files.occupied_slot import get, create, remove, update
 
 # get
 def test_get_occupied_slot_file_found(media_access_memory):

@@ -4,8 +4,8 @@ from typing import Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from api.auth.path_config import PathInfo
-from api.auth.role_enum import RoleEnum
+from api.config.endpoints import EndpointInfo
+from api.security.role_enum import RoleEnum
 from api.services.database.edit import is_edit_creator
 from api.services.database.group import get_group_by_edit_id, is_group_creator, is_group_member
 logger = logging.getLogger("testing")
@@ -64,7 +64,7 @@ class Role:
         self._role = min(roles, key=lambda role: role.value)
     
 
-    def hasAccess(self, pathInfo: PathInfo) -> bool:
+    def hasAccess(self, pathInfo: EndpointInfo) -> bool:
         has_subroles = pathInfo.has_subroles
         role         = pathInfo.role
         

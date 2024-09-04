@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Group, Edit, Invitation, User
 from api.services.database.group import create, get, get_group_by_edit_id, get_group_by_user_id, is_group_creator, is_group_member, list_members, remove
-from api.mock.database.model import mock_model_local_links
+from mock.database.model import mock_model_local_links
 
 # create
 def test_create(db_memory: Session):

@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
-from api.auth.jwt import read_jwt
+from api.utils.jwt.jwt import read_jwt
 from api.models.schema.group import GetRoleResponse, PostRequest, DeleteResponse, GetMembersResponse, GetResponse, GroupExistsResponse,PostResponse
 
-from api.auth.jwt import create_jwt, read_jwt
+from api.utils.jwt.jwt import create_jwt, read_jwt
 
 
 # sessions
-from api.config.database import Session, get_db
+from api.sessions.database import Session, get_db
 
 # database
 from api.services.database.group import create as create_group_service

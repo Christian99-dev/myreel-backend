@@ -1,4 +1,4 @@
-from api.services.media.demo_slot import get
+from api.services.files.demo_slot import get
 
 def test_get_demo_slot_video(media_access_memory):
     # Ruft die get-Funktion auf

@@ -1,4 +1,4 @@
-from api.config.email_access import BaseEmailAccess
+from api.sessions.email import BaseEmailAccess
 
 
 def invite(to: str, code: str, invite_id: str, groupid: str, email_access: BaseEmailAccess) -> bool:

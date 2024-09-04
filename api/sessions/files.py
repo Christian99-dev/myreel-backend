@@ -10,6 +10,20 @@ LOCAL_MEDIA_REPO = os.getenv("LOCAL_MEDIA_REPO")
 class BaseMediaAccess(ABC):
     def __init__(self):
         self.setup()  # Ruft die Setup-Methode der spezifischen Klasse auf
+        
+    def fill(self, input_dir: str):
+        """Spiegelt die Dateien aus dem Quellverzeichnis in das Zielverzeichnis des media_access."""
+        self.clear()
+        for root, dirs, files in os.walk(input_dir):
+            # Berechne das relative Verzeichnis
+            relative_path = os.path.relpath(root, input_dir)
+            
+            for file_name in files:
+                file_path = os.path.join(root, file_name)
+                with open(file_path, 'rb') as f:
+                    file_data = f.read()
+                    # Speichere die Datei im media_access
+                    self.save(file_name, relative_path, file_data)
 
     @abstractmethod
     def save(self, file_name: str, dir: str, file_data: bytes) -> str:

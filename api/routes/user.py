@@ -1,13 +1,13 @@
 from datetime import datetime
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
-from api.auth.jwt import read_jwt
-from api.config.email_access import BaseEmailAccess, get_email_access
+from api.utils.jwt.jwt import read_jwt
+from api.sessions.email import BaseEmailAccess, get_email_access
 from api.models.schema.user import InviteRequest, AcceptInviteRequest, LoginRequestRequest, LoginRequest
 from api.models.schema.user import InviteResponse, AcceptInviteResponse, LoginRequestResponse, LoginResponse
-from api.auth.jwt import create_jwt, read_jwt
+from api.utils.jwt.jwt import create_jwt, read_jwt
 
 # sessions
-from api.config.database import Session, get_db
+from api.sessions.database import Session, get_db
 
 # database
 from api.services.database.user import create as create_user_service

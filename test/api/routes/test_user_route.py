@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
-from api.mock.database.model import mock_model_local_links
-from api.auth import jwt
+from mock.database.model import mock_model_local_links
+from api.utils.jwt import jwt
 
 # invite
 def test_invite_success(http_client: TestClient):

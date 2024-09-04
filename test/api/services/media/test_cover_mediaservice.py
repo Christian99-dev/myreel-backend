@@ -1,4 +1,4 @@
-from api.services.media.cover import get, create, remove, update
+from api.services.files.cover import get, create, remove, update
 
 # get
 def test_get_cover_file_found(media_access_memory):

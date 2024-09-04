@@ -1,9 +1,9 @@
 from fastapi.testclient import TestClient
 
-from api.auth import jwt
-from api.mock.database.model import mock_model_local_links
-from api.auth.jwt import read_jwt
-from api.mock.database import model
+from api.utils.jwt import jwt
+from mock.database.model import mock_model_local_links
+from api.utils.jwt.jwt import read_jwt
+from mock.database import model
 
 # create
 def test_create_group_status(http_client: TestClient): 

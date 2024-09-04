@@ -1,4 +1,4 @@
-from api.config.media_access import BaseMediaAccess
+from api.sessions.files import BaseMediaAccess
 
 
 def get(media_access: BaseMediaAccess) -> bytes:

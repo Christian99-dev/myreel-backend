@@ -5,11 +5,11 @@ import string
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 
-from api.config.email_access import email_access, BaseEmailAccess
-from api.config.instagram_access import instagram_access, BaseInstagramAccess
-from api.config.media_access import get_media_access, media_access
-from api.config.database import get_db
-from api.config.media_access import BaseMediaAccess
+from api.sessions.email import email_access, BaseEmailAccess
+from api.sessions.instagram import instagram_access, BaseInstagramAccess
+from api.sessions.files import get_media_access, media_access
+from api.sessions.database import get_db
+from api.sessions.files import BaseMediaAccess
 from api.services.email.invite import invite
 from api.services.email.login import login
 from api.services.instagram.upload import upload
@@ -82,7 +82,7 @@ def test3(
 async def upload_file(file: UploadFile = File(...)):
     file_type = "video"
     """Endpunkt zum Hochladen einer Datei und Validierung basierend auf dem Dateityp."""
-    (validated_file, message) = file_validation(file, file_type)
+    (validated_file, message) = file_config(file, file_type)
     
     # Überprüfe, ob die Datei gültig ist
     if validated_file is None:

@@ -1,7 +1,7 @@
 import logging
 import jwt
 from datetime import datetime, timedelta
-from api.auth.jwt import create_jwt, read_jwt, SECRET_KEY, ALGORITHM
+from api.utils.jwt.jwt import create_jwt, read_jwt, SECRET_KEY, ALGORITHM
 
 logger = logging.getLogger("testing")
 

@@ -1,5 +1,5 @@
 
-from api.services.media.song import get, create, remove
+from api.services.files.song import get, create, remove
 
 
 # get

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from api.services.database.song import create, create_slots_from_breakpoints, get_breakpoints, list_all, get, update, remove
 from api.models.database.model import Song, Slot, Edit
-from api.mock.database.model import mock_model_local_links
+from mock.database.model import mock_model_local_links
 
 # create
 def test_create(db_memory: Session):

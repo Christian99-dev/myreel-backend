@@ -5,25 +5,24 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Request
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-from api.auth import jwt
-from api.auth.path_config import path_config
-from api.config.email_access import BaseEmailAccess, MemoryEmailAcccess, get_email_access
-from api.config.instagram_access import BaseInstagramAccess, MemoryInstagramAcccess, get_instagram_access
-from api.config.media_access import BaseMediaAccess, MemoryMediaAccess, get_media_access
+from api.utils.jwt import jwt
+from api.config.endpoints import path_config
+from api.sessions.email import BaseEmailAccess, MemoryEmailAcccess, get_email_access
+from api.sessions.instagram import BaseInstagramAccess, MemoryInstagramAcccess, get_instagram_access
+from api.sessions.files import BaseMediaAccess, MemoryMediaAccess, get_media_access
 from api.middleware.access_handler import AccessHandlerMiddleware
-from api.mock.path_config.mock_path_config import mock_path_config
 from api.models.database.model import Song
 from api.mock.database.fill import fill as fill_db
-from api.mock.database.model import mock_model_local_links
-from api.mock.media.fill import fill as fill_media
+from mock.database.model import mock_model_local_links
 from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
 from logging_config import setup_logging_testing
 from api.routes.song import router as song_router
 from api.routes.group import router as group_router
 from api.routes.user import router as user_router
 from api.routes.edit import router as edit_router
-from api.config.database import get_db, get_db_memory
-
+from api.sessions.database import get_db, get_db_memory
+from api.security.endpoints_class import EndpointConfig, EndpointInfo
+from api.security.role_enum import RoleEnum
 # setup logging
 setup_logging_testing()
 logger = logging.getLogger("testing")
@@ -68,7 +67,7 @@ def db_memory():
 @pytest.fixture
 def media_access_memory():
     media_access_memory = MemoryMediaAccess()
-    fill_media(media_access_memory)
+    media_access_memory.fill("mock/files")
     return media_access_memory
 
 # Database   : None
@@ -187,6 +186,39 @@ def http_client_mocked_path_config(db_memory: Session):
     # session
     def get_db_override(): 
         yield db_memory
+        
+    mock_path_config = EndpointConfig({
+    '/admin_no_subroles': {
+        "GET": EndpointInfo(role=RoleEnum.ADMIN, has_subroles=False),
+    },
+    '/group_creator_no_subroles': {
+        "GET": EndpointInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=False),
+    },
+    '/edit_creator_no_subroles': {
+        "GET": EndpointInfo(role=RoleEnum.EDIT_CREATOR, has_subroles=False),
+    },
+    '/group_member_no_subroles': {
+        "GET": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=False),
+    },
+    '/external_no_subroles': {
+        "GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=False),
+    },
+    '/admin_subroles': {
+        "GET": EndpointInfo(role=RoleEnum.ADMIN, has_subroles=True),
+    },
+    '/group_creator_subroles': {
+        "GET": EndpointInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=True),
+    },
+    '/edit_creator_subroles': {
+        "GET": EndpointInfo(role=RoleEnum.EDIT_CREATOR, has_subroles=True),
+    },
+    '/group_member_subroles': {
+        "GET": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
+    },
+    '/external_subroles': {
+        "GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True),
+    },
+})
     
     # middleware for access testing 
     app.add_middleware(AccessHandlerMiddleware, path_config=mock_path_config, get_db=get_db_override)

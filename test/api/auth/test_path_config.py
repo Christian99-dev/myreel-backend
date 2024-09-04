@@ -1,30 +1,30 @@
 
-from api.auth.path_config import PathConfig, PathInfo, path_config
-from api.auth.role_enum import RoleEnum
+from api.config.endpoints import EndpointConfig, EndpointInfo, path_config
+from api.security.role_enum import RoleEnum
 from starlette.routing import Mount, Route
 from main import app
 
 
 def test_get_path_info_basic_case():
-    config = PathConfig({
+    config = EndpointConfig({
         '/test': {
-            "GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False),
-            "DELETE": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)
+            "GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=False),
+            "DELETE": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=False)
         },
         '/test/abc': {
-            "GET": PathInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=True),
-            "POST": PathInfo(role=RoleEnum.ADMIN, has_subroles=True)
+            "GET": EndpointInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=True),
+            "POST": EndpointInfo(role=RoleEnum.ADMIN, has_subroles=True)
         },
         '/admin': {
-            "POST": PathInfo(role=RoleEnum.ADMIN, has_subroles=True),
-            "PUT": PathInfo(role=RoleEnum.ADMIN, has_subroles=True)
+            "POST": EndpointInfo(role=RoleEnum.ADMIN, has_subroles=True),
+            "PUT": EndpointInfo(role=RoleEnum.ADMIN, has_subroles=True)
         },
         '/user': {
-            "GET": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=False),
-            "PATCH": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)
+            "GET": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=False),
+            "PATCH": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)
         },
         '/public': {
-            "GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)
+            "GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=False)
         },
     })
     
@@ -76,22 +76,22 @@ def test_get_path_info_basic_case():
     assert config.get_path_info("/public/extra", "GET") is None
 
 def test_get_path_info_ignore_trailing_slashes(): 
-    config = PathConfig({
+    config = EndpointConfig({
         # Normal
         '/test': {
-            "GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False),
-            "DELETE": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)
+            "GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=False),
+            "DELETE": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=False)
         },
         '/test/abc': {
-            "GET": PathInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=True),
-            "POST": PathInfo(role=RoleEnum.ADMIN, has_subroles=True)
+            "GET": EndpointInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=True),
+            "POST": EndpointInfo(role=RoleEnum.ADMIN, has_subroles=True)
         },
         # Trailing slashed
         '/configured_with_trailing_slash/': {
-            "GET": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=False)
+            "GET": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=False)
         },
         '/configured_with_trailing_slash/sub/': {
-            "GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False)
+            "GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=False)
         },
     })
     
@@ -118,22 +118,22 @@ def test_get_path_info_ignore_trailing_slashes():
     assert config.get_path_info("/test/abc/", "GET").role == RoleEnum.GROUP_CREATOR
      
 def test_get_path_info_variables(): 
-    config = PathConfig({
+    config = EndpointConfig({
         '/a/{test}': {
-            "GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False),
-            "DELETE": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)
+            "GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=False),
+            "DELETE": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)
         },
         '/a/b': {
-            "GET": PathInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=False),
-            "DELETE": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True)
+            "GET": EndpointInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=False),
+            "DELETE": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)
         },
         '/a/b/c': {
-            "GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False),
-            "DELETE": PathInfo(role=RoleEnum.ADMIN, has_subroles=True)
+            "GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=False),
+            "DELETE": EndpointInfo(role=RoleEnum.ADMIN, has_subroles=True)
         },
         '/a/b/{c}': {
-            "GET": PathInfo(role=RoleEnum.EDIT_CREATOR, has_subroles=False),
-            "DELETE": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)
+            "GET": EndpointInfo(role=RoleEnum.EDIT_CREATOR, has_subroles=False),
+            "DELETE": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)
         },
     })
     
@@ -161,24 +161,24 @@ def test_get_path_info_variables():
     assert config.get_path_info("/a/b/some_value", "DELETE").role == RoleEnum.GROUP_MEMBER
 
 def test_get_path_info_exotic_paths():
-    config = PathConfig({
+    config = EndpointConfig({
         '/overlapping/path': {
-            "GET": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=False),
-            "POST": PathInfo(role=RoleEnum.ADMIN, has_subroles=True),
+            "GET": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=False),
+            "POST": EndpointInfo(role=RoleEnum.ADMIN, has_subroles=True),
         },
         '/overlapping/{param}': {
-            "GET": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=False),
-            "DELETE": PathInfo(role=RoleEnum.ADMIN, has_subroles=True),
+            "GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=False),
+            "DELETE": EndpointInfo(role=RoleEnum.ADMIN, has_subroles=True),
         },
         '/very/complex/path/a/{b}/c/{d}': {
-            "GET": PathInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=False),
-            "POST": PathInfo(role=RoleEnum.EXTERNAL, has_subroles=True),
+            "GET": EndpointInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=False),
+            "POST": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True),
         },
         '/very/complex/path/{a}/b/c/{d}/': {
-            "GET": PathInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=False),
+            "GET": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=False),
         },
         '/very/complex/path/{a}/{b}/{c}/{d}': {
-            "GET": PathInfo(role=RoleEnum.ADMIN, has_subroles=False),
+            "GET": EndpointInfo(role=RoleEnum.ADMIN, has_subroles=False),
         },
     })
 

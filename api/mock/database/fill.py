@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Group, Song, User, Edit, Slot, Invitation, LoginRequest, OccupiedSlot
-from api.mock.database.model import Model
+from mock.database.model import Model
 
 # This method is filling a db_session with the official test data from the test_model.py file
 def fill(db_session: Session, model: Model):

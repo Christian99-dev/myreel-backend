@@ -1,4 +1,4 @@
-from api.config.email_access import BaseEmailAccess
+from api.sessions.email import BaseEmailAccess
 
 
 def login(to: str, code: str, email_access: BaseEmailAccess) -> bool:

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from api.models.database.model import LoginRequest, User
 from api.services.database.login import create, delete, delete_all_from_email, get_login_request_by_groupid_and_token
-from api.mock.database.model import mock_model_local_links
+from mock.database.model import mock_model_local_links
 
 # create
 def test_create(db_memory):

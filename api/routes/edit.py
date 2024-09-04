@@ -1,32 +1,33 @@
 from typing import List
 from wsgiref import validate
 from fastapi import APIRouter, Body, Depends, HTTPException, Header, Request
-from api.auth import jwt
-from api.config.instagram_access import get_instagram_access
-from api.config.media_access import BaseMediaAccess, get_media_access
+from api.utils.jwt import jwt
+from api.sessions.instagram import get_instagram_access
+from api.sessions.files import BaseMediaAccess, get_media_access
 from api.models.schema.edit import AddSlotRequest, AddSlotResponse, ChangeSlotRequest, ChangeSlotResponse, DeleteEditResponse, DeleteSlotRequest, DeleteSlotResponse, EditListResponse,User, GetEditResponse, GoLiveResponse, PostRequest, Slot
 from api.models.schema.edit import PostResponse
 from api.services.database.edit import get as get_edit_serivce, remove
 from api.services.database.occupied_slot import get_occupied_slots_for_edit, is_slot_occupied
 from api.services.database.slot import get_slot_by_occupied_slot_id, get_slots_for_edit
 from api.services.database.user import get as get_user_service
-from api.services.media.demo_slot import get as get_demo_video
-from api.services.media.song import get as get_song_audio
-from api.services.media.edit import create as create_edit_media_access
+from api.services.files.demo_slot import get as get_demo_video
+from api.services.files.song import get as get_song_audio
+from api.services.files.edit import create as create_edit_media_access
 from api.services.database.edit import are_all_slots_occupied, get_edits_by_group, set_is_live, update as edit_update_service
 from api.services.database.song import  get_breakpoints
 from api.services.database.occupied_slot import get as get_occupied_slot, remove as remove_occupied_slot_service
 from api.services.instagram.upload import upload as instram_upload_service
-from api.services.media.edit import get as get_edit_media_access, update as update_media_service
+from api.services.files.edit import get as get_edit_media_access, update as update_media_service
 from api.services.database.edit import remove as remove_edit_service
 from api.services.database.edit import create as create_edit_service
-from api.services.media.edit import update as update_meida_edit_service
-from api.services.media.occupied_slot import remove as remove_occupied_slot_media_service, create as create_occupied_slot_media_service, update as update_occupied_slot_media_service
+from api.services.files.edit import update as update_meida_edit_service
+from api.services.files.occupied_slot import remove as remove_occupied_slot_media_service, create as create_occupied_slot_media_service, update as update_occupied_slot_media_service
 from api.services.database.occupied_slot import create as create_occupied_slot_service
 from api.services.database.occupied_slot import update as update_occupied_slot_service
 
 # sessions
-from api.config.database import Session, get_db
+from api.sessions.database import Session, get_db
+from api.utils.files.file_validation import file_validation
 from api.utils.files.file_validation import file_validation
 from api.utils.media_manipulation.create_edit_video import create_edit_video
 from api.utils.media_manipulation.swap_slot_in_edit_video import swap_slot_in_edit
