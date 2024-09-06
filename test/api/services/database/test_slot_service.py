@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session
-from mock.database.model import mock_model_local_links
+from mock.database.data import data
 from api.models.database.model import Slot, OccupiedSlot
 from api.services.database.slot import create, get, get_slots_for_edit, remove
 
 # create
 def test_create_slot(db_memory: Session):
     # Arrange
-    song_id = mock_model_local_links.songs[0].song_id  # Verwende eine gültige song_id aus den Testdaten
+    song_id = data["songs"][0]["song_id"]  # Verwende eine gültige song_id aus den Testdaten
     start_time = 10.5
     end_time = 20.0
 
@@ -28,17 +28,17 @@ def test_create_slot(db_memory: Session):
 # get
 def test_get_slot(db_memory: Session):
     # Arrange: Verwende einen vorhandenen Slot aus den Testdaten
-    existing_slot = mock_model_local_links.slots[0]
+    existing_slot = data["slots"][0]
     
     # Act: Hole den Slot mit seiner ID
-    fetched_slot = get(existing_slot.slot_id, db_memory)
+    fetched_slot = get(existing_slot["slot_id"], db_memory)
     
     # Assert: Überprüfe, ob der gefundene Slot den erwarteten Werten entspricht
     assert fetched_slot is not None
-    assert fetched_slot.slot_id == existing_slot.slot_id
-    assert fetched_slot.song_id == existing_slot.song_id
-    assert fetched_slot.start_time == existing_slot.start_time
-    assert fetched_slot.end_time == existing_slot.end_time
+    assert fetched_slot.slot_id == existing_slot["slot_id"]
+    assert fetched_slot.song_id == existing_slot["song_id"]
+    assert fetched_slot.start_time == existing_slot["start_time"]
+    assert fetched_slot.end_time == existing_slot["end_time"]
 
 def test_get_slot_failed(db_memory: Session):
     # Arrange: Verwende eine ungültige slot_id

@@ -1,7 +1,6 @@
 from fastapi.testclient import TestClient
 
 from api.utils.jwt import jwt
-from mock.database.model import mock_model_local_links
 
 # test edit go live
 def test_edit_go_live_success(http_client: TestClient):
@@ -42,7 +41,7 @@ def test_create_edit(http_client: TestClient):
     response = http_client.post(
         "/edit", 
         json={
-            "groupid":mock_model_local_links.groups[0].group_id,
+            "groupid":"11111111-1111-1111-1111-111111111111",
             "song_id":1,
             "edit_name":"joooo"
         }, 
@@ -54,7 +53,7 @@ def test_create_edit_no_song(http_client: TestClient):
     response = http_client.post(
         "/edit", 
         json={
-            "groupid":mock_model_local_links.groups[0].group_id,
+            "groupid":"11111111-1111-1111-1111-111111111111",
             "song_id":5,
             "edit_name":"joooo"
         }, 
@@ -78,7 +77,7 @@ def test_create_edit_auth_again(http_client: TestClient):
     response = http_client.post(
         "/edit", 
         json={
-            "groupid":mock_model_local_links.groups[0].group_id,
+            "groupid":"11111111-1111-1111-1111-111111111111",
             "song_id":5,
             "edit_name":"joooo"
         }, 
@@ -89,7 +88,7 @@ def test_create_edit_auth_again(http_client: TestClient):
 # list edits per grou
 def test_create_edit(http_client: TestClient):
     response = http_client.get(
-        f"/edit/group/{mock_model_local_links.groups[0].group_id}/list", headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"}
+        f"/edit/group/11111111-1111-1111-1111-111111111111/list", headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"}
     )
     
     assert response.status_code == 200
@@ -98,7 +97,7 @@ def test_create_edit(http_client: TestClient):
 
 def test_create_edit_auth(http_client: TestClient):
     response = http_client.get(
-        f"/edit/group/{mock_model_local_links.groups[0].group_id}/list", headers={"Authorization": f"Bearer {jwt.create_jwt(4, 10)}"}
+        f"/edit/group/11111111-1111-1111-1111-111111111111/list", headers={"Authorization": f"Bearer {jwt.create_jwt(4, 10)}"}
     )
     
     assert response.status_code == 403
@@ -112,12 +111,10 @@ def test_create_edit_auth_secound(http_client: TestClient):
 
 # test get edit 
 def test_get_edit(http_client: TestClient):
-    # Definieren Sie die Gruppen-IDs
-    group_id_1 = mock_model_local_links.groups[0].group_id
 
     # Senden Sie die GET-Anfrage an die API
     response = http_client.get(
-        f"/edit/group/{group_id_1}/1", headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"}
+        f"/edit/group/11111111-1111-1111-1111-111111111111/1", headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"}
     )
 
     # Assertions
@@ -143,7 +140,7 @@ def test_get_edit(http_client: TestClient):
     assert edit["song_id"] == 1
     assert edit["created_by"]["user_id"] == 1
     assert edit["created_by"]["name"] == "Creator of Group 1"
-    assert edit["group_id"] == group_id_1
+    assert edit["group_id"] == "11111111-1111-1111-1111-111111111111"
     assert edit["name"] == "Edit 1 of Group 1"
     assert edit["isLive"] is False
     assert edit["video_src"] == "http://localhost:8000/static/edits/1.mp4"
@@ -169,12 +166,9 @@ def test_get_edit(http_client: TestClient):
             assert slot["occupied_id"] is None  # Bei nicht belegten Slots sollte occupied_id None sein
             
 def test_get_edit_not_working(http_client: TestClient):
-    # Definieren Sie die Gruppen-IDs
-    group_id_1 = mock_model_local_links.groups[2].group_id
-
     # Senden Sie die GET-Anfrage an die API
     response = http_client.get(
-        f"/edit/group/{group_id_1}/1", headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"}
+        f"/edit/group/33333333-3333-3333-3333-333333333333/1", headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"}
     )
     
     assert response.status_code == 403
@@ -183,7 +177,7 @@ def test_get_edit_not_working(http_client: TestClient):
 def test_delete_slot_success(http_client: TestClient):  
     
     response = http_client.delete(
-        f"/edit/group/{mock_model_local_links.groups[0].group_id}/1/slot/1", 
+        f"/edit/group/11111111-1111-1111-1111-111111111111/1/slot/1", 
         headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
     )
     
@@ -192,7 +186,7 @@ def test_delete_slot_success(http_client: TestClient):
 def notest_delete_slot_not_yours(http_client: TestClient):  
     
     response = http_client.delete(
-        f"/edit/group/{mock_model_local_links.groups[0].group_id}/1/slot/2", 
+        f"/edit/group/11111111-1111-1111-1111-111111111111/1/slot/2", 
         headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
     )
     
@@ -201,7 +195,7 @@ def notest_delete_slot_not_yours(http_client: TestClient):
 def notest_delete_slot_not_found(http_client: TestClient):  
     
     response = http_client.delete(
-        f"/edit/group/{mock_model_local_links.groups[0].group_id}/1/slot/44", 
+        f"/edit/group/11111111-1111-1111-1111-111111111111/1/slot/44", 
         headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
     )
     
@@ -213,7 +207,7 @@ def notest_post_slot_success(http_client: TestClient, media_access_memory):
     video_file_slot = media_access_memory.get("demo.mp4","demo_slot")
       
     response = http_client.post(
-        f"/edit/group/{mock_model_local_links.groups[0].group_id}/2/slot/1",
+        f"/edit/group/11111111-1111-1111-1111-111111111111/2/slot/1",
         headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
         files={
             "video_file": ("4.mp4", video_file_slot, "video/mp4"),
@@ -231,7 +225,7 @@ def notest_post_slot_slot_is_not_empty(http_client: TestClient, media_access_mem
     video_file_slot = media_access_memory.get("demo.mp4","demo_slot")
       
     response = http_client.post(
-        f"/edit/group/{mock_model_local_links.groups[0].group_id}/1/slot/1",
+        f"/edit/group/11111111-1111-1111-1111-111111111111/1/slot/1",
         headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
         files={
             "video_file": ("4.mp4", video_file_slot, "video/mp4"),
@@ -250,7 +244,7 @@ def notest_post_swap_slot_is_empty(http_client: TestClient, media_access_memory)
     video_file_slot = media_access_memory.get("demo.mp4","demo_slot")
       
     response = http_client.put(
-        f"/edit/group/{mock_model_local_links.groups[0].group_id}/2/slot/99",
+        f"/edit/group/11111111-1111-1111-1111-111111111111/2/slot/99",
         headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
         files={
             "video_file": ("4.mp4", video_file_slot, "video/mp4"),
@@ -268,7 +262,7 @@ def notest_post_swap_slot_not_yours(http_client: TestClient, media_access_memory
     video_file_slot = media_access_memory.get("demo.mp4","demo_slot")
       
     response = http_client.put(
-        f"/edit/group/{mock_model_local_links.groups[0].group_id}/2/slot/2",
+        f"/edit/group/11111111-1111-1111-1111-111111111111/2/slot/2",
         headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
         files={
             "video_file": ("4.mp4", video_file_slot, "video/mp4"),
@@ -286,7 +280,7 @@ def notest_post_swap_slot_success(http_client: TestClient, media_access_memory):
     video_file_slot = media_access_memory.get("demo.mp4","demo_slot")
       
     response = http_client.put(
-        f"/edit/group/{mock_model_local_links.groups[0].group_id}/1/slot/1",
+        f"/edit/group/11111111-1111-1111-1111-111111111111/1/slot/1",
         headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"},
         files={
             "video_file": ("4.mp4", video_file_slot, "video/mp4"),

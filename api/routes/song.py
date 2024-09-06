@@ -3,7 +3,8 @@ from api.models.schema.song import DeleteResponse, GetResponse, ListResponse, Po
 
 # sessions
 from api.sessions.files import get_media_access, BaseMediaAccess
-from api.sessions.database import Session, get_db
+from api.sessions.database import databaseSessionManager
+from sqlalchemy.orm import Session
 
 # database
 from api.services.database.song import create as create_song_service, update as update_song_service, create_slots_from_breakpoints, remove as remove_song_service, get as get_song_service, list_all
@@ -21,7 +22,7 @@ router = APIRouter(
 @router.post("/", response_model=PostResponse, tags=["song"])
 async def create(
     request: PostRequest = Depends(),
-    db: Session = Depends(get_db),
+    db: Session = Depends(databaseSessionManager.get_db_session),
     media_access: BaseMediaAccess = Depends(get_media_access)
 ):    
     try:
@@ -90,7 +91,7 @@ async def create(
         raise HTTPException(status_code=400, detail=str(e))    
     
 @router.delete("/{song_id}", response_model=DeleteResponse, tags=["song"])
-async def delete(song_id: int, db: Session = Depends(get_db), media_access: BaseMediaAccess = Depends(get_media_access)):
+async def delete(song_id: int, db: Session = Depends(databaseSessionManager.get_db_session), media_access: BaseMediaAccess = Depends(get_media_access)):
     # Try to remove the media file associated with the song
     song_media_removed = remove_song_media_service(song_id, media_access)
     cover_media_removed = remove_cover_media_service(song_id, media_access)
@@ -109,12 +110,12 @@ async def delete(song_id: int, db: Session = Depends(get_db), media_access: Base
     return {"message": "Song and associated media deleted successfully"}
 
 @router.get("/list", response_model=ListResponse, tags=["song"])
-async def list_songs(db: Session = Depends(get_db)):
+async def list_songs(db: Session = Depends(databaseSessionManager.get_db_session)):
     songs = list_all(db_session=db)
     return {"songs": songs}
 
 @router.get("/{song_id}", response_model=GetResponse, tags=["song"])
-async def get(song_id: int, db: Session = Depends(get_db)):
+async def get(song_id: int, db: Session = Depends(databaseSessionManager.get_db_session)):
     song = get_song_service(song_id=song_id, db_session=db)
     if not song:
         raise HTTPException(status_code=404, detail="Song not found")

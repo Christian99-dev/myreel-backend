@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 from api.models.database.model import LoginRequest, User
 from api.services.database.login import create, delete, delete_all_from_email, get_login_request_by_groupid_and_token
-from mock.database.model import mock_model_local_links
+from mock.database.data import data
 
 # create
 def test_create(db_memory):
-    user_id = mock_model_local_links.users[3].user_id  # Use the fourth user
+    user_id = data["users"][3]["user_id"]  # Use the fourth user
     login_request = create(user_id=user_id, db=db_memory)
 
     assert login_request.user_id == user_id
@@ -39,7 +39,7 @@ def test_delete_login_request_failed(db_memory):
 # delete all from email
 def test_delete_all_from_email(db_memory):
     # Arrange: Verwende eine existierende E-Mail-Adresse eines Benutzers
-    email = mock_model_local_links.users[3].email  # Verwende den vierten Benutzer
+    email = data["users"][3]["email"]  # Verwende den vierten Benutzer
 
     # Act: Lösche alle Login-Anfragen für den Benutzer mit dieser E-Mail-Adresse
     delete_all_from_email(email, db_memory)
@@ -62,16 +62,16 @@ def test_delete_all_from_email_failed(db_memory):
 # get_login_request_by_groupid_and_token
 def test_get_login_request_by_groupid_and_token_success(db_memory):
     # Arrange: Verwende gültige group_id und pin aus den Mock-Daten
-    user = mock_model_local_links.users[0]  # Verwende den vierten Benutzer
-    valid_pin = mock_model_local_links.login_requests[0].pin  # Pin der vierten Login-Anfrage
+    user = data["users"][0]  # Verwende den vierten Benutzer
+    valid_pin = data["login_requests"][0]["pin"]  # Pin der vierten Login-Anfrage
     
     # Act: Versuche, die Login-Anfrage mit group_id und pin abzurufen
-    login_request = get_login_request_by_groupid_and_token(user.group_id, valid_pin, db_memory)
+    login_request = get_login_request_by_groupid_and_token(user["group_id"], valid_pin, db_memory)
 
     # Assert: Überprüfe, dass die richtige Login-Anfrage abgerufen wurde
     assert login_request is not None
     assert login_request.pin == valid_pin
-    assert login_request.user_id == user.user_id
+    assert login_request.user_id == user["user_id"]
 
 def test_get_login_request_by_groupid_and_token_failed(db_memory):
     # Arrange: Verwende ungültige group_id und pin

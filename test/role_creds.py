@@ -1,7 +1,6 @@
 import os
 from api.utils.jwt import jwt
 from api.security.role_enum import RoleEnum
-from mock.database.model import group_id_1
 
 
 jwt_user_1 = jwt.create_jwt(1, 30)
@@ -24,7 +23,7 @@ group_creator_req_creds = {
             "Authorization": f"Bearer {jwt_user_1}"
         },
         "params": {
-            "groupid": group_id_1
+            "groupid": "11111111-1111-1111-1111-111111111111"
         }
     }, 
     "role": RoleEnum.GROUP_CREATOR,
@@ -50,7 +49,7 @@ group_member_req_creds = {
             "Authorization": f"Bearer {jwt_user_2}"
         },
         "params": {
-            "groupid": group_id_1
+            "groupid": "11111111-1111-1111-1111-111111111111"
         }
     }, 
     "role": RoleEnum.GROUP_MEMBER,

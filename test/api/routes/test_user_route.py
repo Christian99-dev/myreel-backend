@@ -1,11 +1,10 @@
 from fastapi.testclient import TestClient
-from mock.database.model import mock_model_local_links
 from api.utils.jwt import jwt
 
 # invite
 def test_invite_success(http_client: TestClient):
     request_data = {
-        "groupid": mock_model_local_links.groups[0].group_id,
+        "groupid": "11111111-1111-1111-1111-111111111111",
         "email": "abc@example.de"
     }
     response = http_client.post("/user/invite", json=request_data, headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"} )
@@ -26,7 +25,7 @@ def test_accept_invite_success(http_client: TestClient):
     request_data = {
         "invitationid": "1",
         "token": "token1",
-        "groupid": mock_model_local_links.groups[0].group_id,
+        "groupid": "11111111-1111-1111-1111-111111111111",
         "name": "New User"
     }
     response = http_client.post("/user/acceptInvite", json=request_data)
@@ -37,7 +36,7 @@ def test_accept_invite_invalid_token(http_client: TestClient):
     request_data = {
         "invitationid": "1",
         "token": "wrong_token",
-        "groupid": mock_model_local_links.groups[0].group_id,
+        "groupid": "11111111-1111-1111-1111-111111111111",
         "name": "New User"
     }
     response = http_client.post("/user/acceptInvite", json=request_data)
@@ -47,7 +46,7 @@ def test_accept_invite_nonexistent_invitation(http_client: TestClient):
     request_data = {
         "invitationid": "999",
         "token": "token1",
-        "groupid": mock_model_local_links.groups[0].group_id,
+        "groupid": "11111111-1111-1111-1111-111111111111",
         "name": "New User"
     }
     response = http_client.post("/user/acceptInvite", json=request_data)
@@ -56,7 +55,7 @@ def test_accept_invite_nonexistent_invitation(http_client: TestClient):
 # login request
 def test_login_request_success(http_client: TestClient):
     request_data = {
-        "groupid": mock_model_local_links.groups[0].group_id,
+        "groupid": "11111111-1111-1111-1111-111111111111",
         "email": "creator1@example.com"
     }
     response = http_client.post("/user/loginRequest", json=request_data)
@@ -65,7 +64,7 @@ def test_login_request_success(http_client: TestClient):
 
 def test_login_request_nonexistent_user(http_client: TestClient):
     request_data = {
-        "groupid": "group_id_1",
+        "groupid": "11111111-1111-1111-1111-111111111111",
         "email": "nonexistent@example.com"
     }
     response = http_client.post("/user/loginRequest", json=request_data)
@@ -76,7 +75,7 @@ def test_login_request_nonexistent_user(http_client: TestClient):
 def test_login_success(http_client: TestClient):
     
     request_data = {
-        "groupid": mock_model_local_links.groups[0].group_id,
+        "groupid": "11111111-1111-1111-1111-111111111111",
         "token": "1234"  # Angenommener Token für den Test
     }
     response = http_client.post("/user/login", json=request_data)
@@ -86,7 +85,7 @@ def test_login_success(http_client: TestClient):
 
 def test_login_request_invalid_token(http_client: TestClient):
     request_data = {
-        "groupid": mock_model_local_links.groups[0].group_id,
+        "groupid": "11111111-1111-1111-1111-111111111111",
         "token": "invalid_token"
     }
     response = http_client.post("/user/login", json=request_data)
@@ -94,7 +93,7 @@ def test_login_request_invalid_token(http_client: TestClient):
 
 def test_login_request_nonexistent_user(http_client: TestClient):
     request_data = {
-        "groupid": "group_id_1",
+        "groupid": "none_existend_group_id",
         "token": "1234"  # Angenommener Token für den Test
     }
     response = http_client.post("/user/login", json=request_data)

@@ -26,7 +26,8 @@ from api.services.database.occupied_slot import create as create_occupied_slot_s
 from api.services.database.occupied_slot import update as update_occupied_slot_service
 
 # sessions
-from api.sessions.database import Session, get_db
+from api.sessions.database import databaseSessionManager
+from sqlalchemy.orm import Session
 from api.utils.files.file_validation import file_validation
 from api.utils.files.file_validation import file_validation
 from api.utils.media_manipulation.create_edit_video import create_edit_video
@@ -39,7 +40,7 @@ router = APIRouter(
 )    
 
 @router.post("/{edit_id}/goLive", response_model=GoLiveResponse, tags=["edit"])
-def go_live(edit_id: int, db: Session = Depends(get_db), media_access: BaseMediaAccess = Depends(get_media_access), instagram_access = Depends(get_instagram_access)):
+def go_live(edit_id: int, db: Session = Depends(databaseSessionManager.get_db_session), media_access: BaseMediaAccess = Depends(get_media_access), instagram_access = Depends(get_instagram_access)):
     
     if not are_all_slots_occupied(edit_id, db=db):
         raise HTTPException(status_code=422, detail="Edit not upload ready, occupie all slots")
@@ -57,7 +58,7 @@ def go_live(edit_id: int, db: Session = Depends(get_db), media_access: BaseMedia
        
     
 @router.delete("/{edit_id}", response_model=DeleteEditResponse, tags=["edit"])
-async def delete_edit(edit_id: int, db: Session = Depends(get_db)):
+async def delete_edit(edit_id: int, db: Session = Depends(databaseSessionManager.get_db_session)):
     
     if remove_edit_service(edit_id, db=db):
         return {"message" : "Deleted Successfully"}
@@ -67,7 +68,7 @@ async def delete_edit(edit_id: int, db: Session = Depends(get_db)):
 @router.post("/", response_model=PostResponse, tags=["edit"])
 def create_edit(
     request: PostRequest = Body(...),
-    db: Session = Depends(get_db),
+    db: Session = Depends(databaseSessionManager.get_db_session),
     media_access: BaseMediaAccess = Depends(get_media_access),
     authorization: str = Header(None)
 ):        
@@ -147,7 +148,7 @@ def create_edit(
 
     return response
 @router.get("/group/{group_id}/list", response_model=EditListResponse, tags=["edit"])
-async def get_edits_for_group(group_id: str, db: Session = Depends(get_db)):
+async def get_edits_for_group(group_id: str, db: Session = Depends(databaseSessionManager.get_db_session)):
     # Abrufen aller Edits für die gegebene Gruppen-ID
     edits = get_edits_by_group(group_id, db)
 
@@ -179,7 +180,7 @@ async def get_edits_for_group(group_id: str, db: Session = Depends(get_db)):
     return EditListResponse(edits=response_list)
 
 @router.get("/group/{group_id}/{edit_id}", response_model=GetEditResponse,  tags=["edit"])
-async def get_edit_details(group_id: str, edit_id: int, db: Session = Depends(get_db)):
+async def get_edit_details(group_id: str, edit_id: int, db: Session = Depends(databaseSessionManager.get_db_session)):
     # Abrufen des Edits
     edit = get_edit_serivce(edit_id, db)
 
@@ -239,7 +240,7 @@ async def get_edit_details(group_id: str, edit_id: int, db: Session = Depends(ge
 async def delete_slot(
     occupied_slot_id: int,
     authorization: str = Header(None), 
-    db: Session = Depends(get_db), 
+    db: Session = Depends(databaseSessionManager.get_db_session), 
     media_access: BaseMediaAccess = Depends(get_media_access)
 ):
     
@@ -267,7 +268,7 @@ async def post_slot(
     edit_id: int,
     authorization: str = Header(None), 
     request: AddSlotRequest = Depends(), 
-    db: Session = Depends(get_db), 
+    db: Session = Depends(databaseSessionManager.get_db_session), 
     media_access: BaseMediaAccess = Depends(get_media_access)
 ):
     
@@ -339,7 +340,7 @@ async def put_slot(
     occupied_slot_id: int,
     authorization: str = Header(None), 
     request: ChangeSlotRequest = Depends(), 
-    db: Session = Depends(get_db), 
+    db: Session = Depends(databaseSessionManager.get_db_session), 
     media_access: BaseMediaAccess = Depends(get_media_access)
 ):
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))

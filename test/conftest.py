@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Request
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+from api.sessions.database import MemoryDatabaseSessionManager
 from api.utils.jwt import jwt
 from api.config.endpoints import path_config
 from api.sessions.email import BaseEmailAccess, MemoryEmailAcccess, get_email_access
@@ -12,17 +13,15 @@ from api.sessions.instagram import BaseInstagramAccess, MemoryInstagramAcccess, 
 from api.sessions.files import BaseMediaAccess, MemoryMediaAccess, get_media_access
 from api.middleware.access_handler import AccessHandlerMiddleware
 from api.models.database.model import Song
-from api.mock.database.fill import fill as fill_db
-from mock.database.model import mock_model_local_links
 from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
 from logging_config import setup_logging_testing
 from api.routes.song import router as song_router
 from api.routes.group import router as group_router
 from api.routes.user import router as user_router
 from api.routes.edit import router as edit_router
-from api.sessions.database import get_db, get_db_memory
 from api.security.endpoints_class import EndpointConfig, EndpointInfo
 from api.security.role_enum import RoleEnum
+from api.sessions.database import databaseSessionManager
 # setup logging
 setup_logging_testing()
 logger = logging.getLogger("testing")
@@ -55,9 +54,9 @@ def admintoken():
 # Middleware : None
 @pytest.fixture(scope="function")
 def db_memory():
-    session_generator = get_db_memory()  
+    memory_database_session_manager = MemoryDatabaseSessionManager()
+    session_generator = memory_database_session_manager.get_db_session()  
     session = next(session_generator)
-    fill_db(session, mock_model_local_links)   
     yield session
     
 # Database   : None
@@ -124,7 +123,7 @@ def http_client(
     
 
     # Überschreibe die get_db-Abhängigkeit
-    app.dependency_overrides[get_db] = get_db_override
+    app.dependency_overrides[databaseSessionManager.get_db_session] = get_db_override
     app.dependency_overrides[get_instagram_access] = get_instagram_access_override
     app.dependency_overrides[get_email_access] = get_email_access_override
     app.dependency_overrides[get_media_access] = get_media_access_override
@@ -132,7 +131,7 @@ def http_client(
     with TestClient(app) as test_client:
         yield test_client
         
-    del app.dependency_overrides[get_db]
+    del app.dependency_overrides[databaseSessionManager.get_db_session]
     del app.dependency_overrides[get_instagram_access]
     del app.dependency_overrides[get_email_access]
     del app.dependency_overrides[get_media_access]

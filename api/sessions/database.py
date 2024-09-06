@@ -1,71 +1,148 @@
+from abc import ABC, abstractmethod
 import os
 import logging
-from typing import Annotated
+from typing import Annotated, Any, Generator
 from dotenv import load_dotenv
 from fastapi.params import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from distutils.util import strtobool
-from api.models.database.model import Base
-
-logger = logging.getLogger("testing")
-
+from api.models.database.model import Base, Group,Song ,User ,Edit ,Slot ,Invitation ,LoginRequest ,OccupiedSlot
+from api.utils.database.print_database_contents import print_database_contents
+from mock.database.data import data
+ 
 load_dotenv()
-LOCAL_DB = bool(strtobool(os.getenv("LOCAL_DB")))
-LOCAL_DB_REPO = os.getenv("LOCAL_DB_REPO")
+ 
+DATABASE_LOCAL = bool(strtobool(os.getenv("DATABASE_LOCAL")))
 
-if LOCAL_DB:
-    URL_DATABASE    = f"sqlite:///./{LOCAL_DB_REPO}"
-else:
-    MYSQL_HOST      = os.getenv("MYSQL_HOST")
-    MYSQL_USER      = os.getenv("MYSQL_USER")
-    MYSQL_PASSWORD  = os.getenv("MYSQL_PASSWORD")
-    MYSQL_DB        = os.getenv("MYSQL_DB")
+# TODO
+# fill und print session local check und mit "with"
+
+"""Base"""
+class BaseDatabaseSessionManager(ABC):
     
-    URL_DATABASE    = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB}"
+    @abstractmethod
+    def get_db_session(self) -> Session:
+        pass
+    
+    def _fill(self, data):
+        session = self.SessionLocal()
+        try:
+            # Alte Daten löschen
+            session.query(Group).delete()
+            session.query(Song).delete()
+            session.query(User).delete()
+            session.query(Edit).delete()
+            session.query(Slot).delete()
+            session.query(Invitation).delete()
+            session.query(LoginRequest).delete()
+            session.query(OccupiedSlot).delete()
+            
+            # Neue Daten einfügen
+            session.bulk_insert_mappings(Group, data["groups"])
+            session.bulk_insert_mappings(Song, data["songs"])
+            session.bulk_insert_mappings(User, data["users"])
+            session.bulk_insert_mappings(Edit, data["edits"])
+            session.bulk_insert_mappings(Slot, data["slots"])
+            session.bulk_insert_mappings(Invitation, data["invitations"])
+            session.bulk_insert_mappings(LoginRequest, data["login_requests"])
+            session.bulk_insert_mappings(OccupiedSlot, data["occupied_slots"])
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
+            
+    def _print(self):
+        session = self.SessionLocal()
+        try:
+            print_database_contents(session, {
+                'Slot':         False,
+                'Song':         False,
+                'Edit':         False,
+                'Group':        True,
+                'Invitation':   False,
+                'User':         True,
+                'LoginRequest': True,
+                'OccupiedSlot': False
+            })
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
 
-engine = create_engine(URL_DATABASE, connect_args={"check_same_thread": False} if LOCAL_DB else {})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    
+"""Implementations Local / Remote / Memory"""
 
-# get session for local / server
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-db_dependency = Annotated[Session, Depends(get_db)]
-
-
-# ram database for unittest        
-def get_db_memory():
-    """Creates and configures the database engine and session."""
-    # Erstelle die Engine
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
-
-    # Erstelle die Tabellen im Vorfeld
-    Base.metadata.create_all(bind=engine)
-
-    # Session-Maker für zukünftige Sessions
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-    # Setup einer leeren Session
-    connection = engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
-
-    try:
-        yield session  # Gibt die Session zurück
-    finally:
-        # Teardown: Schließe die Session und rolle die Transaktion zurück
-        session.close()
-        transaction.rollback()
-        connection.close()
-
-        # Entferne die Tabellen nach den Tests
-        Base.metadata.drop_all(bind=engine)
+class RemoteDatabaseSessionManager(BaseDatabaseSessionManager):
+    def __init__(self):
+        database_mysql_host      = os.getenv("DATABASE_MYSQL_HOST")
+        database_mysql_user      = os.getenv("DATABASE_MYSQL_USER")
+        database_mysql_password  = os.getenv("DATABASE_MYSQL_PASSWORD")
+        database_mysql_db        = os.getenv("DATABASE_MYSQL_DB")
+        database_url    = f"mysql+pymysql://{database_mysql_user}:{database_mysql_password}@{database_mysql_host}/{database_mysql_db}"
         
+        engine = create_engine(database_url)
+        Base.metadata.create_all(bind=engine)
+        
+        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+    def get_db_session(self) -> Generator[Session, Any, None]:
+        db = self.SessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+
+class LocalDatabaseSessionManager(BaseDatabaseSessionManager):
+    def __init__(self):
+        database_local_fill = bool(strtobool(os.getenv("DATABASE_LOCAL_FILL")))
+        
+        database_local_repo = os.getenv("DATABASE_LOCAL_REPO")
+        database_url    = f"sqlite:///./{database_local_repo}"
+        
+        engine = create_engine(database_url, connect_args={"check_same_thread": False})
+        Base.metadata.create_all(bind=engine)
+        
+        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        
+        if database_local_fill:
+            self._fill(data)
+        self._print()
+        
+        
+    def get_db_session(self)  -> Generator[Session, Any, None]:
+        print("test")
+        db = self.SessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+    
+class MemoryDatabaseSessionManager(BaseDatabaseSessionManager):
+    def __init__(self):
+        database_url = "sqlite:///:memory:"
+        
+        self.engine = create_engine(database_url, connect_args={"check_same_thread": False})
+        Base.metadata.create_all(bind=self.engine)
+        
+        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+        
+        self._fill(data)
+        
+    def get_db_session(self) -> Generator[Session, Any, None]:
+        connection = self.engine.connect()
+        transaction = connection.begin()
+        session = self.SessionLocal(bind=connection)
+        
+        try:
+            yield session  
+        finally:
+            session.close()
+            transaction.rollback()
+            connection.close()
 
 
-
+databaseSessionManager = LocalDatabaseSessionManager() if DATABASE_LOCAL else RemoteDatabaseSessionManager()

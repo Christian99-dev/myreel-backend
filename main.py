@@ -13,9 +13,7 @@ from api.config.endpoints import path_config
 from api.sessions.files import BaseMediaAccess, media_access
 
 # database
-from api.sessions.database import engine, SessionLocal, get_db
-from api.mock.database.fill import fill as fill_db
-from mock.database.model import mock_model_local_links
+from api.sessions.database import databaseSessionManager
 
 #routes
 from api.routes.song import router as song_router
@@ -39,26 +37,6 @@ load_dotenv()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     
-    # Database setup and fill if neede
-    model.Base.metadata.create_all(bind=engine)
-    LOCAL_DB = strtobool(os.getenv("LOCAL_DB"))
-    with SessionLocal() as session:
-        if LOCAL_DB:  # Guard
-            # Only uncomment if you want to renew the data
-            fill_db(session, mock_model_local_links)
-            pass
-        
-        print_database_contents(session, {
-            'Slot':         False,
-            'Song':         False,
-            'Edit':         False,
-            'Group':        True,
-            'Invitation':   False,
-            'User':         True,
-            'LoginRequest': True,
-            'OccupiedSlot': False
-        })
-
     # Media setup and fill if neede
     media_access.fill("mock/files")
     yield
@@ -68,7 +46,7 @@ app = FastAPI(lifespan=lifespan)
 
 # add middleware
 app.add_middleware(LogAccessMiddleware)
-app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_db=get_db)
+app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_db=databaseSessionManager.get_db_session)
 
 # router
 app.include_router(testing_router)

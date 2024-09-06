@@ -7,7 +7,8 @@ from api.models.schema.user import InviteResponse, AcceptInviteResponse, LoginRe
 from api.utils.jwt.jwt import create_jwt, read_jwt
 
 # sessions
-from api.sessions.database import Session, get_db
+from api.sessions.database import databaseSessionManager
+from sqlalchemy.orm import Session
 
 # database
 from api.services.database.user import create as create_user_service
@@ -36,7 +37,7 @@ router = APIRouter(
 
          
 @router.post("/invite", response_model=InviteResponse, tags=["user"])
-async def invite(request: InviteRequest = Body(...), db: Session = Depends(get_db), email_access: BaseEmailAccess = Depends(get_email_access)): 
+async def invite(request: InviteRequest = Body(...), db: Session = Depends(databaseSessionManager.get_db_session), email_access: BaseEmailAccess = Depends(get_email_access)): 
     try: 
         # erstelle einen invite mit dem service 
         new_invite = create_invite_service(request.groupid, request.email, db=db)
@@ -52,7 +53,7 @@ async def invite(request: InviteRequest = Body(...), db: Session = Depends(get_d
          
          
 @router.post("/acceptInvite", response_model=AcceptInviteResponse,   tags=["user"])
-async def acceptInvite(request: AcceptInviteRequest = Body(...), db: Session = Depends(get_db)):
+async def acceptInvite(request: AcceptInviteRequest = Body(...), db: Session = Depends(databaseSessionManager.get_db_session)):
     
     invite = get_invite_service(request.invitationid, db_session=db)
     
@@ -81,7 +82,7 @@ async def acceptInvite(request: AcceptInviteRequest = Body(...), db: Session = D
     
     
 @router.post("/loginRequest", response_model=LoginRequestResponse,tags=["user"])
-async def loginRequest(request: LoginRequestRequest = Body(...), db: Session = Depends(get_db), email_access: BaseEmailAccess = Depends(get_email_access)):
+async def loginRequest(request: LoginRequestRequest = Body(...), db: Session = Depends(databaseSessionManager.get_db_session), email_access: BaseEmailAccess = Depends(get_email_access)):
     
     user = get_user_by_email(request.email, db=db)
     if user is None:
@@ -100,7 +101,7 @@ async def loginRequest(request: LoginRequestRequest = Body(...), db: Session = D
 
         
 @router.post("/login", response_model=LoginResponse, tags=["user"])
-async def login(request: LoginRequest = Body(...), db: Session = Depends(get_db)):
+async def login(request: LoginRequest = Body(...), db: Session = Depends(databaseSessionManager.get_db_session)):
     # Verwende den Service, um die LoginRequest basierend auf groupid und token zu finden
     login_request = get_login_request_by_groupid_and_token(request.groupid, request.token, db)
     

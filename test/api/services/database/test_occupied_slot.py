@@ -1,14 +1,14 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import OccupiedSlot, Slot
 from api.services.database.occupied_slot import create, get, get_occupied_slots_for_edit, is_slot_occupied, remove
-from mock.database.model import mock_model_local_links
+from mock.database.data import data
 
 # create
 def test_create_occupied_slot(db_memory: Session):
     # Arrange
-    user_id = mock_model_local_links.users[0].user_id  # Verwende eine gültige user_id aus den Testdaten
-    slot_id = mock_model_local_links.slots[0].slot_id  # Verwende eine gültige slot_id aus den Testdaten
-    edit_id = mock_model_local_links.edits[0].edit_id  # Verwende eine gültige edit_id aus den Testdaten
+    user_id = data["users"][0]["user_id"]  # Verwende eine gültige user_id aus den Testdaten
+    slot_id = data["slots"][0]["slot_id"]  # Verwende eine gültige slot_id aus den Testdaten
+    edit_id = data["edits"][0]["edit_id"]  # Verwende eine gültige edit_id aus den Testdaten
     video_src = "http://example.com/new_occupied_slot.mp4"
 
     # Act: Erstelle einen neuen OccupiedSlot
@@ -31,18 +31,17 @@ def test_create_occupied_slot(db_memory: Session):
 # get
 def test_get_occupied_slot(db_memory: Session):
     # Arrange: Verwende einen vorhandenen OccupiedSlot aus den Testdaten
-    existing_occupied_slot = mock_model_local_links.occupied_slots[0]
-    
+    existing_occupied_slot = data["occupied_slots"][0]
     # Act: Hole den OccupiedSlot mit seiner ID
-    fetched_occupied_slot = get(existing_occupied_slot.occupied_slot_id, db_memory)
+    fetched_occupied_slot = get(existing_occupied_slot["occupied_slot_id"], db_memory)
     
     # Assert: Überprüfe, ob der gefundene OccupiedSlot den erwarteten Werten entspricht
     assert fetched_occupied_slot is not None
-    assert fetched_occupied_slot.occupied_slot_id == existing_occupied_slot.occupied_slot_id
-    assert fetched_occupied_slot.user_id == existing_occupied_slot.user_id
-    assert fetched_occupied_slot.slot_id == existing_occupied_slot.slot_id
-    assert fetched_occupied_slot.edit_id == existing_occupied_slot.edit_id
-    assert fetched_occupied_slot.video_src == existing_occupied_slot.video_src
+    assert fetched_occupied_slot.occupied_slot_id == existing_occupied_slot["occupied_slot_id"]
+    assert fetched_occupied_slot.user_id == existing_occupied_slot["user_id"]
+    assert fetched_occupied_slot.slot_id == existing_occupied_slot["slot_id"]
+    assert fetched_occupied_slot.edit_id == existing_occupied_slot["edit_id"]
+    assert fetched_occupied_slot.video_src == existing_occupied_slot["video_src"]
 
 def test_get_occupied_slot_failed(db_memory: Session):
     # Arrange: Verwende eine ungültige occupied_slot_id

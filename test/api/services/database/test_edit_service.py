@@ -1,14 +1,15 @@
 from sqlalchemy.orm import Session
 from api.models.database.model import Edit, OccupiedSlot, Slot
 from api.services.database.edit import are_all_slots_occupied, create, get, get_edits_by_group, is_edit_creator, remove, set_is_live, update
-from mock.database.model import mock_model_local_links
+from mock.database.data import data
+
 
 # create
 def test_create(db_memory: Session):
     # Arrange: Verwende vorhandene Testdaten
     song_id = 1  # Existiert in der gefüllten Datenbank
     created_by = 1  # Existiert in der gefüllten Datenbank
-    group_id = mock_model_local_links.users[0].group_id  # Verwende eine gültige group_id aus den Testdaten
+    group_id = "11111111-1111-1111-1111-111111111111"  # Verwende eine gültige group_id aus den Testdaten
     name = "New Test Edit"
     is_live = True
     video_src = "http://example.com/new_edit.mp4"
@@ -37,20 +38,20 @@ def test_create(db_memory: Session):
 # get    
 def test_get(db_memory: Session):
     # Verwende einen vorhandenen Edit aus den Testdaten
-    existing_edit = mock_model_local_links.edits[0]
+    existing_edit = data["edits"][0]
     
     # Act: Hole den Edit mit seiner ID
-    fetched_edit = get(existing_edit.edit_id, db_memory)
+    fetched_edit = get(existing_edit["edit_id"], db_memory)
     
     # Assert: Prüfe, ob der gefundene Edit den erwarteten Werten entspricht
     assert fetched_edit is not None
-    assert fetched_edit.edit_id == existing_edit.edit_id
-    assert fetched_edit.song_id == existing_edit.song_id
-    assert fetched_edit.created_by == existing_edit.created_by
-    assert fetched_edit.group_id == existing_edit.group_id
-    assert fetched_edit.name == existing_edit.name
-    assert fetched_edit.isLive == existing_edit.isLive
-    assert fetched_edit.video_src == existing_edit.video_src
+    assert fetched_edit.edit_id == existing_edit["edit_id"]
+    assert fetched_edit.song_id == existing_edit["song_id"]
+    assert fetched_edit.created_by == existing_edit["created_by"]
+    assert fetched_edit.group_id == existing_edit["group_id"]
+    assert fetched_edit.name == existing_edit["name"]
+    assert fetched_edit.isLive == existing_edit["isLive"]
+    assert fetched_edit.video_src == existing_edit["video_src"]
 
 def test_get_edit_failed(db_memory: Session):
     # Arrange: Verwende eine ungültige edit_id
@@ -65,13 +66,13 @@ def test_get_edit_failed(db_memory: Session):
 # is_edit_creator
 def test_is_edit_creator_true(db_memory: Session):
     # Verwende die Datenbank mit bestehenden Daten und prüfe den Ersteller eines Edits
-    edit = mock_model_local_links.edits[0]  # Zum Beispiel: Edit 1 wurde von User 1 erstellt
-    assert is_edit_creator(edit.created_by, edit.edit_id, db_memory) == True
+    edit = data["edits"][0]  # Zum Beispiel: Edit 1 wurde von User 1 erstellt
+    assert is_edit_creator(edit["created_by"], edit["edit_id"], db_memory) == True
 
 def test_is_edit_creator_false(db_memory: Session):
     # Prüfe einen Fall, bei dem der User nicht der Ersteller des Edits ist
-    edit = mock_model_local_links.edits[1]  # Zum Beispiel: Edit 2 wurde nicht von User 1 erstellt
-    assert is_edit_creator(1, edit.edit_id, db_memory) == False
+    edit = data["edits"][1]  # Zum Beispiel: Edit 2 wurde nicht von User 1 erstellt
+    assert is_edit_creator(1, edit["edit_id"], db_memory) == False
     
 # remove
 def test_remove_edit(db_memory: Session):
@@ -163,18 +164,18 @@ def test_set_edit_is_live_go_live(db_memory: Session):
 # update edit
 def test_update_name(db_memory: Session):
     # Arrange: Use an existing Edit
-    edit = mock_model_local_links.edits[0]
+    edit = data["edits"][0]
     new_name = "Updated Edit Name"
     
     # Act: Update the name of the Edit
-    updated_edit = update(edit_id=edit.edit_id, name=new_name, db=db_memory)
+    updated_edit = update(edit_id=edit["edit_id"], name=new_name, db=db_memory)
     
     # Assert: Check if the name was updated
     assert updated_edit is not None
     assert updated_edit.name == new_name
     
     # Verify: Ensure that the change was committed to the database
-    edit_in_db = db_memory.query(Edit).filter_by(edit_id=edit.edit_id).one_or_none()
+    edit_in_db = db_memory.query(Edit).filter_by(edit_id=edit["edit_id"]).one_or_none()
     assert edit_in_db is not None
     assert edit_in_db.name == new_name
     
@@ -191,7 +192,7 @@ def test_update_non_existent_edit(db_memory: Session):
     
 # get edits by group
 def test_get_edits_by_groups(db_memory: Session):
-    edits = get_edits_by_group(mock_model_local_links.groups[0].group_id, db_memory)
+    edits = get_edits_by_group("11111111-1111-1111-1111-111111111111", db_memory)
     
     assert len(edits) == 3
     
