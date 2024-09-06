@@ -21,7 +21,7 @@ from api.routes.user import router as user_router
 from api.routes.edit import router as edit_router
 from api.security.endpoints_class import EndpointConfig, EndpointInfo
 from api.security.role_enum import RoleEnum
-from api.sessions.database import databaseSessionManager
+from api.sessions.database import database_session_manager
 # setup logging
 setup_logging_testing()
 logger = logging.getLogger("testing")
@@ -55,9 +55,8 @@ def admintoken():
 @pytest.fixture(scope="function")
 def db_memory():
     memory_database_session_manager = MemoryDatabaseSessionManager()
-    session_generator = memory_database_session_manager.get_db_session()  
-    session = next(session_generator)
-    yield session
+    with memory_database_session_manager.get_session() as session:
+        yield session 
     
 # Database   : None
 # Media      : Mock Media
@@ -123,7 +122,7 @@ def http_client(
     
 
     # Überschreibe die get_db-Abhängigkeit
-    app.dependency_overrides[databaseSessionManager.get_db_session] = get_db_override
+    app.dependency_overrides[database_session_manager.get_session] = get_db_override
     app.dependency_overrides[get_instagram_access] = get_instagram_access_override
     app.dependency_overrides[get_email_access] = get_email_access_override
     app.dependency_overrides[get_media_access] = get_media_access_override
@@ -131,7 +130,7 @@ def http_client(
     with TestClient(app) as test_client:
         yield test_client
         
-    del app.dependency_overrides[databaseSessionManager.get_db_session]
+    del app.dependency_overrides[database_session_manager.get_session]
     del app.dependency_overrides[get_instagram_access]
     del app.dependency_overrides[get_email_access]
     del app.dependency_overrides[get_media_access]

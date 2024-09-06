@@ -13,7 +13,7 @@ from api.config.endpoints import path_config
 from api.sessions.files import BaseMediaAccess, media_access
 
 # database
-from api.sessions.database import databaseSessionManager
+from api.sessions.database import database_session_manager
 
 #routes
 from api.routes.song import router as song_router
@@ -46,7 +46,7 @@ app = FastAPI(lifespan=lifespan)
 
 # add middleware
 app.add_middleware(LogAccessMiddleware)
-app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_db=databaseSessionManager.get_db_session)
+app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_db=database_session_manager.get_session)
 
 # router
 app.include_router(testing_router)
