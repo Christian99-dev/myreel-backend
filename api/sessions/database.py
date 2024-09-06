@@ -36,16 +36,7 @@ class BaseDatabaseSessionManager(ABC):
         """Füllt die Datenbank mit den Daten."""
         session = self.SessionLocal()
         try:
-            # Zuerst den Inhalt der Datenbank löschen
-            session.query(Group).delete()
-            session.query(Song).delete()
-            session.query(User).delete()
-            session.query(Edit).delete()
-            session.query(Slot).delete()
-            session.query(Invitation).delete()
-            session.query(LoginRequest).delete()
-            session.query(OccupiedSlot).delete()
-            session.commit()
+            self._clear()
             
             # Danach neue Daten einfügen
             session.bulk_insert_mappings(Group, data["groups"])
