@@ -15,64 +15,68 @@ load_dotenv()
  
 DATABASE_LOCAL = bool(strtobool(os.getenv("DATABASE_LOCAL")))
 
-# TODO
-# fill und print session local check und mit "with"
-
 """Base"""
 class BaseDatabaseSessionManager(ABC):
-    
+    SessionLocal: sessionmaker = None
+
     @abstractmethod
-    def get_db_session(self) -> Session:
+    def __init__(self):
+        """Initialisiert eine Session. Diese Methode muss von Unterklassen implementiert werden."""
         pass
     
     def _fill(self, data):
-        session = self.SessionLocal()
-        try:
-            # Alte Daten löschen
-            session.query(Group).delete()
-            session.query(Song).delete()
-            session.query(User).delete()
-            session.query(Edit).delete()
-            session.query(Slot).delete()
-            session.query(Invitation).delete()
-            session.query(LoginRequest).delete()
-            session.query(OccupiedSlot).delete()
-            
-            # Neue Daten einfügen
-            session.bulk_insert_mappings(Group, data["groups"])
-            session.bulk_insert_mappings(Song, data["songs"])
-            session.bulk_insert_mappings(User, data["users"])
-            session.bulk_insert_mappings(Edit, data["edits"])
-            session.bulk_insert_mappings(Slot, data["slots"])
-            session.bulk_insert_mappings(Invitation, data["invitations"])
-            session.bulk_insert_mappings(LoginRequest, data["login_requests"])
-            session.bulk_insert_mappings(OccupiedSlot, data["occupied_slots"])
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
-            
-    def _print(self):
-        session = self.SessionLocal()
-        try:
-            print_database_contents(session, {
-                'Slot':         False,
-                'Song':         False,
-                'Edit':         False,
-                'Group':        True,
-                'Invitation':   False,
-                'User':         True,
-                'LoginRequest': True,
-                'OccupiedSlot': False
-            })
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
+        """Füllt die Datenbank nur, wenn eine Session verfügbar ist."""
+        if self.SessionLocal is None:
+            logging.warning("SessionLocal ist None. Datenbank konnte nicht gefüllt werden.")
+            return
 
+        with self.SessionLocal() as session:
+            try:
+                # Alte Daten löschen
+                session.query(Group).delete()
+                session.query(Song).delete()
+                session.query(User).delete()
+                session.query(Edit).delete()
+                session.query(Slot).delete()
+                session.query(Invitation).delete()
+                session.query(LoginRequest).delete()
+                session.query(OccupiedSlot).delete()
+
+                # Neue Daten einfügen
+                session.bulk_insert_mappings(Group, data["groups"])
+                session.bulk_insert_mappings(Song, data["songs"])
+                session.bulk_insert_mappings(User, data["users"])
+                session.bulk_insert_mappings(Edit, data["edits"])
+                session.bulk_insert_mappings(Slot, data["slots"])
+                session.bulk_insert_mappings(Invitation, data["invitations"])
+                session.bulk_insert_mappings(LoginRequest, data["login_requests"])
+                session.bulk_insert_mappings(OccupiedSlot, data["occupied_slots"])
+                session.commit()
+            except Exception as e:
+                session.rollback()
+                raise e
+
+    def _print(self):
+        """Druckt den Datenbankinhalt nur, wenn eine Session verfügbar ist."""
+        if self.SessionLocal is None:
+            logging.warning("SessionLocal ist None. Datenbankinhalt konnte nicht gedruckt werden.")
+            return
+
+        with self.SessionLocal() as session:
+            try:
+                print_database_contents(session, {
+                    'Slot': False,
+                    'Song': False,
+                    'Edit': False,
+                    'Group': True,
+                    'Invitation': False,
+                    'User': True,
+                    'LoginRequest': True,
+                    'OccupiedSlot': False
+                })
+            except Exception as e:
+                session.rollback()
+                raise e
     
 """Implementations Local / Remote / Memory"""
 
