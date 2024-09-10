@@ -69,7 +69,7 @@ def memory_file_session():
 # Routes     : None
 # Middleware : None
 @pytest.fixture
-def instagram_access_memory():
+def memory_instagram_session():
     memory_instagram_session_manager = MemoryInstagramSessionManager()
     yield from memory_instagram_session_manager.get_session()
 
@@ -89,10 +89,10 @@ def email_access_memory():
 # Middleware : None 
 @pytest.fixture(scope="function")
 def http_client(
-        memory_database_session: Session, 
-        memory_file_session: MemoryFileSessionManager, 
-        instagram_access_memory: MemoryInstagramSessionManager, 
-        email_access_memory: MemoryEmailSessionManager
+        memory_database_session     : Session, 
+        memory_file_session         : MemoryFileSessionManager, 
+        memory_instagram_session    : MemoryInstagramSessionManager, 
+        email_access_memory         : MemoryEmailSessionManager
     ):
     
     # adding prod routes
@@ -105,13 +105,13 @@ def http_client(
     def get_database_session_override():
         yield memory_database_session
         
-    def get_instagram_access_override():
-        yield instagram_access_memory
+    def get_instagram_session_override():
+        yield memory_instagram_session
 
     def get_email_access_override():
         yield email_access_memory
 
-    def file_session_manager_override():
+    def get_file_session_override():
         yield memory_file_session
     
     # adding middleware
@@ -120,8 +120,8 @@ def http_client(
     
     # Überschreibe die get_database_session-Abhängigkeit
     app.dependency_overrides[get_database_session] = get_database_session_override
-    app.dependency_overrides[get_file_session] = file_session_manager_override
-    app.dependency_overrides[get_instagram_session] = get_instagram_access_override
+    app.dependency_overrides[get_file_session] = get_file_session_override
+    app.dependency_overrides[get_instagram_session] = get_instagram_session_override
     app.dependency_overrides[get_email_session] = get_email_access_override
 
     with TestClient(app) as test_client:

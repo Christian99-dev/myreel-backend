@@ -41,7 +41,7 @@ router = APIRouter(
 )    
 
 @router.post("/{edit_id}/goLive", response_model=GoLiveResponse, tags=["edit"])
-def go_live(edit_id: int, database_session: Session = Depends(get_database_session), file_session: BaseFileSessionManager = Depends(get_file_session), instagram_access = Depends(get_instagram_session)):
+def go_live(edit_id: int, database_session: Session = Depends(get_database_session), file_session: BaseFileSessionManager = Depends(get_file_session), instagram_session = Depends(get_instagram_session)):
     
     if not are_all_slots_occupied(edit_id, database_session=database_session):
         raise HTTPException(status_code=422, detail="Edit not upload ready, occupie all slots")
@@ -54,7 +54,7 @@ def go_live(edit_id: int, database_session: Session = Depends(get_database_sessi
     
     set_is_live(edit_id, database_session=database_session)
     
-    if instram_upload_service(edit_file, "mp4", "was geht ab instagram", instagram_access):
+    if instram_upload_service(edit_file, "mp4", "was geht ab instagram", instagram_session):
         return {"message": "Auf instagram hochgeladen!"}
        
     

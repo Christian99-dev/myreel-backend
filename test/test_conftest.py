@@ -220,10 +220,10 @@ def test_file_session_memory_files_as_valid_name_check(memory_file_session: Base
 def test_email_access_does_something(email_access_memory):
     email_access_memory.send("to","subject","body")
 
-# -- instagram_access_memory -- #
+# -- instagram_session_memory -- #
 
-def test_instagram_access_does_something(instagram_access_memory):
-    instagram_access_memory.upload(b"", "mp4", "hi")
+def test_instagram_session_does_something(memory_instagram_session):
+    memory_instagram_session.upload(b"", "mp4", "hi")
    
 # -- http_client  -- #
 

@@ -73,12 +73,12 @@ def test2(database_session = Depends(get_database_session), file_session: BaseFi
 
 @router.get("/3", tags=["testing"])
 def test3(
-        instagram_access: BaseInstagramSessionManager = Depends(get_instagram_session), 
+        instagram_session: BaseInstagramSessionManager = Depends(get_instagram_session), 
         file_session: BaseFileSessionManager = Depends(get_file_session)
     ):
-    name = "jp67"
+    name = "a85N"
     demo_video = file_session.get(f"{name}.mp4", "testres")
-    upload(demo_video, "mp4", "was geht", instagram_access)
+    upload(demo_video, "mp4", "was geht", instagram_session)
     return 17
 
 @router.post("/4", tags=["testing"])
