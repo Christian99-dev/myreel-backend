@@ -215,10 +215,10 @@ def test_file_session_memory_files_as_valid_name_check(memory_file_session: Base
     demo_videos = memory_file_session.list("demo_slot")
     assert len(demo_videos) == 1
 
-# -- email_access_memory -- #
+# -- email_session_memory -- #
 
-def test_email_access_does_something(email_access_memory):
-    email_access_memory.send("to","subject","body")
+def test_email_session_does_something(memory_email_session):
+    memory_email_session.send("to","subject","body")
 
 # -- instagram_session_memory -- #
 

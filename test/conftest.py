@@ -78,7 +78,7 @@ def memory_instagram_session():
 # Routes     : None
 # Middleware : None
 @pytest.fixture
-def email_access_memory():
+def memory_email_session():
     memory_email_session_manager = MemoryEmailSessionManager()
     yield from memory_email_session_manager.get_session()
 
@@ -92,7 +92,7 @@ def http_client(
         memory_database_session     : Session, 
         memory_file_session         : MemoryFileSessionManager, 
         memory_instagram_session    : MemoryInstagramSessionManager, 
-        email_access_memory         : MemoryEmailSessionManager
+        memory_email_session         : MemoryEmailSessionManager
     ):
     
     # adding prod routes
@@ -108,8 +108,8 @@ def http_client(
     def get_instagram_session_override():
         yield memory_instagram_session
 
-    def get_email_access_override():
-        yield email_access_memory
+    def get_email_session_override():
+        yield memory_email_session
 
     def get_file_session_override():
         yield memory_file_session
@@ -122,7 +122,7 @@ def http_client(
     app.dependency_overrides[get_database_session] = get_database_session_override
     app.dependency_overrides[get_file_session] = get_file_session_override
     app.dependency_overrides[get_instagram_session] = get_instagram_session_override
-    app.dependency_overrides[get_email_session] = get_email_access_override
+    app.dependency_overrides[get_email_session] = get_email_session_override
 
     with TestClient(app) as test_client:
         yield test_client

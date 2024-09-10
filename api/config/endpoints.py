@@ -38,7 +38,7 @@ path_config = EndpointConfig({
     '/testing/1':            {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
     '/testing/2':            {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
     '/testing/3':            {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
-    '/testing/4':            {"POST": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/testing/4':            {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
     
     # song
     '/song/':                            {"POST":   EndpointInfo(role=RoleEnum.ADMIN, has_subroles=True)},

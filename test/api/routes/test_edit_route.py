@@ -143,7 +143,7 @@ def test_get_edit(http_client: TestClient):
     assert edit["group_id"] == "11111111-1111-1111-1111-111111111111"
     assert edit["name"] == "Edit 1 of Group 1"
     assert edit["isLive"] is False
-    assert edit["video_src"] == "http://localhost:8000/static/edits/1.mp4"
+    assert edit["video_src"] == "http://localhost:8000/files/edits/1.mp4"
 
     # Überprüfen Sie die Slots
     assert isinstance(data["slots"], list)

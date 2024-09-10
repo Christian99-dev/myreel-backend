@@ -37,13 +37,13 @@ router = APIRouter(
 
          
 @router.post("/invite", response_model=InviteResponse, tags=["user"])
-async def invite(request: InviteRequest = Body(...), database_session: Session = Depends(get_database_session), email_access: BaseEmailSessionManager = Depends(get_email_session)): 
+async def invite(request: InviteRequest = Body(...), database_session: Session = Depends(get_database_session), email_session: BaseEmailSessionManager = Depends(get_email_session)): 
     try: 
         # erstelle einen invite mit dem service 
         new_invite = create_invite_service(request.groupid, request.email, database_session=database_session)
         
         # sende eine email raus mit dem servi
-        if email_invite_service(request.email, new_invite.token, new_invite.invitation_id, request.groupid, email_access): 
+        if email_invite_service(request.email, new_invite.token, new_invite.invitation_id, request.groupid, email_session): 
             return {"message" : "Invite successfull"}
         else:
             raise HTTPException(status_code=400, detail="Email konnte nicht gesendet werden")    
@@ -82,7 +82,7 @@ async def acceptInvite(request: AcceptInviteRequest = Body(...), database_sessio
     
     
 @router.post("/loginRequest", response_model=LoginRequestResponse,tags=["user"])
-async def loginRequest(request: LoginRequestRequest = Body(...), database_session: Session = Depends(get_database_session), email_access: BaseEmailSessionManager = Depends(get_email_session)):
+async def loginRequest(request: LoginRequestRequest = Body(...), database_session: Session = Depends(get_database_session), email_session: BaseEmailSessionManager = Depends(get_email_session)):
     
     user = get_user_by_email(request.email, database_session=database_session)
     if user is None:
@@ -95,7 +95,7 @@ async def loginRequest(request: LoginRequestRequest = Body(...), database_sessio
     delete_loging_service(user.user_id, database_session=database_session)
     new_login_request = create_loging_service(user.user_id, expires_in_minutes=10, database_session=database_session)
 
-    email_login_service(user.email, new_login_request.pin, email_access)
+    email_login_service(user.email, new_login_request.pin, email_session)
     
     return {"message": "email wurde versendet"}
 

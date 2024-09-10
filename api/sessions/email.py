@@ -8,7 +8,13 @@ from email.mime.multipart import MIMEMultipart
 from typing import Generator
 
 """ENV"""
-LOCAL_EMAIL_ACCESS = bool(strtobool(os.getenv("LOCAL_EMAIL_ACCESS")))
+EMAIL_LOCAL = bool(strtobool(os.getenv("EMAIL_LOCAL")))
+
+EMAIL_REMOTE_SMTP_HOST           = os.getenv("EMAIL_REMOTE_SMTP_HOST")
+EMAIL_REMOTE_SMTP_SECURE         = bool(strtobool(os.getenv("EMAIL_REMOTE_SMTP_SECURE")))
+EMAIL_REMOTE_SMTP_USER           = os.getenv("EMAIL_REMOTE_SMTP_USER")
+EMAIL_REMOTE_SMTP_PASSWORD       = os.getenv("EMAIL_REMOTE_SMTP_PASSWORD")
+EMAIL_REMOTE_EMAIL_FROM          = os.getenv("EMAIL_REMOTE_EMAIL_FROM")
 
 """Base Email Session Manager"""
 class BaseEmailSessionManager(ABC):
@@ -34,11 +40,6 @@ class BaseEmailSessionManager(ABC):
 class RemoteEmailSessionManager(BaseEmailSessionManager):
     def __init__(self):
         """Initialisiert den Fernzugriff auf E-Mails über SMTP."""
-        self.smtp_host = os.getenv("SMTP_HOST")
-        self.smtp_secure = bool(strtobool(os.getenv("SMTP_SECURE")))
-        self.smtp_user = os.getenv("SMTP_USER")
-        self.smtp_password = os.getenv("SMTP_PASSWORD")
-        self.email_from = os.getenv("EMAIL_FROM")
 
     def get_session(self) -> Generator["BaseEmailSessionManager", None, None]:
         """Erzeugt eine Fern-E-Mail-Sitzung."""
@@ -50,13 +51,13 @@ class RemoteEmailSessionManager(BaseEmailSessionManager):
 
     def send(self, to: str, subject: str, body: str) -> bool:
         """Sendet eine E-Mail über SMTP."""
-        if not all([self.smtp_host, self.smtp_user, self.smtp_password, self.email_from]):
+        if not all([EMAIL_REMOTE_SMTP_HOST, EMAIL_REMOTE_SMTP_USER, EMAIL_REMOTE_SMTP_PASSWORD, EMAIL_REMOTE_EMAIL_FROM]):
             raise ValueError("Missing environment variables for SMTP configuration.")
         
         try:
             # Erstelle die E-Mail
             msg = MIMEMultipart()
-            msg['From'] = self.email_from
+            msg['From'] = EMAIL_REMOTE_EMAIL_FROM
             msg['To'] = to
             msg['Subject'] = subject
             
@@ -64,14 +65,14 @@ class RemoteEmailSessionManager(BaseEmailSessionManager):
             msg.attach(MIMEText(body, 'plain'))
             
             # Verbindung zum SMTP-Server aufbauen
-            if self.smtp_secure:
-                server = smtplib.SMTP_SSL(self.smtp_host)
+            if EMAIL_REMOTE_SMTP_SECURE:
+                server = smtplib.SMTP_SSL(EMAIL_REMOTE_SMTP_HOST)
             else:
-                server = smtplib.SMTP(self.smtp_host)
+                server = smtplib.SMTP(EMAIL_REMOTE_SMTP_HOST)
                 server.starttls()  # Verbindungsverschlüsselung starten, falls nicht SSL
 
-            server.login(self.smtp_user, self.smtp_password)
-            server.sendmail(self.email_from, to, msg.as_string())
+            server.login(EMAIL_REMOTE_SMTP_USER, EMAIL_REMOTE_SMTP_PASSWORD)
+            server.sendmail(EMAIL_REMOTE_EMAIL_FROM, to, msg.as_string())
             server.quit()
             
             print("Email sent successfully!")
@@ -83,7 +84,7 @@ class RemoteEmailSessionManager(BaseEmailSessionManager):
 class LocalEmailSessionManager(BaseEmailSessionManager):
     def __init__(self):
         """Initialisiert den lokalen E-Mail-Zugang."""
-        self.email_repo = os.getenv("LOCAL_EMAIL_REPO", "outgoing_emails_test")
+        self.email_repo = "outgoing/email"
         
         # Sicherstellen, dass der Ordner existiert
         if not os.path.exists(self.email_repo):
@@ -152,7 +153,7 @@ def get_email_session():
     
     # beim ersten Ausführen
     if _email_session_manager is None:
-        _email_session_manager = LocalEmailSessionManager() if LOCAL_EMAIL_ACCESS else RemoteEmailSessionManager()
+        _email_session_manager = LocalEmailSessionManager() if EMAIL_LOCAL else RemoteEmailSessionManager()
     
     # Öffnet die Session und gibt sie zurück
     gen = _email_session_manager.get_session()

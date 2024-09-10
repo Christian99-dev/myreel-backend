@@ -5,6 +5,7 @@ import string
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 
+from api.sessions.email import BaseEmailSessionManager, get_email_session
 from api.sessions.instagram import get_instagram_session, BaseInstagramSessionManager
 from api.sessions.files import get_file_session
 from api.sessions.database import get_database_session
@@ -81,22 +82,12 @@ def test3(
     upload(demo_video, "mp4", "was geht", instagram_session)
     return 17
 
-@router.post("/4", tags=["testing"])
-async def upload_file(file: UploadFile = File(...)):
-    file_type = "video"
-    """Endpunkt zum Hochladen einer Datei und Validierung basierend auf dem Dateityp."""
-    # (validated_file, message) = file_config(file, file_type)
+@router.get("/4", tags=["testing"])
+async def upload_file(email_session: BaseEmailSessionManager = Depends(get_email_session)):
+    invite("k.christian9@web.de", "testcode", "ttestid", "12111", email_session)
+    return 17
+
     
-    # Überprüfe, ob die Datei gültig ist
-    # if validated_file is None:
-        # raise HTTPException(status_code=400, detail=message)
-
-    # Hier kannst du die Datei speichern oder weiterverarbeiten
-    # Beispielsweise:
-    # with open(f"./uploads/{validated_file.filename}", "wb") as f:
-    #     f.write(await validated_file.read())
-
-    # return {"filename": validated_file.filename, "file_type": file_type}
 
 
 def generate_random_characters():
