@@ -28,11 +28,11 @@ path_config = EndpointConfig({
     '/':                                   {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
 
     # Static routes
-    '/static/covers/{filename}':           {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
-    '/static/demo_slot/{filename}':        {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
-    '/static/edits/{filename}':            {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
-    '/static/occupied_slots/{filename}':   {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
-    '/static/songs/{filename}':            {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/files/covers/{filename}':           {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/files/demo_slot/{filename}':        {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/files/edits/{filename}':            {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/files/occupied_slots/{filename}':   {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
+    '/files/songs/{filename}':            {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
     
     # testroutes
     '/testing/1':            {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
