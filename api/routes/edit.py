@@ -2,8 +2,8 @@ from typing import List
 from wsgiref import validate
 from fastapi import APIRouter, Body, Depends, HTTPException, Header, Request
 from api.utils.jwt import jwt
-from api.sessions.instagram import get_instagram_access
-from api.sessions.files import BaseMediaAccess, get_media_access
+from api.sessions.instagram import get_instagram_session
+from api.sessions.files import BaseFileSessionManager
 from api.models.schema.edit import AddSlotRequest, AddSlotResponse, ChangeSlotRequest, ChangeSlotResponse, DeleteEditResponse, DeleteSlotRequest, DeleteSlotResponse, EditListResponse,User, GetEditResponse, GoLiveResponse, PostRequest, Slot
 from api.models.schema.edit import PostResponse
 from api.services.database.edit import get as get_edit_serivce, remove
@@ -26,12 +26,13 @@ from api.services.database.occupied_slot import create as create_occupied_slot_s
 from api.services.database.occupied_slot import update as update_occupied_slot_service
 
 # sessions
-from api.sessions.database import database_session_manager
+from api.sessions.database import get_database_session
 from sqlalchemy.orm import Session
 from api.utils.files.file_validation import file_validation
 from api.utils.files.file_validation import file_validation
 from api.utils.media_manipulation.create_edit_video import create_edit_video
 from api.utils.media_manipulation.swap_slot_in_edit_video import swap_slot_in_edit
+from api.sessions.files import get_file_session
 
 # database
 
@@ -40,7 +41,7 @@ router = APIRouter(
 )    
 
 @router.post("/{edit_id}/goLive", response_model=GoLiveResponse, tags=["edit"])
-def go_live(edit_id: int, db: Session = Depends(database_session_manager.get_session), media_access: BaseMediaAccess = Depends(get_media_access), instagram_access = Depends(get_instagram_access)):
+def go_live(edit_id: int, db: Session = Depends(get_database_session), media_access: BaseFileSessionManager = Depends(get_file_session), instagram_access = Depends(get_instagram_session)):
     
     if not are_all_slots_occupied(edit_id, db=db):
         raise HTTPException(status_code=422, detail="Edit not upload ready, occupie all slots")
@@ -58,7 +59,7 @@ def go_live(edit_id: int, db: Session = Depends(database_session_manager.get_ses
        
     
 @router.delete("/{edit_id}", response_model=DeleteEditResponse, tags=["edit"])
-async def delete_edit(edit_id: int, db: Session = Depends(database_session_manager.get_session)):
+async def delete_edit(edit_id: int, db: Session = Depends(get_database_session)):
     
     if remove_edit_service(edit_id, db=db):
         return {"message" : "Deleted Successfully"}
@@ -68,8 +69,8 @@ async def delete_edit(edit_id: int, db: Session = Depends(database_session_manag
 @router.post("/", response_model=PostResponse, tags=["edit"])
 def create_edit(
     request: PostRequest = Body(...),
-    db: Session = Depends(database_session_manager.get_session),
-    media_access: BaseMediaAccess = Depends(get_media_access),
+    db: Session = Depends(get_database_session),
+    media_access: BaseFileSessionManager = Depends(get_file_session),
     authorization: str = Header(None)
 ):        
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
@@ -148,7 +149,7 @@ def create_edit(
 
     return response
 @router.get("/group/{group_id}/list", response_model=EditListResponse, tags=["edit"])
-async def get_edits_for_group(group_id: str, db: Session = Depends(database_session_manager.get_session)):
+async def get_edits_for_group(group_id: str, db: Session = Depends(get_database_session)):
     # Abrufen aller Edits für die gegebene Gruppen-ID
     edits = get_edits_by_group(group_id, db)
 
@@ -180,7 +181,7 @@ async def get_edits_for_group(group_id: str, db: Session = Depends(database_sess
     return EditListResponse(edits=response_list)
 
 @router.get("/group/{group_id}/{edit_id}", response_model=GetEditResponse,  tags=["edit"])
-async def get_edit_details(group_id: str, edit_id: int, db: Session = Depends(database_session_manager.get_session)):
+async def get_edit_details(group_id: str, edit_id: int, db: Session = Depends(get_database_session)):
     # Abrufen des Edits
     edit = get_edit_serivce(edit_id, db)
 
@@ -240,8 +241,8 @@ async def get_edit_details(group_id: str, edit_id: int, db: Session = Depends(da
 async def delete_slot(
     occupied_slot_id: int,
     authorization: str = Header(None), 
-    db: Session = Depends(database_session_manager.get_session), 
-    media_access: BaseMediaAccess = Depends(get_media_access)
+    db: Session = Depends(get_database_session), 
+    media_access: BaseFileSessionManager = Depends(get_file_session)
 ):
     
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
@@ -268,8 +269,8 @@ async def post_slot(
     edit_id: int,
     authorization: str = Header(None), 
     request: AddSlotRequest = Depends(), 
-    db: Session = Depends(database_session_manager.get_session), 
-    media_access: BaseMediaAccess = Depends(get_media_access)
+    db: Session = Depends(get_database_session), 
+    media_access: BaseFileSessionManager = Depends(get_file_session)
 ):
     
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
@@ -340,8 +341,8 @@ async def put_slot(
     occupied_slot_id: int,
     authorization: str = Header(None), 
     request: ChangeSlotRequest = Depends(), 
-    db: Session = Depends(database_session_manager.get_session), 
-    media_access: BaseMediaAccess = Depends(get_media_access)
+    db: Session = Depends(get_database_session), 
+    media_access: BaseFileSessionManager = Depends(get_file_session)
 ):
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
 

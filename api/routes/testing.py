@@ -5,11 +5,10 @@ import string
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 
-from api.sessions.email import email_access, BaseEmailAccess
-from api.sessions.instagram import instagram_access, BaseInstagramAccess
-from api.sessions.files import get_media_access, media_access
-from api.sessions.database import database_session_manager
-from api.sessions.files import BaseMediaAccess
+from api.sessions.instagram import get_instagram_session, BaseInstagramSessionManager
+from api.sessions.files import get_file_session
+from api.sessions.database import get_database_session
+from api.sessions.files import BaseFileSessionManager
 from api.services.email.invite import invite
 from api.services.email.login import login
 from api.services.instagram.upload import upload
@@ -18,14 +17,18 @@ from api.utils.media_manipulation.create_edit_video import create_edit_video
 from api.utils.media_manipulation.swap_slot_in_edit_video import swap_slot_in_edit
 from fastapi import FastAPI, File, UploadFile, HTTPException
 
+from api.sessions.files import get_file_session
+
 
 router = APIRouter(
     prefix="/testing",
 )    
 
 @router.get("/1", tags=["testing"])
-def test1(db = Depends(database_session_manager.get_session), media_access: BaseMediaAccess = Depends(get_media_access)):
-    
+def test1(
+    db = Depends(get_database_session), 
+    media_access: BaseFileSessionManager = Depends(get_file_session)
+):
     video_bytes = media_access.get("demo.mp4", "demo_slot")
     song_bytes = media_access.get("1.wav", "songs")
     
@@ -46,7 +49,7 @@ def test1(db = Depends(database_session_manager.get_session), media_access: Base
     return 18
 
 @router.get("/2", tags=["testing"])
-def test2(db = Depends(database_session_manager.get_session), media_access: BaseEmailAccess = Depends(get_media_access)):
+def test2(db = Depends(get_database_session), media_access: BaseFileSessionManager = Depends(get_file_session)):
     name = "9oB0"
     input_video_bytes = media_access.get(f"{name}.mp4", "testres")
     new_video_bytes   = media_access.get("1.mp4", "occupied_slots")
@@ -70,8 +73,8 @@ def test2(db = Depends(database_session_manager.get_session), media_access: Base
 
 @router.get("/3", tags=["testing"])
 def test3(
-        instagram_access: BaseInstagramAccess = Depends(lambda: instagram_access), 
-        media_access: BaseEmailAccess = Depends(lambda: media_access)
+        instagram_access: BaseInstagramSessionManager = Depends(get_instagram_session), 
+        media_access: BaseFileSessionManager = Depends(get_file_session)
     ):
     name = "jp67"
     demo_video = media_access.get(f"{name}.mp4", "testres")

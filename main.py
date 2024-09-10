@@ -1,19 +1,12 @@
-from contextlib import asynccontextmanager
 import os
-from fastapi import APIRouter, Depends, FastAPI
+from fastapi import FastAPI
 from dotenv import load_dotenv
 from distutils.util import strtobool
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
-from api.models.database import model
-from api.utils.database.print_database_contents import print_database_contents
 from logging_config import setup_logging_prod
 from api.config.endpoints import path_config
-# media 
-from api.sessions.files import BaseMediaAccess, media_access
 
 # database
-from api.sessions.database import database_session_manager
+from api.sessions.database import get_database_session
 
 #routes
 from api.routes.song import router as song_router
@@ -30,23 +23,16 @@ from api.middleware.access_handler import AccessHandlerMiddleware
 # setup loggers
 setup_logging_prod()
 
-# env
+# env 
 load_dotenv()
+LOCAL_MEDIA_ACCESS = bool(strtobool(os.getenv("LOCAL_MEDIA_ACCESS")))
 
-# Define the lifespan context manager
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    
-    # Media setup and fill if neede
-    media_access.fill("mock/files")
-    yield
-
-# app
-app = FastAPI(lifespan=lifespan)
+# Verwende die Lifespan-Funktion in der FastAPI-App
+app = FastAPI()
 
 # add middleware
 app.add_middleware(LogAccessMiddleware)
-app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_db=database_session_manager.get_session)
+app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_db=get_database_session)
 
 # router
 app.include_router(testing_router)
@@ -55,7 +41,6 @@ app.include_router(song_router)
 app.include_router(group_router)
 app.include_router(user_router)
 app.include_router(edit_router)
-
 
 # root
 @app.get("/")

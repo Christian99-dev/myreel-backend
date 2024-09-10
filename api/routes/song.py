@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from api.models.schema.song import DeleteResponse, GetResponse, ListResponse, PostRequest, PostResponse
 
 # sessions
-from api.sessions.files import get_media_access, BaseMediaAccess
-from api.sessions.database import database_session_manager
+from api.sessions.files import BaseFileSessionManager
+from api.sessions.database import get_database_session
 from sqlalchemy.orm import Session
 
 # database
@@ -14,6 +14,7 @@ from api.services.files.song  import create as create_song_media_service, remove
 from api.services.files.cover import create as create_cover_media_service, remove as remove_cover_media_service
 from api.utils.files.file_validation import file_validation
 from api.utils.files.get_audio_duration import get_audio_duration
+from api.sessions.files import get_file_session
 
 router = APIRouter(
     prefix="/song",
@@ -22,8 +23,8 @@ router = APIRouter(
 @router.post("/", response_model=PostResponse, tags=["song"])
 async def create(
     request: PostRequest = Depends(),
-    db: Session = Depends(database_session_manager.get_session),
-    media_access: BaseMediaAccess = Depends(get_media_access)
+    db: Session = Depends(get_database_session),
+    media_access: BaseFileSessionManager = Depends(get_file_session)
 ):    
     try:
         if(len(request.breakpoints) < 2):
@@ -91,7 +92,7 @@ async def create(
         raise HTTPException(status_code=400, detail=str(e))    
     
 @router.delete("/{song_id}", response_model=DeleteResponse, tags=["song"])
-async def delete(song_id: int, db: Session = Depends(database_session_manager.get_session), media_access: BaseMediaAccess = Depends(get_media_access)):
+async def delete(song_id: int, db: Session = Depends(get_database_session), media_access: BaseFileSessionManager = Depends(get_file_session)):
     # Try to remove the media file associated with the song
     song_media_removed = remove_song_media_service(song_id, media_access)
     cover_media_removed = remove_cover_media_service(song_id, media_access)
@@ -110,12 +111,12 @@ async def delete(song_id: int, db: Session = Depends(database_session_manager.ge
     return {"message": "Song and associated media deleted successfully"}
 
 @router.get("/list", response_model=ListResponse, tags=["song"])
-async def list_songs(db: Session = Depends(database_session_manager.get_session)):
+async def list_songs(db: Session = Depends(get_database_session)):
     songs = list_all(db_session=db)
     return {"songs": songs}
 
 @router.get("/{song_id}", response_model=GetResponse, tags=["song"])
-async def get(song_id: int, db: Session = Depends(database_session_manager.get_session)):
+async def get(song_id: int, db: Session = Depends(get_database_session)):
     song = get_song_service(song_id=song_id, db_session=db)
     if not song:
         raise HTTPException(status_code=404, detail="Song not found")

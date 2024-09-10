@@ -8,9 +8,9 @@ from sqlalchemy.orm import Session
 from api.sessions.database import MemoryDatabaseSessionManager
 from api.utils.jwt import jwt
 from api.config.endpoints import path_config
-from api.sessions.email import BaseEmailAccess, MemoryEmailAcccess, get_email_access
-from api.sessions.instagram import BaseInstagramAccess, MemoryInstagramAcccess, get_instagram_access
-from api.sessions.files import BaseMediaAccess, MemoryMediaAccess, get_media_access
+from api.sessions.email import MemoryEmailSessionManager, get_email_session
+from api.sessions.instagram import MemoryInstagramSessionManager, get_instagram_session
+from api.sessions.files import MemoryFileSessionManager, get_file_session
 from api.middleware.access_handler import AccessHandlerMiddleware
 from api.models.database.model import Song
 from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
@@ -21,15 +21,13 @@ from api.routes.user import router as user_router
 from api.routes.edit import router as edit_router
 from api.security.endpoints_class import EndpointConfig, EndpointInfo
 from api.security.role_enum import RoleEnum
-from api.sessions.database import database_session_manager
+from api.sessions.database import get_database_session
 # setup logging
 setup_logging_testing()
 logger = logging.getLogger("testing")
 
 # env
 load_dotenv()
-
-
 ## -- MAIN FIXTURES -- ## 
 
 # Database   : None 
@@ -55,8 +53,7 @@ def admintoken():
 @pytest.fixture(scope="function")
 def db_memory():
     memory_database_session_manager = MemoryDatabaseSessionManager()
-    with memory_database_session_manager.get_session() as session:
-        yield session 
+    yield from memory_database_session_manager.get_session()
     
 # Database   : None
 # Media      : Mock Media
@@ -64,9 +61,8 @@ def db_memory():
 # Middleware : None
 @pytest.fixture
 def media_access_memory():
-    media_access_memory = MemoryMediaAccess()
-    media_access_memory.fill("mock/files")
-    return media_access_memory
+    memory_file_session_manager = MemoryFileSessionManager()
+    yield from memory_file_session_manager.get_session()
 
 # Database   : None
 # Media      : None
@@ -74,7 +70,8 @@ def media_access_memory():
 # Middleware : None
 @pytest.fixture
 def instagram_access_memory():
-    return MemoryInstagramAcccess()
+    memory_instagram_session_manager = MemoryInstagramSessionManager()
+    yield from memory_instagram_session_manager.get_session()
 
 # Database   : None
 # Media      : None
@@ -82,7 +79,8 @@ def instagram_access_memory():
 # Middleware : None
 @pytest.fixture
 def email_access_memory():
-    return MemoryEmailAcccess()
+    memory_email_session_manager = MemoryEmailSessionManager()
+    yield from memory_email_session_manager.get_session()
 
 
 # Database   : Test_Data
@@ -92,9 +90,9 @@ def email_access_memory():
 @pytest.fixture(scope="function")
 def http_client(
         db_memory: Session, 
-        media_access_memory: MemoryMediaAccess, 
-        instagram_access_memory: MemoryInstagramAcccess, 
-        email_access_memory: MemoryEmailAcccess
+        media_access_memory: MemoryFileSessionManager, 
+        instagram_access_memory: MemoryInstagramSessionManager, 
+        email_access_memory: MemoryEmailSessionManager
     ):
     
     # adding prod routes
@@ -108,32 +106,31 @@ def http_client(
         yield db_memory
         
     def get_instagram_access_override():
-        return instagram_access_memory
+        yield instagram_access_memory
 
     def get_email_access_override():
-        return email_access_memory
+        yield email_access_memory
 
-    def get_media_access_override():
-        return media_access_memory
+    def file_session_manager_override():
+        yield media_access_memory
     
     # adding middleware
     app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_db=get_db_override)
     
     
-
     # Überschreibe die get_db-Abhängigkeit
-    app.dependency_overrides[database_session_manager.get_session] = get_db_override
-    app.dependency_overrides[get_instagram_access] = get_instagram_access_override
-    app.dependency_overrides[get_email_access] = get_email_access_override
-    app.dependency_overrides[get_media_access] = get_media_access_override
+    app.dependency_overrides[get_database_session] = get_db_override
+    app.dependency_overrides[get_file_session] = file_session_manager_override
+    app.dependency_overrides[get_instagram_session] = get_instagram_access_override
+    app.dependency_overrides[get_email_session] = get_email_access_override
 
     with TestClient(app) as test_client:
         yield test_client
         
-    del app.dependency_overrides[database_session_manager.get_session]
-    del app.dependency_overrides[get_instagram_access]
-    del app.dependency_overrides[get_email_access]
-    del app.dependency_overrides[get_media_access]
+    del app.dependency_overrides[get_database_session]
+    del app.dependency_overrides[get_file_session]
+    del app.dependency_overrides[get_instagram_session]
+    del app.dependency_overrides[get_email_session]
     
 
 ## -- SPECIFIC FIXTURES -- ## 

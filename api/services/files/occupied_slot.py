@@ -1,6 +1,6 @@
-from api.sessions.files import BaseMediaAccess
+from api.sessions.files import BaseFileSessionManager
 
-def get(occupied_slot_id: int, media_access: BaseMediaAccess) -> bytes:
+def get(occupied_slot_id: int, media_access: BaseFileSessionManager) -> bytes:
     """Holt sich eine Mediendatei basierend auf der slot_id."""
     files = media_access.list("occupied_slots")
     
@@ -10,7 +10,7 @@ def get(occupied_slot_id: int, media_access: BaseMediaAccess) -> bytes:
             return media_data
     return None
 
-def create(occupied_slot_id: int, file_extension: str, file: bytes, media_access: BaseMediaAccess) -> str:
+def create(occupied_slot_id: int, file_extension: str, file: bytes, media_access: BaseFileSessionManager) -> str:
     """Speichert eine neue Mediendatei basierend auf der slot_id und der Dateierweiterung."""
     file_name = f"{occupied_slot_id}.{file_extension}"  # z.B. "1.slot"
     location = media_access.save(file_name, "occupied_slots", file)
@@ -20,7 +20,7 @@ def create(occupied_slot_id: int, file_extension: str, file: bytes, media_access
     
     return location
 
-def remove(occupied_slot_id: int, media_access: BaseMediaAccess) -> bool:
+def remove(occupied_slot_id: int, media_access: BaseFileSessionManager) -> bool:
     """Entfernt eine Mediendatei basierend auf der slot_id."""
     file_extension = None
     files = media_access.list("occupied_slots")
@@ -35,7 +35,7 @@ def remove(occupied_slot_id: int, media_access: BaseMediaAccess) -> bool:
         return True
     return False
 
-def update(occupied_slot_id: int, file_extension: str, file: bytes, media_access: BaseMediaAccess) -> str:
+def update(occupied_slot_id: int, file_extension: str, file: bytes, media_access: BaseFileSessionManager) -> str:
     """Aktualisiert eine bestehende Mediendatei, indem die alte gelöscht und eine neue hinzugefügt wird."""
     remove(occupied_slot_id, media_access)  # Alte Datei entfernen
     return create(occupied_slot_id, file_extension, file, media_access)  # Neue Datei hinzufügen

@@ -6,7 +6,7 @@ from api.utils.jwt.jwt import create_jwt, read_jwt
 
 
 # sessions
-from api.sessions.database import database_session_manager
+from api.sessions.database import get_database_session
 from sqlalchemy.orm import Session
 
 # database
@@ -25,7 +25,7 @@ router = APIRouter(
 )    
 
 @router.post("/", response_model=PostResponse, tags=["group"])
-async def create(request: PostRequest = Body(...), db: Session = Depends(database_session_manager.get_session)): 
+async def create(request: PostRequest = Body(...), db: Session = Depends(get_database_session)): 
     # Erstelle die Gruppe
     new_group = create_group_service(name=request.groupname, db=db)
 
@@ -48,7 +48,7 @@ async def create(request: PostRequest = Body(...), db: Session = Depends(databas
     return PostResponse(group_id=new_group.group_id, name=new_group.name, jwt=jwt_token)   
  
 @router.delete("/{group_id}", response_model=DeleteResponse, tags=["group"])
-async def delete(group_id: str, db: Session = Depends(database_session_manager.get_session)):
+async def delete(group_id: str, db: Session = Depends(get_database_session)):
     # Überprüfen, ob die Gruppe existiert und entfernen
     success = remove_group_service(group_id, db)
 
@@ -58,7 +58,7 @@ async def delete(group_id: str, db: Session = Depends(database_session_manager.g
     return DeleteResponse(message="Group successfully deleted")
 
 @router.get("/{group_id}", response_model=GetResponse, tags=["group"])
-async def get(group_id: str, db: Session = Depends(database_session_manager.get_session)):
+async def get(group_id: str, db: Session = Depends(get_database_session)):
     group = get_group_service(group_id=group_id, db=db)
     
     if not group:
@@ -68,7 +68,7 @@ async def get(group_id: str, db: Session = Depends(database_session_manager.get_
 
 # Hole die Rolle des Benutzers in der Gruppe
 @router.get("/{group_id}/role", response_model=GetRoleResponse, tags=["group"])
-async def get_role(group_id: str, request: Request, db: Session = Depends(database_session_manager.get_session)):
+async def get_role(group_id: str, request: Request, db: Session = Depends(get_database_session)):
     # Extrahiere den JWT-Token aus den Headern
     jwt_token = request.headers.get('Authorization').replace("Bearer ", "")
     
@@ -82,7 +82,7 @@ async def get_role(group_id: str, request: Request, db: Session = Depends(databa
         raise HTTPException(status_code=404, detail="User not a member of this group")
         
 @router.get("/{group_id}/groupExists", response_model=GroupExistsResponse, tags=["group"])
-async def group_exist(group_id: str, db: Session = Depends(database_session_manager.get_session)):
+async def group_exist(group_id: str, db: Session = Depends(get_database_session)):
     # Überprüfen, ob die Gruppe existiert
     group = get_group_service(group_id=group_id, db=db)
     
@@ -92,7 +92,7 @@ async def group_exist(group_id: str, db: Session = Depends(database_session_mana
     return {"exists":False}
 
 @router.get("/{group_id}/listMembers", response_model=GetMembersResponse, tags=["group"])
-async def list_members(group_id: str, db: Session = Depends(database_session_manager.get_session)):
+async def list_members(group_id: str, db: Session = Depends(get_database_session)):
     # Liste der Mitglieder der Gruppe abrufen
     members = list_members_groud_service(group_id=group_id, db=db)
     

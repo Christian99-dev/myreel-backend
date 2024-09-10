@@ -1,12 +1,12 @@
 from fastapi.testclient import TestClient
-from api.sessions.files import BaseMediaAccess
+from api.sessions.files import BaseFileSessionManager
 from api.services.files.cover import get as get_cover
 from api.services.files.song import get as get_song
 from api.services.database.song import remove as remove_song_service
 from sqlalchemy.orm import Session
 
 # create
-def test_create(http_client: TestClient, media_access_memory: BaseMediaAccess, admintoken: int): 
+def test_create(http_client: TestClient, media_access_memory: BaseFileSessionManager, admintoken: int): 
     cover_file_bytes = get_cover(1, media_access_memory)  # Mock cover file
     song_file_bytes = get_song(1, media_access_memory)    # Mock song file
 
@@ -37,7 +37,7 @@ def test_create(http_client: TestClient, media_access_memory: BaseMediaAccess, a
     assert isinstance(response_data["cover_src"], str)
     assert isinstance(response_data["audio_src"], str)
     
-def test_create_not_good_breakpoints(http_client: TestClient, media_access_memory: BaseMediaAccess, admintoken: int): 
+def test_create_not_good_breakpoints(http_client: TestClient, media_access_memory: BaseFileSessionManager, admintoken: int): 
     cover_file_bytes = get_cover(1, media_access_memory)  # Mock cover file
     song_file_bytes = get_song(1, media_access_memory)    # Mock song file
 

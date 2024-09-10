@@ -1,7 +1,7 @@
-from api.sessions.files import BaseMediaAccess
+from api.sessions.files import BaseFileSessionManager
 
 
-def get(song_id: int, media_access: BaseMediaAccess) -> bytes:
+def get(song_id: int, media_access: BaseFileSessionManager) -> bytes:
     """Holt sich eine Mediendatei basierend auf der song_id."""
     # Zuerst die Liste der Dateien im Verzeichnis "songs" abrufen
     files = media_access.list("songs")
@@ -14,7 +14,7 @@ def get(song_id: int, media_access: BaseMediaAccess) -> bytes:
             return media_data
     return None
 
-def create(song_id: int, file_extension: str, file: bytes, media_access: BaseMediaAccess) -> str:
+def create(song_id: int, file_extension: str, file: bytes, media_access: BaseFileSessionManager) -> str:
     """Speichert eine neue Mediendatei basierend auf der song_id und der Dateierweiterung."""
     # Erstelle den Dateinamen aus der song_id und der Dateierweiterung
     file_name = f"{song_id}.{file_extension}"  # z.B. "1234.mp3"
@@ -25,7 +25,7 @@ def create(song_id: int, file_extension: str, file: bytes, media_access: BaseMed
     
     return location
 
-def remove(song_id: int, media_access: BaseMediaAccess):
+def remove(song_id: int, media_access: BaseFileSessionManager):
     file_extension = None
     # Zuerst überprüfen, ob die Datei existiert und die Erweiterung abrufen
     files = media_access.list("songs")

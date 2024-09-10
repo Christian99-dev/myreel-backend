@@ -7,7 +7,7 @@ from api.models.database.model import Edit, Group, Song, User, Slot, Invitation,
 from test.role_creds import admin_req_creds, group_creator_req_creds, edit_creator_req_creds, external_req_creds, group_member_req_creds, group_creator_with_edit_id_req_creds, group_member_with_edit_id_req_creds
 from fastapi.testclient import TestClient
 from test.utils.role_tester_has_acccess import role_tester_has_access
-from api.sessions.files import BaseMediaAccess
+from api.sessions.files import BaseFileSessionManager
 from mock.database.data import data
 
 
@@ -136,7 +136,7 @@ def test_db_memory_data_test(db_memory: Session):
 
 # -- media_access_memory -- #
 
-def test_media_access_memory_isolation(media_access_memory: BaseMediaAccess):
+def test_media_access_memory_isolation(media_access_memory: BaseFileSessionManager):
     """Testet die Isolation von MediaAccess."""
     
     # Überprüfen, ob der Speicher zu Beginn leer ist
@@ -149,7 +149,7 @@ def test_media_access_memory_isolation(media_access_memory: BaseMediaAccess):
     assert 'test_file.txt' in media_access_memory.list('test_dir')
     assert media_access_memory.get('test_file.txt', 'test_dir') == b'Test content'
 
-def test_media_access_memory_isolation_other(media_access_memory: BaseMediaAccess):
+def test_media_access_memory_isolation_other(media_access_memory: BaseFileSessionManager):
     """Testet die Isolation, um sicherzustellen, dass ein anderer Test nicht die Daten beeinflusst."""
     
     # Überprüfen, ob der Speicher zu Beginn leer ist
@@ -165,7 +165,7 @@ def test_media_access_memory_isolation_other(media_access_memory: BaseMediaAcces
     assert 'another_test_file.txt' in media_access_memory.list('test_dir')
     assert media_access_memory.get('another_test_file.txt', 'test_dir') == b'Another Test content'
 
-def test_media_access_memory_files_as_valid_name_check(media_access_memory: BaseMediaAccess, db_memory: Session):
+def test_media_access_memory_files_as_valid_name_check(media_access_memory: BaseFileSessionManager, db_memory: Session):
     
     # songs
     db_songs = db_memory.query(Song).all()
@@ -210,7 +210,7 @@ def test_media_access_memory_files_as_valid_name_check(media_access_memory: Base
     slots_difference = slots_in_folder.difference(slots_in_db)
 
     assert len(slots_difference) == 0, f"Missing occupied slot files in media access: {slots_difference}"
-    
+
     # demovideo
     demo_videos = media_access_memory.list("demo_slot")
     assert len(demo_videos) == 1

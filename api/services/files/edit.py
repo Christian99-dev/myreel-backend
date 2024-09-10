@@ -1,6 +1,6 @@
-from api.sessions.files import BaseMediaAccess
+from api.sessions.files import BaseFileSessionManager
 
-def get(edit_id: int, media_access: BaseMediaAccess) -> bytes:
+def get(edit_id: int, media_access: BaseFileSessionManager) -> bytes:
     """Holt sich eine Mediendatei basierend auf der edit_id."""
     files = media_access.list("edits")
     
@@ -10,7 +10,7 @@ def get(edit_id: int, media_access: BaseMediaAccess) -> bytes:
             return media_data
     return None
 
-def create(edit_id: int, file_extension: str, file: bytes, media_access: BaseMediaAccess) -> str:
+def create(edit_id: int, file_extension: str, file: bytes, media_access: BaseFileSessionManager) -> str:
     """Speichert eine neue Mediendatei basierend auf der edit_id und der Dateierweiterung."""
     file_name = f"{edit_id}.{file_extension}"  # z.B. "5678.mp3"
     location = media_access.save(file_name, "edits", file)
@@ -20,7 +20,7 @@ def create(edit_id: int, file_extension: str, file: bytes, media_access: BaseMed
     
     return location
 
-def remove(edit_id: int, media_access: BaseMediaAccess) -> bool:
+def remove(edit_id: int, media_access: BaseFileSessionManager) -> bool:
     """Entfernt eine Mediendatei basierend auf der edit_id."""
     file_extension = None
     files = media_access.list("edits")
@@ -35,7 +35,7 @@ def remove(edit_id: int, media_access: BaseMediaAccess) -> bool:
         return True
     return False
 
-def update(edit_id: int, file_extension: str, file: bytes, media_access: BaseMediaAccess) -> str:
+def update(edit_id: int, file_extension: str, file: bytes, media_access: BaseFileSessionManager) -> str:
     """Aktualisiert eine bestehende Mediendatei, indem die alte gelöscht und eine neue hinzugefügt wird."""
     remove(edit_id, media_access)  # Alte Datei entfernen
     return create(edit_id, file_extension, file, media_access)  # Neue Datei hinzufügen

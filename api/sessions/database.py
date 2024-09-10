@@ -15,6 +15,7 @@ from mock.database.data import data
 """ENV"""
 load_dotenv()
 DATABASE_LOCAL = bool(strtobool(os.getenv("DATABASE_LOCAL")))
+DATABASE_LOCAL_REPO = os.getenv("DATABASE_LOCAL_REPO")
 
 
 """Base Database Session Manager"""
@@ -27,7 +28,6 @@ class BaseDatabaseSessionManager(ABC):
         pass
 
     @abstractmethod
-    @contextmanager  # Verwende den contextmanager-Dekorator
     def get_session(self) -> Generator[Session, Any, None]:
         """Erzeugt eine Datenbank-Sitzung."""
         pass
@@ -105,7 +105,6 @@ class RemoteDatabaseSessionManager(BaseDatabaseSessionManager):
         
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-    @contextmanager
     def get_session(self) -> Generator[Session, Any, None]:
         db = self.SessionLocal()
         try:
@@ -128,7 +127,6 @@ class LocalDatabaseSessionManager(BaseDatabaseSessionManager):
             self._fill(data)
         self._print()
 
-    @contextmanager
     def get_session(self) -> Generator[Session, Any, None]:
         db = self.SessionLocal()
         try:
@@ -146,7 +144,6 @@ class MemoryDatabaseSessionManager(BaseDatabaseSessionManager):
 
         self._fill(data)
 
-    @contextmanager
     def get_session(self) -> Generator[Session, Any, None]:
         connection = self.engine.connect()
         transaction = connection.begin()
@@ -158,4 +155,16 @@ class MemoryDatabaseSessionManager(BaseDatabaseSessionManager):
             transaction.rollback()
             connection.close()
 
-database_session_manager = LocalDatabaseSessionManager() if DATABASE_LOCAL else RemoteDatabaseSessionManager()
+_database_session_manager = None
+
+def get_database_session():
+    global _database_session_manager
+    
+    # beim ersten ausführen
+    if _database_session_manager is None:
+        _database_session_manager = LocalDatabaseSessionManager() if DATABASE_LOCAL else RemoteDatabaseSessionManager()
+    
+    # Öffnet die Session und gibt sie zurück
+    gen = _database_session_manager.get_session()
+    session = next(gen)
+    yield session
