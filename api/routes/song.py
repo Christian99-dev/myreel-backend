@@ -23,7 +23,7 @@ router = APIRouter(
 @router.post("/", response_model=PostResponse, tags=["song"])
 async def create(
     request: PostRequest = Depends(),
-    db: Session = Depends(get_database_session),
+    database_session: Session = Depends(get_database_session),
     media_access: BaseFileSessionManager = Depends(get_file_session)
 ):    
     try:
@@ -62,7 +62,7 @@ async def create(
             author=request.author,
             cover_src="",  # Zunächst leer, wird später gesetzt
             audio_src="",  # Zunächst leer, wird später gesetzt
-            db_session=db
+            db_session=database_session
         )
 
         # save song
@@ -76,11 +76,11 @@ async def create(
             song_id=new_song.song_id,
             cover_src=cover_location,
             audio_src=song_location,
-            db_session=db
+            db_session=database_session
         )
         
         # create slots from breakpoints
-        create_slots_from_breakpoints(new_song.song_id, breakpoints, db_session=db)
+        create_slots_from_breakpoints(new_song.song_id, breakpoints, db_session=database_session)
         
         if not updated_song:
             raise HTTPException(status_code=500, detail="Song not found during update.")
@@ -92,13 +92,13 @@ async def create(
         raise HTTPException(status_code=400, detail=str(e))    
     
 @router.delete("/{song_id}", response_model=DeleteResponse, tags=["song"])
-async def delete(song_id: int, db: Session = Depends(get_database_session), media_access: BaseFileSessionManager = Depends(get_file_session)):
+async def delete(song_id: int, database_session: Session = Depends(get_database_session), media_access: BaseFileSessionManager = Depends(get_file_session)):
     # Try to remove the media file associated with the song
     song_media_removed = remove_song_media_service(song_id, media_access)
     cover_media_removed = remove_cover_media_service(song_id, media_access)
     
     # Try to remove the song from the database
-    song_entry_removed = remove_song_service(song_id, db)
+    song_entry_removed = remove_song_service(song_id, database_session)
 
     # Check if any of the deletions failed
     if not song_entry_removed and not song_media_removed and not cover_media_removed:
@@ -111,13 +111,13 @@ async def delete(song_id: int, db: Session = Depends(get_database_session), medi
     return {"message": "Song and associated media deleted successfully"}
 
 @router.get("/list", response_model=ListResponse, tags=["song"])
-async def list_songs(db: Session = Depends(get_database_session)):
-    songs = list_all(db_session=db)
+async def list_songs(database_session: Session = Depends(get_database_session)):
+    songs = list_all(db_session=database_session)
     return {"songs": songs}
 
 @router.get("/{song_id}", response_model=GetResponse, tags=["song"])
-async def get(song_id: int, db: Session = Depends(get_database_session)):
-    song = get_song_service(song_id=song_id, db_session=db)
+async def get(song_id: int, database_session: Session = Depends(get_database_session)):
+    song = get_song_service(song_id=song_id, db_session=database_session)
     if not song:
         raise HTTPException(status_code=404, detail="Song not found")
     return song

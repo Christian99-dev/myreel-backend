@@ -6,10 +6,10 @@ from api.services.database.song import get_breakpoints
 from api.utils.media_manipulation.create_edit_video import create_edit_video
 
 
-def notest_create_edit_video_no_errors(media_access_memory, db_memory):
+def notest_create_edit_video_no_errors(media_access_memory, memory_database_session):
     
     # Arrange
-    existing_song = db_memory.query(Song).first()  # Nimm den ersten Song
+    existing_song = memory_database_session.query(Song).first()  # Nimm den ersten Song
     assert existing_song is not None, "Kein vorhandener Song gefunden"
 
     song_id = existing_song.song_id
@@ -17,7 +17,7 @@ def notest_create_edit_video_no_errors(media_access_memory, db_memory):
     demo_video_bytes = get_demo_slot_mediaservice(media_access_memory)
     song_bytes       = get_song_mediaservice(song_id, media_access_memory)
     
-    breakpoints = get_breakpoints(song_id, db_memory)
+    breakpoints = get_breakpoints(song_id, memory_database_session)
     
     assert demo_video_bytes is not None
     assert song_bytes is not None

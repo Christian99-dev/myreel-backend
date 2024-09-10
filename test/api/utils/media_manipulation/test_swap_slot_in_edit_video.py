@@ -5,10 +5,10 @@ from api.utils.media_manipulation import swap_slot_in_edit_video
 from api.utils.media_manipulation.swap_slot_in_edit_video import swap_slot_in_edit
 from api.services.files.demo_slot import get as get_demo_slot_mediaservice
 
-def notest_swap_slot_in_edit_video_no_errors(media_access_memory, db_memory):
+def notest_swap_slot_in_edit_video_no_errors(media_access_memory, memory_database_session):
     
     # Arrange
-    existing_edit = db_memory.query(Edit).first()  # Nimm den ersten Song
+    existing_edit = memory_database_session.query(Edit).first()  # Nimm den ersten Song
     assert existing_edit is not None, "Kein vorhandenes Eidt gefunden"
     edit_id = existing_edit.edit_id
 

@@ -32,7 +32,7 @@ app = FastAPI()
 
 # add middleware
 app.add_middleware(LogAccessMiddleware)
-app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_db=get_database_session)
+app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_database_session=get_database_session)
 
 # router
 app.include_router(testing_router)

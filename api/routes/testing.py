@@ -26,7 +26,7 @@ router = APIRouter(
 
 @router.get("/1", tags=["testing"])
 def test1(
-    db = Depends(get_database_session), 
+    database_session = Depends(get_database_session), 
     media_access: BaseFileSessionManager = Depends(get_file_session)
 ):
     video_bytes = media_access.get("demo.mp4", "demo_slot")
@@ -49,7 +49,7 @@ def test1(
     return 18
 
 @router.get("/2", tags=["testing"])
-def test2(db = Depends(get_database_session), media_access: BaseFileSessionManager = Depends(get_file_session)):
+def test2(database_session = Depends(get_database_session), media_access: BaseFileSessionManager = Depends(get_file_session)):
     name = "9oB0"
     input_video_bytes = media_access.get(f"{name}.mp4", "testres")
     new_video_bytes   = media_access.get("1.mp4", "occupied_slots")

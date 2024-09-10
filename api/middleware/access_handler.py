@@ -12,10 +12,10 @@ from api.utils.routes.extract_role_credentials_from_request import extract_role_
 testing_logger = logging.getLogger("testing")
 
 class AccessHandlerMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, path_config: EndpointConfig, get_db):
+    def __init__(self, app, path_config: EndpointConfig, get_database_session):
         super().__init__(app)
         self.path_config = path_config
-        self.get_db = get_db
+        self.get_database_session = get_database_session
 
     async def dispatch(self, request: Request, call_next):
         pathInfo = self.path_config.get_path_info(request.url.path, request.method)
@@ -39,10 +39,10 @@ class AccessHandlerMiddleware(BaseHTTPMiddleware):
             
         
         # Datenbank-Sitzung verwenden
-        db_generator = self.get_db()
-        db_session = next(db_generator)
+        database_session_generator = self.get_database_session()
+        database_session = next(database_session_generator)
 
-        role = Role(role_infos=RoleInfos(admintoken=admintoken, userid=userid, groupid=groupid, editid=editid), db_session=db_session)
+        role = Role(role_infos=RoleInfos(admintoken=admintoken, userid=userid, groupid=groupid, editid=editid), db_session=database_session)
         
         # Prüfen, ob die Rolle Zugriff hat
         if role.hasAccess(pathInfo) is False:

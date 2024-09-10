@@ -18,7 +18,5 @@ folder-structure-printer*.*
 *.png
 
 # local repos
-outgoing_emails_test
-outgoing_instagram_test
-*.db
+outgoing
 

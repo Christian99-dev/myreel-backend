@@ -41,9 +41,9 @@ router = APIRouter(
 )    
 
 @router.post("/{edit_id}/goLive", response_model=GoLiveResponse, tags=["edit"])
-def go_live(edit_id: int, db: Session = Depends(get_database_session), media_access: BaseFileSessionManager = Depends(get_file_session), instagram_access = Depends(get_instagram_session)):
+def go_live(edit_id: int, database_session: Session = Depends(get_database_session), media_access: BaseFileSessionManager = Depends(get_file_session), instagram_access = Depends(get_instagram_session)):
     
-    if not are_all_slots_occupied(edit_id, db=db):
+    if not are_all_slots_occupied(edit_id, database_session=database_session):
         raise HTTPException(status_code=422, detail="Edit not upload ready, occupie all slots")
         
     # check if all slots are belegt 
@@ -52,16 +52,16 @@ def go_live(edit_id: int, db: Session = Depends(get_database_session), media_acc
     if not edit_file:
         raise HTTPException(status_code=422, detail="Something went wrong, no videofile found")
     
-    set_is_live(edit_id, db=db)
+    set_is_live(edit_id, database_session=database_session)
     
     if instram_upload_service(edit_file, "mp4", "was geht ab instagram", instagram_access):
         return {"message": "Auf instagram hochgeladen!"}
        
     
 @router.delete("/{edit_id}", response_model=DeleteEditResponse, tags=["edit"])
-async def delete_edit(edit_id: int, db: Session = Depends(get_database_session)):
+async def delete_edit(edit_id: int, database_session: Session = Depends(get_database_session)):
     
-    if remove_edit_service(edit_id, db=db):
+    if remove_edit_service(edit_id, database_session=database_session):
         return {"message" : "Deleted Successfully"}
     else:
         raise HTTPException(status_code=422, detail="Could not delete")
@@ -69,7 +69,7 @@ async def delete_edit(edit_id: int, db: Session = Depends(get_database_session))
 @router.post("/", response_model=PostResponse, tags=["edit"])
 def create_edit(
     request: PostRequest = Body(...),
-    db: Session = Depends(get_database_session),
+    database_session: Session = Depends(get_database_session),
     media_access: BaseFileSessionManager = Depends(get_file_session),
     authorization: str = Header(None)
 ):        
@@ -87,7 +87,7 @@ def create_edit(
         request.edit_name,
         False,   
         video_src="",
-        db=db
+        database_session=database_session
     )
     
     if new_edit is None: 
@@ -106,7 +106,7 @@ def create_edit(
         raise HTTPException(status_code=422, detail="Problem with song audio")
     
     # create edit video
-    breakpoints = get_breakpoints(request.song_id, db)
+    breakpoints = get_breakpoints(request.song_id, database_session)
     
     # creating video
     edit_video_bytes = create_edit_video(
@@ -132,9 +132,9 @@ def create_edit(
         raise HTTPException(status_code=422, detail="Something went wrong while saving the edit")
     
     # Update the edit with the new video source
-    updated_edit = edit_update_service(new_edit.edit_id, video_src=edit_location, db=db)
+    updated_edit = edit_update_service(new_edit.edit_id, video_src=edit_location, database_session=database_session)
     
-    user = get_user_service(updated_edit.created_by, db)  # Retrieve the user details
+    user = get_user_service(updated_edit.created_by, database_session)  # Retrieve the user details
     
     # Create the response object
     response = PostResponse(
@@ -149,9 +149,9 @@ def create_edit(
 
     return response
 @router.get("/group/{group_id}/list", response_model=EditListResponse, tags=["edit"])
-async def get_edits_for_group(group_id: str, db: Session = Depends(get_database_session)):
+async def get_edits_for_group(group_id: str, database_session: Session = Depends(get_database_session)):
     # Abrufen aller Edits für die gegebene Gruppen-ID
-    edits = get_edits_by_group(group_id, db)
+    edits = get_edits_by_group(group_id, database_session)
 
     if not edits:
         raise HTTPException(status_code=404, detail="No edits found for this group")
@@ -160,7 +160,7 @@ async def get_edits_for_group(group_id: str, db: Session = Depends(get_database_
     
     for edit in edits:
         # Abrufen der User-Informationen des Erstellers
-        user = get_user_service(edit.created_by, db)
+        user = get_user_service(edit.created_by, database_session)
         
         if not user:
             raise HTTPException(status_code=404, detail=f"User with ID {edit.created_by} not found for edit")
@@ -181,16 +181,16 @@ async def get_edits_for_group(group_id: str, db: Session = Depends(get_database_
     return EditListResponse(edits=response_list)
 
 @router.get("/group/{group_id}/{edit_id}", response_model=GetEditResponse,  tags=["edit"])
-async def get_edit_details(group_id: str, edit_id: int, db: Session = Depends(get_database_session)):
+async def get_edit_details(group_id: str, edit_id: int, database_session: Session = Depends(get_database_session)):
     # Abrufen des Edits
-    edit = get_edit_serivce(edit_id, db)
+    edit = get_edit_serivce(edit_id, database_session)
 
     if not edit or edit.group_id != group_id:
         raise HTTPException(status_code=404, detail="Edit not found in this group")
 
     # Abrufen der Slots und der belegten Slots über die Services
-    slots = get_slots_for_edit(edit_id, db)
-    occupied_slots_info = get_occupied_slots_for_edit(edit_id, db)
+    slots = get_slots_for_edit(edit_id, database_session)
+    occupied_slots_info = get_occupied_slots_for_edit(edit_id, database_session)
 
     # Umwandlung des edit-Objekts
     edit_response = {
@@ -241,12 +241,12 @@ async def get_edit_details(group_id: str, edit_id: int, db: Session = Depends(ge
 async def delete_slot(
     occupied_slot_id: int,
     authorization: str = Header(None), 
-    db: Session = Depends(get_database_session), 
+    database_session: Session = Depends(get_database_session), 
     media_access: BaseFileSessionManager = Depends(get_file_session)
 ):
     
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
-    occupied_slot = get_occupied_slot(occupied_slot_id, db=db)
+    occupied_slot = get_occupied_slot(occupied_slot_id, database_session=database_session)
     
     if occupied_slot is None:
         raise HTTPException(status_code=404, detail="Slot not found")
@@ -255,7 +255,7 @@ async def delete_slot(
         raise HTTPException(status_code=403, detail="Slot not yours")
     
     try:
-        remove_occupied_slot_service(occupied_slot.occupied_slot_id, db)
+        remove_occupied_slot_service(occupied_slot.occupied_slot_id, database_session)
         remove_occupied_slot_media_service(occupied_slot.occupied_slot_id, media_access)
     except Exception as e:
         raise HTTPException(status_code=500, detail={e})
@@ -269,14 +269,14 @@ async def post_slot(
     edit_id: int,
     authorization: str = Header(None), 
     request: AddSlotRequest = Depends(), 
-    db: Session = Depends(get_database_session), 
+    database_session: Session = Depends(get_database_session), 
     media_access: BaseFileSessionManager = Depends(get_file_session)
 ):
     
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
     
     # slot is free ? 
-    if is_slot_occupied(slot_id, edit_id, db=db):
+    if is_slot_occupied(slot_id, edit_id, database_session=database_session):
         raise HTTPException(status_code=403, detail="Slot is nicht leer")
  
     (validated_video_file, message) = file_validation(request.video_file, "video")
@@ -294,7 +294,7 @@ async def post_slot(
             slot_id,
             edit_id,
             video_src="",
-            db=db
+            database_session=database_session
         )
         
         # file eintrag in occupied slot
@@ -306,10 +306,10 @@ async def post_slot(
         )
         
         # datenbank eintrag mit video src vervollständing
-        updated_occupied_slot = update_occupied_slot_service(db=db,occupied_slot_id=new_occupied_slot.slot_id, video_src=video_location)
+        updated_occupied_slot = update_occupied_slot_service(database_session=database_session,occupied_slot_id=new_occupied_slot.slot_id, video_src=video_location)
         
         # start und endzeit von slot
-        slot = get_slot_by_occupied_slot_id(updated_occupied_slot.occupied_slot_id, db=db)        
+        slot = get_slot_by_occupied_slot_id(updated_occupied_slot.occupied_slot_id, database_session=database_session)        
         
         # edit neu erstellen und abspeicher
         old_edit_file = get_edit_media_access(edit_id, media_access=media_access)
@@ -341,13 +341,13 @@ async def put_slot(
     occupied_slot_id: int,
     authorization: str = Header(None), 
     request: ChangeSlotRequest = Depends(), 
-    db: Session = Depends(get_database_session), 
+    database_session: Session = Depends(get_database_session), 
     media_access: BaseFileSessionManager = Depends(get_file_session)
 ):
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
 
     # slot ist belegt und von mir ? 
-    occupied_slot = get_occupied_slot(occupied_slot_id, db=db)
+    occupied_slot = get_occupied_slot(occupied_slot_id, database_session=database_session)
     
     if not occupied_slot:
         raise HTTPException(status_code=400, detail="Slot is empty")
@@ -358,7 +358,7 @@ async def put_slot(
     (validated_video_file, message) = file_validation(request.video_file, "video")
     validate_video_file_bytes = await validated_video_file.read()
     
-    slot = get_slot_by_occupied_slot_id(occupied_slot.occupied_slot_id, db=db)        
+    slot = get_slot_by_occupied_slot_id(occupied_slot.occupied_slot_id, database_session=database_session)        
     
     # new edit saved
     old_edit_file = get_edit_media_access(edit_id, media_access=media_access)

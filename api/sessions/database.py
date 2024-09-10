@@ -14,9 +14,13 @@ from mock.database.data import data
 
 """ENV"""
 load_dotenv()
-DATABASE_LOCAL = bool(strtobool(os.getenv("DATABASE_LOCAL")))
-DATABASE_LOCAL_REPO = os.getenv("DATABASE_LOCAL_REPO")
+DATABASE_LOCAL                       = bool(strtobool(os.getenv("DATABASE_LOCAL")))
+DATABASE_LOCAL_FILL                  = bool(strtobool(os.getenv("DATABASE_LOCAL_FILL")))
 
+DATABASE_REMOTE_SQL_HOST             = os.getenv("DATABASE_REMOTE_MYSQL_HOST")
+DATABASE_REMOTE_SQL_USER             = os.getenv("DATABASE_REMOTE_MYSQL_USER")
+DATABASE_REMOTE_SQL_PASSWORD         = os.getenv("DATABASE_REMOTE_MYSQL_PASSWORD")
+DATABASE_REMOTE_SQL_DB               = os.getenv("DATABASE_REMOTE_MYSQL_DB")
 
 """Base Database Session Manager"""
 class BaseDatabaseSessionManager(ABC):
@@ -94,11 +98,7 @@ class BaseDatabaseSessionManager(ABC):
 """Implementations for Different Session Managers"""
 class RemoteDatabaseSessionManager(BaseDatabaseSessionManager):
     def __init__(self):
-        database_mysql_host = os.getenv("DATABASE_MYSQL_HOST")
-        database_mysql_user = os.getenv("DATABASE_MYSQL_USER")
-        database_mysql_password = os.getenv("DATABASE_MYSQL_PASSWORD")
-        database_mysql_db = os.getenv("DATABASE_MYSQL_DB")
-        database_url = f"mysql+pymysql://{database_mysql_user}:{database_mysql_password}@{database_mysql_host}/{database_mysql_db}"
+        database_url = f"mysql+pymysql://{DATABASE_REMOTE_SQL_USER}:{DATABASE_REMOTE_SQL_PASSWORD}@{DATABASE_REMOTE_SQL_HOST}/{DATABASE_REMOTE_SQL_DB}"
         
         engine = create_engine(database_url)
         Base.metadata.create_all(bind=engine)
@@ -106,33 +106,32 @@ class RemoteDatabaseSessionManager(BaseDatabaseSessionManager):
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
     def get_session(self) -> Generator[Session, Any, None]:
-        db = self.SessionLocal()
+        database_session = self.SessionLocal()
         try:
-            yield db
+            yield database_session
         finally:
-            db.close()
+            database_session.close()
 
 class LocalDatabaseSessionManager(BaseDatabaseSessionManager):
     def __init__(self):
-        database_local_fill = bool(strtobool(os.getenv("DATABASE_LOCAL_FILL")))
-        database_local_repo = os.getenv("DATABASE_LOCAL_REPO", "local.db")
-        database_url = f"sqlite:///./{database_local_repo}"
+        os.makedirs("./outgoing/database", exist_ok=True)
+        database_url = f"sqlite:///./outgoing/database/local.db"
         
         engine = create_engine(database_url, connect_args={"check_same_thread": False})
         Base.metadata.create_all(bind=engine)
         
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-        if database_local_fill:
+        if DATABASE_LOCAL_FILL:
             self._fill(data)
         self._print()
 
     def get_session(self) -> Generator[Session, Any, None]:
-        db = self.SessionLocal()
+        database_session = self.SessionLocal()
         try:
-            yield db
+            yield database_session
         finally:
-            db.close()
+            database_session.close()
 
 class MemoryDatabaseSessionManager(BaseDatabaseSessionManager):
     def __init__(self):

@@ -30,60 +30,60 @@ def admintoken(admintoken: str):
     assert type(admintoken) is str
 
 
-# -- db_memory -- #
+# -- memory_database_session -- #
 
-def test_db_memory_isolation(db_memory: Session):
+def test_memory_database_session_isolation(memory_database_session: Session):
     """Test to ensure that each test function gets a separate session."""
     
     # Check if the database is empty at the beginning of the test
-    assert db_memory.query(Song).count() == len(data["songs"]), "Database should be empty at the beginning of this test."
+    assert memory_database_session.query(Song).count() == len(data["songs"]), "Database should be empty at the beginning of this test."
 
     # Add a song to the database in this session
     song = Song(name="Test Song", author="Test Author", times_used=0, cover_src="http://example.com/cover.jpg", audio_src="http://example.com/audio.mp3")
-    db_memory.add(song)
-    db_memory.commit()
+    memory_database_session.add(song)
+    memory_database_session.commit()
     
     # Check if the song is in the database
-    result = db_memory.query(Song).filter_by(name="Test Song").first()
+    result = memory_database_session.query(Song).filter_by(name="Test Song").first()
     assert result is not None, "The song should be present in the database in this session."
 
-def test_db_memory_isolation_other(db_memory: Session):
+def test_memory_database_session_isolation_other(memory_database_session: Session):
     """Test to ensure that changes in one session do not affect another session."""
     
     # Check if the database is empty at the beginning of the test
-    assert db_memory.query(Song).count() == len(data["songs"]), "Database should be empty at the beginning of this test."
+    assert memory_database_session.query(Song).count() == len(data["songs"]), "Database should be empty at the beginning of this test."
 
     # Check that the previous test did not affect this session
-    result = db_memory.query(Song).filter_by(name="Test Song").first()
+    result = memory_database_session.query(Song).filter_by(name="Test Song").first()
     assert result is None, "The song should not be present in this session if isolation is correct."
 
-def test_db_memory_data_test(db_memory: Session):
+def test_memory_database_session_data_test(memory_database_session: Session):
     # Daten aus der Datenbank abrufen
-    groups_from_db = db_memory.query(Group).all()
-    songs_from_db = db_memory.query(Song).all()
-    users_from_db = db_memory.query(User).all()
-    edits_from_db = db_memory.query(Edit).all()
-    slots_from_db = db_memory.query(Slot).all()
-    invitations_from_db = db_memory.query(Invitation).all()
-    login_requests_from_db = db_memory.query(LoginRequest).all()
-    occupied_slots_from_db = db_memory.query(OccupiedSlot).all()
+    groups_from_database_session = memory_database_session.query(Group).all()
+    songs_from_database_session = memory_database_session.query(Song).all()
+    users_from_database_session = memory_database_session.query(User).all()
+    edits_from_database_session = memory_database_session.query(Edit).all()
+    slots_from_database_session = memory_database_session.query(Slot).all()
+    invitations_from_database_session = memory_database_session.query(Invitation).all()
+    login_requests_from_database_session = memory_database_session.query(LoginRequest).all()
+    occupied_slots_from_database_session = memory_database_session.query(OccupiedSlot).all()
 
     # Überprüfen, ob die Anzahl der Einträge stimmt
-    assert len(groups_from_db) == len(data["groups"])
-    assert len(songs_from_db) == len(data["songs"])
-    assert len(users_from_db) == len(data["users"])
-    assert len(edits_from_db) == len(data["edits"])
-    assert len(slots_from_db) == len(data["slots"])
-    assert len(invitations_from_db) == len(data["invitations"])
-    assert len(login_requests_from_db) == len(data["login_requests"])
-    assert len(occupied_slots_from_db) == len(data["occupied_slots"])
+    assert len(groups_from_database_session) == len(data["groups"])
+    assert len(songs_from_database_session) == len(data["songs"])
+    assert len(users_from_database_session) == len(data["users"])
+    assert len(edits_from_database_session) == len(data["edits"])
+    assert len(slots_from_database_session) == len(data["slots"])
+    assert len(invitations_from_database_session) == len(data["invitations"])
+    assert len(login_requests_from_database_session) == len(data["login_requests"])
+    assert len(occupied_slots_from_database_session) == len(data["occupied_slots"])
 
     # Überprüfen, ob die Daten inhaltlich übereinstimmen
-    for expected_group, actual_group in zip(data["groups"], groups_from_db):
+    for expected_group, actual_group in zip(data["groups"], groups_from_database_session):
         assert expected_group["group_id"] == actual_group.group_id
         assert expected_group["name"] == actual_group.name
 
-    for expected_song, actual_song in zip(data["songs"], songs_from_db):
+    for expected_song, actual_song in zip(data["songs"], songs_from_database_session):
         assert expected_song["song_id"] == actual_song.song_id
         assert expected_song["name"] == actual_song.name
         assert expected_song["author"] == actual_song.author
@@ -91,14 +91,14 @@ def test_db_memory_data_test(db_memory: Session):
         assert expected_song["cover_src"] == actual_song.cover_src
         assert expected_song["audio_src"] == actual_song.audio_src
 
-    for expected_user, actual_user in zip(data["users"], users_from_db):
+    for expected_user, actual_user in zip(data["users"], users_from_database_session):
         assert expected_user["user_id"] == actual_user.user_id
         assert expected_user["group_id"] == actual_user.group_id
         assert expected_user["role"] == actual_user.role
         assert expected_user["name"] == actual_user.name
         assert expected_user["email"] == actual_user.email
 
-    for expected_edit, actual_edit in zip(data["edits"], edits_from_db):
+    for expected_edit, actual_edit in zip(data["edits"], edits_from_database_session):
         assert expected_edit["edit_id"] == actual_edit.edit_id
         assert expected_edit["song_id"] == actual_edit.song_id
         assert expected_edit["created_by"] == actual_edit.created_by
@@ -107,13 +107,13 @@ def test_db_memory_data_test(db_memory: Session):
         assert expected_edit["isLive"] == actual_edit.isLive
         assert expected_edit["video_src"] == actual_edit.video_src
 
-    for expected_slot, actual_slot in zip(data["slots"], slots_from_db):
+    for expected_slot, actual_slot in zip(data["slots"], slots_from_database_session):
         assert expected_slot["slot_id"] == actual_slot.slot_id
         assert expected_slot["song_id"] == actual_slot.song_id
         assert expected_slot["start_time"] == actual_slot.start_time
         assert expected_slot["end_time"] == actual_slot.end_time
 
-    for expected_invitation, actual_invitation in zip(data["invitations"], invitations_from_db):
+    for expected_invitation, actual_invitation in zip(data["invitations"], invitations_from_database_session):
         assert expected_invitation["invitation_id"] == actual_invitation.invitation_id
         assert expected_invitation["group_id"] == actual_invitation.group_id
         assert expected_invitation["token"] == actual_invitation.token
@@ -121,13 +121,13 @@ def test_db_memory_data_test(db_memory: Session):
         assert expected_invitation["created_at"] == actual_invitation.created_at
         assert expected_invitation["expires_at"] == actual_invitation.expires_at
 
-    for expected_login_request, actual_login_request in zip(data["login_requests"], login_requests_from_db):
+    for expected_login_request, actual_login_request in zip(data["login_requests"], login_requests_from_database_session):
         assert expected_login_request["user_id"] == actual_login_request.user_id
         assert expected_login_request["pin"] == actual_login_request.pin
         assert expected_login_request["created_at"] == actual_login_request.created_at
         assert expected_login_request["expires_at"] == actual_login_request.expires_at
 
-    for expected_occupied_slot, actual_occupied_slot in zip(data["occupied_slots"], occupied_slots_from_db):
+    for expected_occupied_slot, actual_occupied_slot in zip(data["occupied_slots"], occupied_slots_from_database_session):
         assert expected_occupied_slot["occupied_slot_id"] == actual_occupied_slot.occupied_slot_id
         assert expected_occupied_slot["user_id"] == actual_occupied_slot.user_id
         assert expected_occupied_slot["slot_id"] == actual_occupied_slot.slot_id
@@ -165,49 +165,49 @@ def test_media_access_memory_isolation_other(media_access_memory: BaseFileSessio
     assert 'another_test_file.txt' in media_access_memory.list('test_dir')
     assert media_access_memory.get('another_test_file.txt', 'test_dir') == b'Another Test content'
 
-def test_media_access_memory_files_as_valid_name_check(media_access_memory: BaseFileSessionManager, db_memory: Session):
+def test_media_access_memory_files_as_valid_name_check(media_access_memory: BaseFileSessionManager, memory_database_session: Session):
     
     # songs
-    db_songs = db_memory.query(Song).all()
+    db_songs = memory_database_session.query(Song).all()
     db_song_ids = {song.song_id for song in db_songs}
-    songs_in_db = {f"{song_id}.wav" for song_id in db_song_ids}
+    songs_in_database_session = {f"{song_id}.wav" for song_id in db_song_ids}
     
     songs_in_folder = set(media_access_memory.list("songs"))
     
-    songs_difference = len(songs_in_folder.difference(songs_in_db))
+    songs_difference = len(songs_in_folder.difference(songs_in_database_session))
     
     assert songs_difference == 0, f"Missing song files in media access: {songs_difference}"
     
     # covers
-    db_covers = db_memory.query(Song).all()  # Assuming covers are linked to songs
+    db_covers = memory_database_session.query(Song).all()  # Assuming covers are linked to songs
     db_cover_ids = {song.song_id for song in db_covers}  # Adjust based on your model
-    covers_in_db = {f"{cover_id}.png" for cover_id in db_cover_ids}  # Assuming covers are .png files
+    covers_in_database_session = {f"{cover_id}.png" for cover_id in db_cover_ids}  # Assuming covers are .png files
 
     covers_in_folder = set(media_access_memory.list("covers"))
 
-    covers_difference = covers_in_folder.difference(covers_in_db)
+    covers_difference = covers_in_folder.difference(covers_in_database_session)
 
     assert len(covers_difference) == 0, f"Missing cover files in media access: {covers_difference}"
     
     # edits 
-    db_edits = db_memory.query(Edit).all()  # Query for edits
+    db_edits = memory_database_session.query(Edit).all()  # Query for edits
     db_edit_ids = {edit.edit_id for edit in db_edits}  # Get all edit IDs
-    edits_in_db = {f"{edit_id}.mp4" for edit_id in db_edit_ids}  # Assuming edits are stored with .edit extension
+    edits_in_database_session = {f"{edit_id}.mp4" for edit_id in db_edit_ids}  # Assuming edits are stored with .edit extension
 
     edits_in_folder = set(media_access_memory.list("edits"))
 
-    edits_difference = edits_in_folder.difference(edits_in_db)
+    edits_difference = edits_in_folder.difference(edits_in_database_session)
 
     assert len(edits_difference) == 0, f"Missing edit files in media access: {edits_difference}"
 
     # occupied slots 
-    db_slots = db_memory.query(OccupiedSlot).all()  # Query for occupied slots
+    db_slots = memory_database_session.query(OccupiedSlot).all()  # Query for occupied slots
     db_slot_ids = {slot.occupied_slot_id for slot in db_slots}  # Get all occupied slot IDs
-    slots_in_db = {f"{slot_id}.mp4" for slot_id in db_slot_ids}  # Assuming slots are stored with .slot extension
+    slots_in_database_session = {f"{slot_id}.mp4" for slot_id in db_slot_ids}  # Assuming slots are stored with .slot extension
 
     slots_in_folder = set(media_access_memory.list("occupied_slots"))
 
-    slots_difference = slots_in_folder.difference(slots_in_db)
+    slots_difference = slots_in_folder.difference(slots_in_database_session)
 
     assert len(slots_difference) == 0, f"Missing occupied slot files in media access: {slots_difference}"
 
@@ -346,19 +346,19 @@ def test_http_client_mocked_path_for_extracting_creds_config(http_client_mocked_
     
 # -- NOT FIXTURE : mock data wich is not testet already -- #
 
-def test_mock_data_user_creds(db_memory: Session):
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_memory), RoleEnum.ADMIN)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_req_creds["userid"], groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_memory), RoleEnum.GROUP_CREATOR)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_with_edit_id_req_creds["userid"], groupid=None, editid=group_creator_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=db_memory), RoleEnum.GROUP_CREATOR)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_with_edit_id_req_creds["userid"], groupid=None, editid=group_member_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=db_memory), RoleEnum.GROUP_MEMBER)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=edit_creator_req_creds["userid"], groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_memory), RoleEnum.EDIT_CREATOR)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_req_creds["userid"], groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_memory), RoleEnum.GROUP_MEMBER)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=db_memory), RoleEnum.EXTERNAL)    
+def test_mock_data_user_creds(memory_database_session: Session):
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=memory_database_session), RoleEnum.ADMIN)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_req_creds["userid"], groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=memory_database_session), RoleEnum.GROUP_CREATOR)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_with_edit_id_req_creds["userid"], groupid=None, editid=group_creator_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=memory_database_session), RoleEnum.GROUP_CREATOR)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_with_edit_id_req_creds["userid"], groupid=None, editid=group_member_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=memory_database_session), RoleEnum.GROUP_MEMBER)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=edit_creator_req_creds["userid"], groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=memory_database_session), RoleEnum.EDIT_CREATOR)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_req_creds["userid"], groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=memory_database_session), RoleEnum.GROUP_MEMBER)
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=memory_database_session), RoleEnum.EXTERNAL)    
 
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=db_memory), admin_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_req_creds["userid"], groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_memory), group_creator_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_with_edit_id_req_creds["userid"], groupid=None, editid=group_creator_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=db_memory), group_creator_with_edit_id_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_with_edit_id_req_creds["userid"], groupid=None, editid=group_member_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=db_memory), group_member_with_edit_id_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=edit_creator_req_creds["userid"], groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=db_memory), edit_creator_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_req_creds["userid"], groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=db_memory), group_member_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=db_memory), external_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=memory_database_session), admin_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_req_creds["userid"], groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=memory_database_session), group_creator_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_with_edit_id_req_creds["userid"], groupid=None, editid=group_creator_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=memory_database_session), group_creator_with_edit_id_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_with_edit_id_req_creds["userid"], groupid=None, editid=group_member_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=memory_database_session), group_member_with_edit_id_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=edit_creator_req_creds["userid"], groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=memory_database_session), edit_creator_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_req_creds["userid"], groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=memory_database_session), group_member_req_creds["role"])
+    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=memory_database_session), external_req_creds["role"])

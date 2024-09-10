@@ -51,7 +51,7 @@ def admintoken():
 # Routes     : None
 # Middleware : None
 @pytest.fixture(scope="function")
-def db_memory():
+def memory_database_session():
     memory_database_session_manager = MemoryDatabaseSessionManager()
     yield from memory_database_session_manager.get_session()
     
@@ -89,7 +89,7 @@ def email_access_memory():
 # Middleware : None 
 @pytest.fixture(scope="function")
 def http_client(
-        db_memory: Session, 
+        memory_database_session: Session, 
         media_access_memory: MemoryFileSessionManager, 
         instagram_access_memory: MemoryInstagramSessionManager, 
         email_access_memory: MemoryEmailSessionManager
@@ -102,8 +102,8 @@ def http_client(
     app.include_router(user_router)
     app.include_router(edit_router)
     
-    def get_db_override():
-        yield db_memory
+    def get_database_session_override():
+        yield memory_database_session
         
     def get_instagram_access_override():
         yield instagram_access_memory
@@ -115,11 +115,11 @@ def http_client(
         yield media_access_memory
     
     # adding middleware
-    app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_db=get_db_override)
+    app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_database_session=get_database_session_override)
     
     
-    # Überschreibe die get_db-Abhängigkeit
-    app.dependency_overrides[get_database_session] = get_db_override
+    # Überschreibe die get_database_session-Abhängigkeit
+    app.dependency_overrides[get_database_session] = get_database_session_override
     app.dependency_overrides[get_file_session] = file_session_manager_override
     app.dependency_overrides[get_instagram_session] = get_instagram_access_override
     app.dependency_overrides[get_email_session] = get_email_access_override
@@ -144,22 +144,22 @@ def http_client(
 # This is mainly for testing the behavoiur of a roundtrip from route to service to database, 
 # if no routes in prod are available. so we are just mocking crud operations.
 @pytest.fixture(scope="function")
-def http_client_mocked_path_crud(db_memory: Session):
+def http_client_mocked_path_crud(memory_database_session: Session):
     # fresh client
     app = FastAPI()
     
     # CRUD routes for songs
     @app.post("/add/{name}/{author}")
-    async def add(name: str, author: str, db: Session = Depends(lambda: db_memory)):
+    async def add(name: str, author: str, database_session: Session = Depends(lambda: memory_database_session)):
         new_song = Song(name=name, author=author, times_used=0, cover_src="cover_src", audio_src="audio_src")
-        db.add(new_song)
-        db.commit()
-        db.refresh(new_song)
+        database_session.add(new_song)
+        database_session.commit()
+        database_session.refresh(new_song)
         return new_song
 
     @app.get("/list")
-    async def list(db: Session = Depends(lambda: db_memory)):
-        return db.query(Song).all()
+    async def list(database_session: Session = Depends(lambda: memory_database_session)):
+        return database_session.query(Song).all()
     
     # yield client with routes
     with TestClient(app) as test_client:
@@ -173,14 +173,14 @@ def http_client_mocked_path_crud(db_memory: Session):
 # 
 # A fixture where every possible role is has a dedicated path, to test out security access in a non prod env
 @pytest.fixture(scope="function")
-def http_client_mocked_path_config(db_memory: Session):
+def http_client_mocked_path_config(memory_database_session: Session):
     
     # simulating prod api
     app = FastAPI()
     
     # session
-    def get_db_override(): 
-        yield db_memory
+    def get_database_session_override(): 
+        yield memory_database_session
         
     mock_path_config = EndpointConfig({
     '/admin_no_subroles': {
@@ -216,7 +216,7 @@ def http_client_mocked_path_config(db_memory: Session):
 })
     
     # middleware for access testing 
-    app.add_middleware(AccessHandlerMiddleware, path_config=mock_path_config, get_db=get_db_override)
+    app.add_middleware(AccessHandlerMiddleware, path_config=mock_path_config, get_database_session=get_database_session_override)
     
     # every endpoints based on testconfig file
     def create_endpoint(m_name: str):

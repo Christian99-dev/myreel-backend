@@ -25,9 +25,9 @@ router = APIRouter(
 )    
 
 @router.post("/", response_model=PostResponse, tags=["group"])
-async def create(request: PostRequest = Body(...), db: Session = Depends(get_database_session)): 
+async def create(request: PostRequest = Body(...), database_session: Session = Depends(get_database_session)): 
     # Erstelle die Gruppe
-    new_group = create_group_service(name=request.groupname, db=db)
+    new_group = create_group_service(name=request.groupname, database_session=database_session)
 
     if not new_group:
         raise HTTPException(status_code=400, detail="Group creation failed")
@@ -38,7 +38,7 @@ async def create(request: PostRequest = Body(...), db: Session = Depends(get_dat
         role="creator",  # Standardrolle für neue Benutzer
         name=request.username,
         email=request.email,
-        db=db
+        database_session=database_session
     )
 
     # Erstelle ein JWT mit der Benutzer-ID
@@ -48,9 +48,9 @@ async def create(request: PostRequest = Body(...), db: Session = Depends(get_dat
     return PostResponse(group_id=new_group.group_id, name=new_group.name, jwt=jwt_token)   
  
 @router.delete("/{group_id}", response_model=DeleteResponse, tags=["group"])
-async def delete(group_id: str, db: Session = Depends(get_database_session)):
+async def delete(group_id: str, database_session: Session = Depends(get_database_session)):
     # Überprüfen, ob die Gruppe existiert und entfernen
-    success = remove_group_service(group_id, db)
+    success = remove_group_service(group_id, database_session)
 
     if not success:
         raise HTTPException(status_code=404, detail="Group not found or could not be deleted")
@@ -58,8 +58,8 @@ async def delete(group_id: str, db: Session = Depends(get_database_session)):
     return DeleteResponse(message="Group successfully deleted")
 
 @router.get("/{group_id}", response_model=GetResponse, tags=["group"])
-async def get(group_id: str, db: Session = Depends(get_database_session)):
-    group = get_group_service(group_id=group_id, db=db)
+async def get(group_id: str, database_session: Session = Depends(get_database_session)):
+    group = get_group_service(group_id=group_id, database_session=database_session)
     
     if not group:
         raise HTTPException(status_code=404, detail="Group not found")
@@ -68,23 +68,23 @@ async def get(group_id: str, db: Session = Depends(get_database_session)):
 
 # Hole die Rolle des Benutzers in der Gruppe
 @router.get("/{group_id}/role", response_model=GetRoleResponse, tags=["group"])
-async def get_role(group_id: str, request: Request, db: Session = Depends(get_database_session)):
+async def get_role(group_id: str, request: Request, database_session: Session = Depends(get_database_session)):
     # Extrahiere den JWT-Token aus den Headern
     jwt_token = request.headers.get('Authorization').replace("Bearer ", "")
     
     # Lese die Benutzer-ID aus dem JWT-Token
     user_id = read_jwt(jwt_token)
 
-    if is_group_member_group_service(user_id=user_id, group_id=group_id, db=db):
-        user = get_user_service(user_id, db)
+    if is_group_member_group_service(user_id=user_id, group_id=group_id, database_session=database_session):
+        user = get_user_service(user_id, database_session)
         return {"role": user.role}
     else:
         raise HTTPException(status_code=404, detail="User not a member of this group")
         
 @router.get("/{group_id}/groupExists", response_model=GroupExistsResponse, tags=["group"])
-async def group_exist(group_id: str, db: Session = Depends(get_database_session)):
+async def group_exist(group_id: str, database_session: Session = Depends(get_database_session)):
     # Überprüfen, ob die Gruppe existiert
-    group = get_group_service(group_id=group_id, db=db)
+    group = get_group_service(group_id=group_id, database_session=database_session)
     
     if group:
         return {"exists":True}
@@ -92,9 +92,9 @@ async def group_exist(group_id: str, db: Session = Depends(get_database_session)
     return {"exists":False}
 
 @router.get("/{group_id}/listMembers", response_model=GetMembersResponse, tags=["group"])
-async def list_members(group_id: str, db: Session = Depends(get_database_session)):
+async def list_members(group_id: str, database_session: Session = Depends(get_database_session)):
     # Liste der Mitglieder der Gruppe abrufen
-    members = list_members_groud_service(group_id=group_id, db=db)
+    members = list_members_groud_service(group_id=group_id, database_session=database_session)
     
     if not members:
         raise HTTPException(status_code=404, detail="No members found for this group")

@@ -6,7 +6,7 @@ def create(
         slot_id: int, 
         edit_id: int, 
         video_src: str, 
-        db: Session) -> OccupiedSlot:
+        database_session: Session) -> OccupiedSlot:
     
     new_occupied_slot = OccupiedSlot(
         user_id=user_id,
@@ -14,34 +14,34 @@ def create(
         edit_id=edit_id,
         video_src=video_src
     )
-    db.add(new_occupied_slot)
-    db.commit()
-    db.refresh(new_occupied_slot)
+    database_session.add(new_occupied_slot)
+    database_session.commit()
+    database_session.refresh(new_occupied_slot)
     return new_occupied_slot
 
-def get(occupied_slot_id: int, db: Session) -> OccupiedSlot:
-    return db.query(OccupiedSlot).filter(OccupiedSlot.occupied_slot_id == occupied_slot_id).first()
+def get(occupied_slot_id: int, database_session: Session) -> OccupiedSlot:
+    return database_session.query(OccupiedSlot).filter(OccupiedSlot.occupied_slot_id == occupied_slot_id).first()
 
-def remove(occupied_slot_id: int, db: Session) -> bool:
-    occupied_slot = db.query(OccupiedSlot).filter(OccupiedSlot.occupied_slot_id == occupied_slot_id).first()
+def remove(occupied_slot_id: int, database_session: Session) -> bool:
+    occupied_slot = database_session.query(OccupiedSlot).filter(OccupiedSlot.occupied_slot_id == occupied_slot_id).first()
     if occupied_slot:
-        db.delete(occupied_slot)
-        db.commit()
+        database_session.delete(occupied_slot)
+        database_session.commit()
         return True
     return False
 
-def get_occupied_slots_for_edit(edit_id: int, db: Session):
-    return db.query(OccupiedSlot).filter(OccupiedSlot.edit_id == edit_id).all()
+def get_occupied_slots_for_edit(edit_id: int, database_session: Session):
+    return database_session.query(OccupiedSlot).filter(OccupiedSlot.edit_id == edit_id).all()
 
-def is_slot_occupied(slot_id: int, edit_id: int, db: Session):
+def is_slot_occupied(slot_id: int, edit_id: int, database_session: Session):
     # Abrufen aller belegten Slots für die gegebene edit_id
-    occupied_slots = db.query(OccupiedSlot).filter(OccupiedSlot.edit_id == edit_id).all()
+    occupied_slots = database_session.query(OccupiedSlot).filter(OccupiedSlot.edit_id == edit_id).all()
     
     # Überprüfen, ob der angegebene slot_id belegt ist
     return any(slot.slot_id == slot_id for slot in occupied_slots)
 
 def update(
-        db: Session,
+        database_session: Session,
         occupied_slot_id: int, 
         user_id: int = None, 
         slot_id: int = None, 
@@ -50,7 +50,7 @@ def update(
 ) -> OccupiedSlot:
     
     # Suche nach dem zu aktualisierenden OccupiedSlot
-    occupied_slot = db.query(OccupiedSlot).filter(OccupiedSlot.occupied_slot_id == occupied_slot_id).first()
+    occupied_slot = database_session.query(OccupiedSlot).filter(OccupiedSlot.occupied_slot_id == occupied_slot_id).first()
 
     # Falls der OccupiedSlot existiert, aktualisiere die Felder
     if occupied_slot:
@@ -64,7 +64,7 @@ def update(
             occupied_slot.video_src = video_src
 
         # Änderungen in der Datenbank speichern
-        db.commit()
-        db.refresh(occupied_slot)
+        database_session.commit()
+        database_session.refresh(occupied_slot)
     
     return occupied_slot
