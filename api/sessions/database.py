@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 import os
-import logging
 from typing import Any, Generator
-from contextlib import contextmanager 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -124,7 +122,7 @@ class LocalDatabaseSessionManager(BaseDatabaseSessionManager):
 
         if DATABASE_LOCAL_FILL:
             self._fill(data)
-        self._print()
+        # self._print()
 
     def get_session(self) -> Generator[Session, Any, None]:
         database_session = self.SessionLocal()

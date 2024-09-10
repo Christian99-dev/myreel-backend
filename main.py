@@ -23,10 +23,6 @@ from api.middleware.access_handler import AccessHandlerMiddleware
 # setup loggers
 setup_logging_prod()
 
-# env 
-load_dotenv()
-LOCAL_MEDIA_ACCESS = bool(strtobool(os.getenv("LOCAL_MEDIA_ACCESS")))
-
 # Verwende die Lifespan-Funktion in der FastAPI-App
 app = FastAPI()
 

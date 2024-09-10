@@ -134,45 +134,45 @@ def test_memory_database_session_data_test(memory_database_session: Session):
         assert expected_occupied_slot["edit_id"] == actual_occupied_slot.edit_id
         assert expected_occupied_slot["video_src"] == actual_occupied_slot.video_src
 
-# -- media_access_memory -- #
+# -- file_session_memory -- #
 
-def test_media_access_memory_isolation(media_access_memory: BaseFileSessionManager):
+def test_file_session_memory_isolation(memory_file_session: BaseFileSessionManager):
     """Testet die Isolation von MediaAccess."""
     
     # Überprüfen, ob der Speicher zu Beginn leer ist
-    assert media_access_memory.list('test_dir') == []
+    assert memory_file_session.list('test_dir') == []
 
     # Füge eine Datei zum Speicher hinzu
-    media_access_memory.save('test_file.txt', 'test_dir', b'Test content')
+    memory_file_session.save('test_file.txt', 'test_dir', b'Test content')
 
     # Überprüfen, ob die Datei im Speicher vorhanden ist
-    assert 'test_file.txt' in media_access_memory.list('test_dir')
-    assert media_access_memory.get('test_file.txt', 'test_dir') == b'Test content'
+    assert 'test_file.txt' in memory_file_session.list('test_dir')
+    assert memory_file_session.get('test_file.txt', 'test_dir') == b'Test content'
 
-def test_media_access_memory_isolation_other(media_access_memory: BaseFileSessionManager):
+def test_file_session_memory_isolation_other(memory_file_session: BaseFileSessionManager):
     """Testet die Isolation, um sicherzustellen, dass ein anderer Test nicht die Daten beeinflusst."""
     
     # Überprüfen, ob der Speicher zu Beginn leer ist
-    assert media_access_memory.list('test_dir') == []
+    assert memory_file_session.list('test_dir') == []
 
     # Überprüfen, ob die vorherige Testdatei nicht vorhanden ist
-    assert 'test_file.txt' not in media_access_memory.list('test_dir')
+    assert 'test_file.txt' not in memory_file_session.list('test_dir')
 
     # Füge eine neue Datei hinzu
-    media_access_memory.save('another_test_file.txt', 'test_dir', b'Another Test content')
+    memory_file_session.save('another_test_file.txt', 'test_dir', b'Another Test content')
 
     # Überprüfen, ob die neue Datei vorhanden ist
-    assert 'another_test_file.txt' in media_access_memory.list('test_dir')
-    assert media_access_memory.get('another_test_file.txt', 'test_dir') == b'Another Test content'
+    assert 'another_test_file.txt' in memory_file_session.list('test_dir')
+    assert memory_file_session.get('another_test_file.txt', 'test_dir') == b'Another Test content'
 
-def test_media_access_memory_files_as_valid_name_check(media_access_memory: BaseFileSessionManager, memory_database_session: Session):
+def test_file_session_memory_files_as_valid_name_check(memory_file_session: BaseFileSessionManager, memory_database_session: Session):
     
     # songs
     db_songs = memory_database_session.query(Song).all()
     db_song_ids = {song.song_id for song in db_songs}
     songs_in_database_session = {f"{song_id}.wav" for song_id in db_song_ids}
     
-    songs_in_folder = set(media_access_memory.list("songs"))
+    songs_in_folder = set(memory_file_session.list("songs"))
     
     songs_difference = len(songs_in_folder.difference(songs_in_database_session))
     
@@ -183,7 +183,7 @@ def test_media_access_memory_files_as_valid_name_check(media_access_memory: Base
     db_cover_ids = {song.song_id for song in db_covers}  # Adjust based on your model
     covers_in_database_session = {f"{cover_id}.png" for cover_id in db_cover_ids}  # Assuming covers are .png files
 
-    covers_in_folder = set(media_access_memory.list("covers"))
+    covers_in_folder = set(memory_file_session.list("covers"))
 
     covers_difference = covers_in_folder.difference(covers_in_database_session)
 
@@ -194,7 +194,7 @@ def test_media_access_memory_files_as_valid_name_check(media_access_memory: Base
     db_edit_ids = {edit.edit_id for edit in db_edits}  # Get all edit IDs
     edits_in_database_session = {f"{edit_id}.mp4" for edit_id in db_edit_ids}  # Assuming edits are stored with .edit extension
 
-    edits_in_folder = set(media_access_memory.list("edits"))
+    edits_in_folder = set(memory_file_session.list("edits"))
 
     edits_difference = edits_in_folder.difference(edits_in_database_session)
 
@@ -205,14 +205,14 @@ def test_media_access_memory_files_as_valid_name_check(media_access_memory: Base
     db_slot_ids = {slot.occupied_slot_id for slot in db_slots}  # Get all occupied slot IDs
     slots_in_database_session = {f"{slot_id}.mp4" for slot_id in db_slot_ids}  # Assuming slots are stored with .slot extension
 
-    slots_in_folder = set(media_access_memory.list("occupied_slots"))
+    slots_in_folder = set(memory_file_session.list("occupied_slots"))
 
     slots_difference = slots_in_folder.difference(slots_in_database_session)
 
     assert len(slots_difference) == 0, f"Missing occupied slot files in media access: {slots_difference}"
 
     # demovideo
-    demo_videos = media_access_memory.list("demo_slot")
+    demo_videos = memory_file_session.list("demo_slot")
     assert len(demo_videos) == 1
 
 # -- email_access_memory -- #

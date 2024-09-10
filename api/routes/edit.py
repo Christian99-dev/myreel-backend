@@ -12,12 +12,12 @@ from api.services.database.slot import get_slot_by_occupied_slot_id, get_slots_f
 from api.services.database.user import get as get_user_service
 from api.services.files.demo_slot import get as get_demo_video
 from api.services.files.song import get as get_song_audio
-from api.services.files.edit import create as create_edit_media_access
+from api.services.files.edit import create as create_edit_file_session
 from api.services.database.edit import are_all_slots_occupied, get_edits_by_group, set_is_live, update as edit_update_service
 from api.services.database.song import  get_breakpoints
 from api.services.database.occupied_slot import get as get_occupied_slot, remove as remove_occupied_slot_service
 from api.services.instagram.upload import upload as instram_upload_service
-from api.services.files.edit import get as get_edit_media_access, update as update_media_service
+from api.services.files.edit import get as get_edit_file_session, update as update_media_service
 from api.services.database.edit import remove as remove_edit_service
 from api.services.database.edit import create as create_edit_service
 from api.services.files.edit import update as update_meida_edit_service
@@ -41,13 +41,13 @@ router = APIRouter(
 )    
 
 @router.post("/{edit_id}/goLive", response_model=GoLiveResponse, tags=["edit"])
-def go_live(edit_id: int, database_session: Session = Depends(get_database_session), media_access: BaseFileSessionManager = Depends(get_file_session), instagram_access = Depends(get_instagram_session)):
+def go_live(edit_id: int, database_session: Session = Depends(get_database_session), file_session: BaseFileSessionManager = Depends(get_file_session), instagram_access = Depends(get_instagram_session)):
     
     if not are_all_slots_occupied(edit_id, database_session=database_session):
         raise HTTPException(status_code=422, detail="Edit not upload ready, occupie all slots")
         
     # check if all slots are belegt 
-    edit_file = get_edit_media_access(edit_id, media_access=media_access)
+    edit_file = get_edit_file_session(edit_id, file_session=file_session)
     
     if not edit_file:
         raise HTTPException(status_code=422, detail="Something went wrong, no videofile found")
@@ -70,7 +70,7 @@ async def delete_edit(edit_id: int, database_session: Session = Depends(get_data
 def create_edit(
     request: PostRequest = Body(...),
     database_session: Session = Depends(get_database_session),
-    media_access: BaseFileSessionManager = Depends(get_file_session),
+    file_session: BaseFileSessionManager = Depends(get_file_session),
     authorization: str = Header(None)
 ):        
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
@@ -94,13 +94,13 @@ def create_edit(
         raise HTTPException(status_code=422, detail="Problem when creating edit")
     
     # get demo video
-    demo_video_bytes = get_demo_video(media_access)
+    demo_video_bytes = get_demo_video(file_session)
     
     if demo_video_bytes is None: 
         raise HTTPException(status_code=422, detail="Problem with demo video")
 
     # get song
-    song_audio_bytes = get_song_audio(request.song_id, media_access)
+    song_audio_bytes = get_song_audio(request.song_id, file_session)
     
     if song_audio_bytes is None: 
         raise HTTPException(status_code=422, detail="Problem with song audio")
@@ -121,11 +121,11 @@ def create_edit(
     if edit_video_bytes is None:
         raise HTTPException(status_code=422, detail="Error creating edit")
         
-    edit_location = create_edit_media_access(
+    edit_location = create_edit_file_session(
         new_edit.edit_id, 
         "mp4", 
         edit_video_bytes, 
-        media_access
+        file_session
     )
     
     if edit_location is None:
@@ -242,7 +242,7 @@ async def delete_slot(
     occupied_slot_id: int,
     authorization: str = Header(None), 
     database_session: Session = Depends(get_database_session), 
-    media_access: BaseFileSessionManager = Depends(get_file_session)
+    file_session: BaseFileSessionManager = Depends(get_file_session)
 ):
     
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
@@ -256,7 +256,7 @@ async def delete_slot(
     
     try:
         remove_occupied_slot_service(occupied_slot.occupied_slot_id, database_session)
-        remove_occupied_slot_media_service(occupied_slot.occupied_slot_id, media_access)
+        remove_occupied_slot_media_service(occupied_slot.occupied_slot_id, file_session)
     except Exception as e:
         raise HTTPException(status_code=500, detail={e})
     # check if im the slot "owner"
@@ -270,7 +270,7 @@ async def post_slot(
     authorization: str = Header(None), 
     request: AddSlotRequest = Depends(), 
     database_session: Session = Depends(get_database_session), 
-    media_access: BaseFileSessionManager = Depends(get_file_session)
+    file_session: BaseFileSessionManager = Depends(get_file_session)
 ):
     
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
@@ -302,7 +302,7 @@ async def post_slot(
             new_occupied_slot.occupied_slot_id, 
             "mp4", 
             validated_video_file, 
-            media_access=media_access
+            file_session=file_session
         )
         
         # datenbank eintrag mit video src vervollständing
@@ -312,7 +312,7 @@ async def post_slot(
         slot = get_slot_by_occupied_slot_id(updated_occupied_slot.occupied_slot_id, database_session=database_session)        
         
         # edit neu erstellen und abspeicher
-        old_edit_file = get_edit_media_access(edit_id, media_access=media_access)
+        old_edit_file = get_edit_file_session(edit_id, file_session=file_session)
         
         new_file = swap_slot_in_edit(
             old_edit_file,
@@ -326,7 +326,7 @@ async def post_slot(
             "mp4"
         )
         
-        update_meida_edit_service(edit_id, "mp4", new_file, media_access=media_access)
+        update_meida_edit_service(edit_id, "mp4", new_file, file_session=file_session)
         
     except Exception as e:
         raise HTTPException(status_code=500, detail={e})
@@ -342,7 +342,7 @@ async def put_slot(
     authorization: str = Header(None), 
     request: ChangeSlotRequest = Depends(), 
     database_session: Session = Depends(get_database_session), 
-    media_access: BaseFileSessionManager = Depends(get_file_session)
+    file_session: BaseFileSessionManager = Depends(get_file_session)
 ):
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
 
@@ -361,7 +361,7 @@ async def put_slot(
     slot = get_slot_by_occupied_slot_id(occupied_slot.occupied_slot_id, database_session=database_session)        
     
     # new edit saved
-    old_edit_file = get_edit_media_access(edit_id, media_access=media_access)
+    old_edit_file = get_edit_file_session(edit_id, file_session=file_session)
     new_edit_file = swap_slot_in_edit(
         old_edit_file,
         slot.start_time,
@@ -375,8 +375,8 @@ async def put_slot(
         
         "mp4"
     )
-    update_meida_edit_service(edit_id, "mp4", new_edit_file, media_access=media_access)
-    update_occupied_slot_media_service(occupied_slot.occupied_slot_id, "mp4", validate_video_file_bytes, media_access=media_access )
+    update_meida_edit_service(edit_id, "mp4", new_edit_file, file_session=file_session)
+    update_occupied_slot_media_service(occupied_slot.occupied_slot_id, "mp4", validate_video_file_bytes, file_session=file_session )
     
     return {"message": "Successfull swap"}
 

@@ -60,7 +60,7 @@ def memory_database_session():
 # Routes     : None
 # Middleware : None
 @pytest.fixture
-def media_access_memory():
+def memory_file_session():
     memory_file_session_manager = MemoryFileSessionManager()
     yield from memory_file_session_manager.get_session()
 
@@ -90,7 +90,7 @@ def email_access_memory():
 @pytest.fixture(scope="function")
 def http_client(
         memory_database_session: Session, 
-        media_access_memory: MemoryFileSessionManager, 
+        memory_file_session: MemoryFileSessionManager, 
         instagram_access_memory: MemoryInstagramSessionManager, 
         email_access_memory: MemoryEmailSessionManager
     ):
@@ -112,7 +112,7 @@ def http_client(
         yield email_access_memory
 
     def file_session_manager_override():
-        yield media_access_memory
+        yield memory_file_session
     
     # adding middleware
     app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_database_session=get_database_session_override)

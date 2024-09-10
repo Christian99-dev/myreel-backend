@@ -27,10 +27,10 @@ router = APIRouter(
 @router.get("/1", tags=["testing"])
 def test1(
     database_session = Depends(get_database_session), 
-    media_access: BaseFileSessionManager = Depends(get_file_session)
+    file_session: BaseFileSessionManager = Depends(get_file_session)
 ):
-    video_bytes = media_access.get("demo.mp4", "demo_slot")
-    song_bytes = media_access.get("1.wav", "songs")
+    video_bytes = file_session.get("demo.mp4", "demo_slot")
+    song_bytes = file_session.get("1.wav", "songs")
     
     breapoints = [1,2,3,6]
     
@@ -45,14 +45,14 @@ def test1(
         "mp4"
     )
     
-    media_access.save(f"{generate_random_characters()}.mp4", "testres", endresult)
+    file_session.save(f"{generate_random_characters()}.mp4", "testres", endresult)
     return 18
 
 @router.get("/2", tags=["testing"])
-def test2(database_session = Depends(get_database_session), media_access: BaseFileSessionManager = Depends(get_file_session)):
+def test2(database_session = Depends(get_database_session), file_session: BaseFileSessionManager = Depends(get_file_session)):
     name = "9oB0"
-    input_video_bytes = media_access.get(f"{name}.mp4", "testres")
-    new_video_bytes   = media_access.get("1.mp4", "occupied_slots")
+    input_video_bytes = file_session.get(f"{name}.mp4", "testres")
+    new_video_bytes   = file_session.get("1.mp4", "occupied_slots")
     
     endresult = swap_slot_in_edit(
         input_video_bytes,
@@ -66,7 +66,7 @@ def test2(database_session = Depends(get_database_session), media_access: BaseFi
         "mp4"
     )
     
-    media_access.save(f"{name}_out.mp4", "testres", endresult)
+    file_session.save(f"{name}_out.mp4", "testres", endresult)
 
     print("testing 2")
     return 17
@@ -74,10 +74,10 @@ def test2(database_session = Depends(get_database_session), media_access: BaseFi
 @router.get("/3", tags=["testing"])
 def test3(
         instagram_access: BaseInstagramSessionManager = Depends(get_instagram_session), 
-        media_access: BaseFileSessionManager = Depends(get_file_session)
+        file_session: BaseFileSessionManager = Depends(get_file_session)
     ):
     name = "jp67"
-    demo_video = media_access.get(f"{name}.mp4", "testres")
+    demo_video = file_session.get(f"{name}.mp4", "testres")
     upload(demo_video, "mp4", "was geht", instagram_access)
     return 17
 

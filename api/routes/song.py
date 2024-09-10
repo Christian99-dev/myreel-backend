@@ -24,7 +24,7 @@ router = APIRouter(
 async def create(
     request: PostRequest = Depends(),
     database_session: Session = Depends(get_database_session),
-    media_access: BaseFileSessionManager = Depends(get_file_session)
+    file_session: BaseFileSessionManager = Depends(get_file_session)
 ):    
     try:
         if(len(request.breakpoints) < 2):
@@ -66,10 +66,10 @@ async def create(
         )
 
         # save song
-        song_location = create_song_media_service(new_song.song_id, song_extension, song_file_bytes, media_access)
+        song_location = create_song_media_service(new_song.song_id, song_extension, song_file_bytes, file_session)
 
         # save cover
-        cover_location = create_cover_media_service(new_song.song_id, cover_extension, cover_file_bytes, media_access)
+        cover_location = create_cover_media_service(new_song.song_id, cover_extension, cover_file_bytes, file_session)
 
         # Update den Song mit den Speicherorten für Audio und Cover
         updated_song = update_song_service(
@@ -92,10 +92,10 @@ async def create(
         raise HTTPException(status_code=400, detail=str(e))    
     
 @router.delete("/{song_id}", response_model=DeleteResponse, tags=["song"])
-async def delete(song_id: int, database_session: Session = Depends(get_database_session), media_access: BaseFileSessionManager = Depends(get_file_session)):
+async def delete(song_id: int, database_session: Session = Depends(get_database_session), file_session: BaseFileSessionManager = Depends(get_file_session)):
     # Try to remove the media file associated with the song
-    song_media_removed = remove_song_media_service(song_id, media_access)
-    cover_media_removed = remove_cover_media_service(song_id, media_access)
+    song_media_removed = remove_song_media_service(song_id, file_session)
+    cover_media_removed = remove_cover_media_service(song_id, file_session)
     
     # Try to remove the song from the database
     song_entry_removed = remove_song_service(song_id, database_session)

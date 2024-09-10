@@ -1,15 +1,15 @@
 from abc import ABC, abstractmethod
 import copy
 import os
-from contextlib import contextmanager
-from typing import Generator, Any, Type
+from typing import Generator
 from dotenv import load_dotenv
 from distutils.util import strtobool
 
+
 """ENV"""
 load_dotenv()
-LOCAL_MEDIA_REPO = os.getenv("LOCAL_MEDIA_REPO")
-LOCAL_MEDIA_ACCESS = os.getenv("LOCAL_MEDIA_ACCESS")
+FILES_LOCAL      = bool(strtobool(os.getenv("FILES_LOCAL")))
+FILES_LOCAL_FILL = bool(strtobool(os.getenv("FILES_LOCAL_FILL")))
 
 
 """Base File Session Manager"""
@@ -81,10 +81,11 @@ class BaseFileSessionManager(ABC):
 class LocalFileSessionManager(BaseFileSessionManager):
     def __init__(self):
         """Initialisiert den lokalen Dateispeicher."""
-        self.local_media_repo_folder = f"./{LOCAL_MEDIA_REPO}"
+        self.local_media_repo_folder = f"./outgoing/files"
         os.makedirs(self.local_media_repo_folder, exist_ok=True)
-        self._fill("mock/files")
-        # self._print()
+        if FILES_LOCAL_FILL:
+            self._fill("mock/files")
+        self._print()
 
     def get_session(self) -> Generator["BaseFileSessionManager", None, None]:
         """Erzeugt eine lokale Dateisitzung."""
@@ -99,7 +100,7 @@ class LocalFileSessionManager(BaseFileSessionManager):
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, 'wb') as f:
             f.write(file_data)
-        return f"http://localhost:8000/{LOCAL_MEDIA_REPO}/{dir}/{file_name}"
+        return f"http://localhost:8000/outgoing/files/{dir}/{file_name}"
 
     def get(self, file_name: str, dir: str):
         file_path = os.path.join(self.local_media_repo_folder, dir, file_name)
@@ -218,7 +219,7 @@ def get_file_session():
     
     # beim ersten ausführen
     if _file_session_manager is None:
-        _file_session_manager = LocalFileSessionManager() if LOCAL_MEDIA_ACCESS else MemoryFileSessionManager()
+        _file_session_manager = LocalFileSessionManager() if FILES_LOCAL else MemoryFileSessionManager()
     
     # Öffnet die Session und gibt sie zurück
     gen = _file_session_manager.get_session()

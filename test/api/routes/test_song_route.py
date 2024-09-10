@@ -6,9 +6,9 @@ from api.services.database.song import remove as remove_song_service
 from sqlalchemy.orm import Session
 
 # create
-def test_create(http_client: TestClient, media_access_memory: BaseFileSessionManager, admintoken: int): 
-    cover_file_bytes = get_cover(1, media_access_memory)  # Mock cover file
-    song_file_bytes = get_song(1, media_access_memory)    # Mock song file
+def test_create(http_client: TestClient, memory_file_session: BaseFileSessionManager, admintoken: int): 
+    cover_file_bytes = get_cover(1, memory_file_session)  # Mock cover file
+    song_file_bytes = get_song(1, memory_file_session)    # Mock song file
 
     valid_breakpoints = [0.0, 30.0, 60.0]  # Example valid breakpoints
 
@@ -37,9 +37,9 @@ def test_create(http_client: TestClient, media_access_memory: BaseFileSessionMan
     assert isinstance(response_data["cover_src"], str)
     assert isinstance(response_data["audio_src"], str)
     
-def test_create_not_good_breakpoints(http_client: TestClient, media_access_memory: BaseFileSessionManager, admintoken: int): 
-    cover_file_bytes = get_cover(1, media_access_memory)  # Mock cover file
-    song_file_bytes = get_song(1, media_access_memory)    # Mock song file
+def test_create_not_good_breakpoints(http_client: TestClient, memory_file_session: BaseFileSessionManager, admintoken: int): 
+    cover_file_bytes = get_cover(1, memory_file_session)  # Mock cover file
+    song_file_bytes = get_song(1, memory_file_session)    # Mock song file
 
     valid_breakpoints = [0.0, 30.0, 1000.0]  # Example valid breakpoints
 

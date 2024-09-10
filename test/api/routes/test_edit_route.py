@@ -202,9 +202,9 @@ def notest_delete_slot_not_found(http_client: TestClient):
     assert response.status_code == 404
         
 # test posts slot
-def notest_post_slot_success(http_client: TestClient, media_access_memory):  
+def notest_post_slot_success(http_client: TestClient, file_session_memory):  
     
-    video_file_slot = media_access_memory.get("demo.mp4","demo_slot")
+    video_file_slot = file_session_memory.get("demo.mp4","demo_slot")
       
     response = http_client.post(
         f"/edit/group/11111111-1111-1111-1111-111111111111/2/slot/1",
@@ -220,9 +220,9 @@ def notest_post_slot_success(http_client: TestClient, media_access_memory):
     
     assert response.status_code == 200
     
-def notest_post_slot_slot_is_not_empty(http_client: TestClient, media_access_memory):  
+def notest_post_slot_slot_is_not_empty(http_client: TestClient, file_session_memory):  
     
-    video_file_slot = media_access_memory.get("demo.mp4","demo_slot")
+    video_file_slot = file_session_memory.get("demo.mp4","demo_slot")
       
     response = http_client.post(
         f"/edit/group/11111111-1111-1111-1111-111111111111/1/slot/1",
@@ -239,9 +239,9 @@ def notest_post_slot_slot_is_not_empty(http_client: TestClient, media_access_mem
     assert response.status_code == 403
     
 # test swap slot
-def notest_post_swap_slot_is_empty(http_client: TestClient, media_access_memory):  
+def notest_post_swap_slot_is_empty(http_client: TestClient, file_session_memory):  
     
-    video_file_slot = media_access_memory.get("demo.mp4","demo_slot")
+    video_file_slot = file_session_memory.get("demo.mp4","demo_slot")
       
     response = http_client.put(
         f"/edit/group/11111111-1111-1111-1111-111111111111/2/slot/99",
@@ -257,9 +257,9 @@ def notest_post_swap_slot_is_empty(http_client: TestClient, media_access_memory)
     
     assert response.status_code == 400
     
-def notest_post_swap_slot_not_yours(http_client: TestClient, media_access_memory):  
+def notest_post_swap_slot_not_yours(http_client: TestClient, file_session_memory):  
     
-    video_file_slot = media_access_memory.get("demo.mp4","demo_slot")
+    video_file_slot = file_session_memory.get("demo.mp4","demo_slot")
       
     response = http_client.put(
         f"/edit/group/11111111-1111-1111-1111-111111111111/2/slot/2",
@@ -275,9 +275,9 @@ def notest_post_swap_slot_not_yours(http_client: TestClient, media_access_memory
     
     assert response.status_code == 403
     
-def notest_post_swap_slot_success(http_client: TestClient, media_access_memory):  
+def notest_post_swap_slot_success(http_client: TestClient, file_session_memory):  
     
-    video_file_slot = media_access_memory.get("demo.mp4","demo_slot")
+    video_file_slot = file_session_memory.get("demo.mp4","demo_slot")
       
     response = http_client.put(
         f"/edit/group/11111111-1111-1111-1111-111111111111/1/slot/1",
