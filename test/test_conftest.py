@@ -1,4 +1,3 @@
-import logging
 from sqlalchemy.orm import Session
 from api.utils.jwt.jwt import read_jwt
 from api.security.role_class import Role, RoleInfos
@@ -9,10 +8,7 @@ from fastapi.testclient import TestClient
 from test.utils.role_tester_has_acccess import role_tester_has_access
 from api.sessions.files import BaseFileSessionManager
 from mock.database.data import data
-
-
 from main import app
-logger = logging.getLogger("testing")
 
 # -- user_1_jwt -- #
 
@@ -251,7 +247,7 @@ def test_http_client_has_prod_routes(http_client: TestClient):
     # Get the list of routes from the production app
     prod_routes         = [route.path for route in app.router.routes]
     filtered_prod_routes = [route for route in prod_routes if route not in IGNORED_ROUTES_IN_PROD]
-
+    
     # Get the list of routes from the test client
     response = http_client.get("/openapi.json")
     test_client_routes  = [path for path in response.json()["paths"].keys()]

@@ -1,35 +1,108 @@
-import logging
+from logging.config import dictConfig
 
-class MyFilter(logging.Filter):
-    def __init__(self, level):
-        self.__level = level
-
-    def filter(self, logRecord):
-        return logRecord.levelno <= self.__level
-
-def setup_logging_testing():
-    logging.basicConfig(level=logging.DEBUG)
     
-    logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
-    logging.getLogger('multipart.multipart').setLevel(logging.WARNING)
+def get_logger(env: str, prod: dict, dev: dict, test: dict):
+    """Gibt die passende Logger-Konfiguration basierend auf dem Environment zurück."""
+    # Wähle die passende Logger-Konfiguration basierend auf dem Environment
+    logger_config = None 
     
-    logging.getLogger('asyncio').setLevel(logging.INFO)
+    # choose config based on env 
+    match env:
+        case "prod":
+            logger_config = prod
+        case "dev":
+            logger_config = dev
+        case "test":
+            logger_config = test
+        case _:
+            raise ValueError(f"Unknown environment: {env}")
     
-    logging.getLogger("httpx").setLevel(logging.WARNING)    
-    
-    testing_logger = logging.getLogger("testing")
-    testing_logger.setLevel(logging.DEBUG)
-    testing_logger.addFilter(MyFilter(logging.DEBUG))
-    
-    access_logger = logging.getLogger("access")
-    access_logger.disabled = True
+    # hardcode properties
 
+    logger_config["propagate"]  = False
+    logger_config["handlers"]   = ["console", "file"]
+    
+    return logger_config
+    
+def setup_logging(env: str):
+    dictConfig({
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "default": {
+                "format": "[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s",
+            },
+            "colorful": {
+                "()": "colorlog.ColoredFormatter",
+                # Format für farbige Logs: Uhrzeit grau und kursiv, nur [LEVEL] farbig
+                "format": "\033[37m\033[3m%(asctime)s\033[0m [%(name)s] [%(log_color)s%(levelname)s\033[0m] %(message)s",
+                "datefmt": '%Y-%m-%d %H:%M:%S',
+                "log_colors": {
+                    "DEBUG": "cyan",
+                    "INFO": "green",
+                    "WARNING": "yellow",
+                    "ERROR": "red",
+                    "CRITICAL": "bold_red",
+                },
+            },
+        },
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "colorful",
+            },
+            "file": {
+                "class": "logging.FileHandler",
+                "filename": f"logs/app.{env}.log",
+                "formatter": "default",
+            },
+            "endpoints": {
+                "class": "logging.FileHandler",
+                "filename": f"logs/endpoints.{env}.log",
+            },
+        },
+        "loggers": {
+            
+            # Logger from the app itself
+            "uvicorn": {
+                "handlers": ["console", "file"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            "app": {
+                "handlers": ["console", "file"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            
+            # Documenting all access to endpoints
+            "endpoints": {
+                "handlers": ["endpoints"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            
+            # modules
+            "sessions.database": get_logger(env, 
+                test={"level": "DEBUG"},
+                dev={"level": "INFO"}, 
+                prod={"level": "CRITICAL"}, 
+            ),
+            "sessions.email": get_logger(env, 
+                test={"level": "DEBUG"},
+                dev={"level": "INFO"}, 
+                prod={"level": "CRITICAL"}, 
+            ),
+            "sessions.files": get_logger(env, 
+                test={"level": "DEBUG"},
+                dev={"level": "INFO"}, 
+                prod={"level": "CRITICAL"}, 
+            ),
+            "sessions.instagram": get_logger(env, 
+                test={"level": "DEBUG"},
+                dev={"level": "INFO"}, 
+                prod={"level": "CRITICAL"}, 
+            )
+        },
+    })
 
-def setup_logging_prod():
-    access_logger = logging.getLogger("access")
-    access_logger.setLevel(logging.INFO)
-    file_handler = logging.FileHandler('access.log')
-    access_logger.addHandler(file_handler)
-
-    debug_logger = logging.getLogger("prod_debug")
-    debug_logger.setLevel(logging.DEBUG)    

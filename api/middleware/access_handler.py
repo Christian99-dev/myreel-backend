@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime
 from typing import Callable
 from fastapi import Request, Response
@@ -8,8 +7,6 @@ from api.config.endpoints import EndpointConfig
 from api.security.role_class import Role, RoleInfos
 from api.utils.middleware.log_access import log_access
 from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
-
-testing_logger = logging.getLogger("testing")
 
 class AccessHandlerMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, path_config: EndpointConfig, get_database_session):

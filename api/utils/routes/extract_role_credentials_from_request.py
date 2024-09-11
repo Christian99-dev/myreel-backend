@@ -2,8 +2,6 @@ import re
 from typing import Optional
 from pydantic import BaseModel
 from fastapi import Request
-import logging
-logger = logging.getLogger("testing")
 
 class RoleCredentials(BaseModel):
     admintoken: Optional[str]

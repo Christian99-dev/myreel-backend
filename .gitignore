@@ -5,11 +5,11 @@ env
 __pycache__
 
 # logs
-*.log
+logs/
+
 
 # helper-scripts
-context-printer*.*
-folder-structure-printer*.*
+scripts/
 
 # files
 *.mp4

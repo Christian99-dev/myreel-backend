@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI
 from dotenv import load_dotenv
 from distutils.util import strtobool
-from logging_config import setup_logging_prod
+from logging_config import setup_logging
 from api.config.endpoints import path_config
 
 # database
@@ -20,8 +20,12 @@ from api.routes.edit import router as edit_router
 from api.middleware.log_access_path import LogAccessMiddleware
 from api.middleware.access_handler import AccessHandlerMiddleware
 
+# env
+load_dotenv()
+LOGGER_ENV = os.getenv("LOGGER_ENV")
+
 # setup loggers
-setup_logging_prod()
+setup_logging(env=LOGGER_ENV)
 
 # Verwende die Lifespan-Funktion in der FastAPI-App
 app = FastAPI()

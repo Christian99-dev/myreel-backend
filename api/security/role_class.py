@@ -1,5 +1,4 @@
 import os
-import logging
 from typing import Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel
@@ -8,7 +7,6 @@ from api.config.endpoints import EndpointInfo
 from api.security.role_enum import RoleEnum
 from api.services.database.edit import is_edit_creator
 from api.services.database.group import get_group_by_edit_id, is_group_creator, is_group_member
-logger = logging.getLogger("testing")
 
 load_dotenv()
 

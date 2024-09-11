@@ -10,3 +10,4 @@ moviepy
 numpy
 requests
 pillow==9.5.0
+colorlog
