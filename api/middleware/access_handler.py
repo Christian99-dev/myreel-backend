@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Callable
 from fastapi import Request, Response
@@ -8,6 +9,9 @@ from api.security.role_class import Role, RoleInfos
 from api.utils.middleware.log_access import log_access
 from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
 
+logger = logging.getLogger("middleware.access_handler")
+
+
 class AccessHandlerMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, path_config: EndpointConfig, get_database_session):
         super().__init__(app)
@@ -15,6 +19,7 @@ class AccessHandlerMiddleware(BaseHTTPMiddleware):
         self.get_database_session = get_database_session
 
     async def dispatch(self, request: Request, call_next):
+        logger.info("access_handler.dispatch()")
         pathInfo = self.path_config.get_path_info(request.url.path, request.method)
         
         if pathInfo is None:
@@ -40,6 +45,7 @@ class AccessHandlerMiddleware(BaseHTTPMiddleware):
         database_session = next(database_session_generator)
 
         role = Role(role_infos=RoleInfos(admintoken=admintoken, userid=userid, groupid=groupid, editid=editid), db_session=database_session)
+        logger.info(f"access_handler.dispatch(): {role._role.name}")
         
         # Prüfen, ob die Rolle Zugriff hat
         if role.hasAccess(pathInfo) is False:

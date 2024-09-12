@@ -102,6 +102,12 @@ def setup_logging(env: str):
                 test={"level": "WARNING"},
                 dev={"level": "DEBUG"}, 
                 prod={"level": "WARNING"}, 
+            ),
+
+            "middleware.access_handler": get_logger(env, 
+                test={"level": "WARNING"},
+                dev={"level": "DEBUG"}, 
+                prod={"level": "WARNING"}, 
             )
         },
     })
