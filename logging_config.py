@@ -69,6 +69,11 @@ def setup_logging(env: str):
                 "level": "INFO",
                 "propagate": False,
             },
+            "uvicorn.access": {
+                "handlers": ["console", "file"],
+                "level": "CRITICAL",
+                "propagate": False,
+            },
             "app": {
                 "handlers": ["console", "file"],
                 "level": "INFO",
@@ -77,7 +82,7 @@ def setup_logging(env: str):
             
             # Documenting all access to endpoints
             "endpoints": {
-                "handlers": ["endpoints"],
+                "handlers": ["endpoints", "console", "file"],
                 "level": "INFO",
                 "propagate": False,
             },

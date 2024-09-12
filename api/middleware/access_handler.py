@@ -45,8 +45,9 @@ class AccessHandlerMiddleware(BaseHTTPMiddleware):
         database_session = next(database_session_generator)
 
         role = Role(role_infos=RoleInfos(admintoken=admintoken, userid=userid, groupid=groupid, editid=editid), db_session=database_session)
-        logger.info(f"access_handler.dispatch(): {role._role.name}")
-        
+        logger.info(f"access_handler.dispatch(): is {role._role.name}")
+        logger.info(f"access_handler.dispatch(): needs {pathInfo.role.name}")
+
         # Prüfen, ob die Rolle Zugriff hat
         if role.hasAccess(pathInfo) is False:
             log_access(request.url.path, 403, 0.0000, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), f"Role conflict! Role: {role._role}, Required: {pathInfo.role}")
