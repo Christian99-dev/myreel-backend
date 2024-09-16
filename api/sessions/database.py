@@ -10,6 +10,10 @@ from distutils.util import strtobool
 from api.models.database.model import Base, Group, Song, User, Edit, Slot, Invitation, LoginRequest, OccupiedSlot
 from api.utils.database.print_database_contents import print_database_contents
 from mock.database.data import data
+from sqlalchemy import select
+from api.models.database import model
+from tabulate import tabulate
+
 
 #TODO DATABASE _PRINT SOLL DIE UTIL ERSETZEN, AUCH BEI FILES _PRINT 
 
@@ -18,13 +22,14 @@ logger = logging.getLogger("sessions.database")
 
 """ENV"""
 load_dotenv()
-DATABASE_LOCAL                       = bool(strtobool(os.getenv("DATABASE_LOCAL")))
-DATABASE_LOCAL_FILL                  = bool(strtobool(os.getenv("DATABASE_LOCAL_FILL")))
+DATABASE_LOCAL                      = bool(strtobool(os.getenv("DATABASE_LOCAL")))
+DATABASE_LOCAL_FILL                 = bool(strtobool(os.getenv("DATABASE_LOCAL_FILL")))
+DATABASE_PRINT                      = bool(strtobool(os.getenv("DATABASE_PRINT")))
 
-DATABASE_REMOTE_SQL_HOST             = os.getenv("DATABASE_REMOTE_MYSQL_HOST")
-DATABASE_REMOTE_SQL_USER             = os.getenv("DATABASE_REMOTE_MYSQL_USER")
-DATABASE_REMOTE_SQL_PASSWORD         = os.getenv("DATABASE_REMOTE_MYSQL_PASSWORD")
-DATABASE_REMOTE_SQL_DB               = os.getenv("DATABASE_REMOTE_MYSQL_DB")
+DATABASE_REMOTE_SQL_HOST            = os.getenv("DATABASE_REMOTE_MYSQL_HOST")
+DATABASE_REMOTE_SQL_USER            = os.getenv("DATABASE_REMOTE_MYSQL_USER")
+DATABASE_REMOTE_SQL_PASSWORD        = os.getenv("DATABASE_REMOTE_MYSQL_PASSWORD")
+DATABASE_REMOTE_SQL_DB              = os.getenv("DATABASE_REMOTE_MYSQL_DB")
 
 """Base Database Session Manager"""
 class BaseDatabaseSessionManager(ABC):
@@ -83,6 +88,89 @@ class BaseDatabaseSessionManager(ABC):
         finally:
             session.close()
 
+    def _print(self): 
+        """Printe Datenbank"""
+        logger.info(f"_print()")
+
+        def filter_instance_state(data):
+            return {key: value for key, value in data.items() if key != '_sa_instance_state'}
+        
+        session = self.SessionLocal()
+        try:
+            show_tables = {
+                'Slot': True,
+                'Song': True,
+                'Edit': True,
+                'Group': True,
+                'Invitation': True,
+                'User': True,
+                'LoginRequest': True,
+                'OccupiedSlot': True
+            }
+
+            # Sammle alle Tabelleninhalte in einem String
+            log_output = ""
+
+            if show_tables.get('Slot', False):
+                slots = session.execute(select(model.Slot)).scalars().all()
+                slot_data = [filter_instance_state(instance.__dict__) for instance in slots]
+                log_output += "\nSlot Table:\n"
+                log_output += tabulate(slot_data, headers="keys", tablefmt="grid") + "\n"
+            
+            if show_tables.get('Song', False):
+                songs = session.execute(select(model.Song)).scalars().all()
+                song_data = [filter_instance_state(instance.__dict__) for instance in songs]
+                log_output += "\nSong Table:\n"
+                log_output += tabulate(song_data, headers="keys", tablefmt="grid") + "\n"
+            
+            if show_tables.get('Edit', False):
+                edits = session.execute(select(model.Edit)).scalars().all()
+                edit_data = [filter_instance_state(instance.__dict__) for instance in edits]
+                log_output += "\nEdit Table:\n"
+                log_output += tabulate(edit_data, headers="keys", tablefmt="grid") + "\n"
+            
+            if show_tables.get('Group', False):
+                groups = session.execute(select(model.Group)).scalars().all()
+                group_data = [filter_instance_state(instance.__dict__) for instance in groups]
+                log_output += "\nGroup Table:\n"
+                log_output += tabulate(group_data, headers="keys", tablefmt="grid") + "\n"
+            
+            if show_tables.get('Invitation', False):
+                invitations = session.execute(select(model.Invitation)).scalars().all()
+                invitation_data = [filter_instance_state(instance.__dict__) for instance in invitations]
+                log_output += "\nInvitation Table:\n"
+                log_output += tabulate(invitation_data, headers="keys", tablefmt="grid") + "\n"
+            
+            if show_tables.get('User', False):
+                users = session.execute(select(model.User)).scalars().all()
+                user_data = [filter_instance_state(instance.__dict__) for instance in users]
+                log_output += "\nUser Table:\n"
+                log_output += tabulate(user_data, headers="keys", tablefmt="grid") + "\n"
+            
+            if show_tables.get('LoginRequest', False):
+                login_requests = session.execute(select(model.LoginRequest)).scalars().all()
+                login_request_data = [filter_instance_state(instance.__dict__) for instance in login_requests]
+                log_output += "\nLoginRequest Table:\n"
+                log_output += tabulate(login_request_data, headers="keys", tablefmt="grid") + "\n"
+            
+            if show_tables.get('OccupiedSlot', False):
+                occupied_slots = session.execute(select(model.OccupiedSlot)).scalars().all()
+                occupied_slot_data = [filter_instance_state(instance.__dict__) for instance in occupied_slots]
+                log_output += "\nOccupiedSlot Table:\n"
+                log_output += tabulate(occupied_slot_data, headers="keys", tablefmt="grid") + "\n"
+
+            # Ausgabe des gesammelten Logs in einem großen Log-Eintrag
+            logger.info(log_output)
+
+        except Exception as e:
+            session.rollback()
+            logger.error(f"_print(): Fehler: {e}")
+            raise e
+        finally:
+            session.close()
+
+
+
 
 """Implementations for Different Session Managers"""
 class RemoteDatabaseSessionManager(BaseDatabaseSessionManager):
@@ -93,6 +181,9 @@ class RemoteDatabaseSessionManager(BaseDatabaseSessionManager):
         Base.metadata.create_all(bind=engine)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         logger.info(f"__init__(): verbunden (remote)")
+
+        if DATABASE_PRINT:
+            self._print()
 
     # @contextmanager
     def get_session(self) -> Generator[Session, Any, None]:
@@ -116,6 +207,9 @@ class LocalDatabaseSessionManager(BaseDatabaseSessionManager):
 
         if DATABASE_LOCAL_FILL:
             self._fill(data)
+
+        if DATABASE_PRINT:
+            self._print()
 
     # @contextmanager
     def get_session(self) -> Generator[Session, Any, None]:

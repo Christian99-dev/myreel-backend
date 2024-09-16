@@ -1,3 +1,4 @@
+import logging
 import os
 import datetime
 import smtplib
@@ -7,14 +8,17 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Generator
 
+# Logger für die Session-Verwaltung
+logger = logging.getLogger("sessions.email")
+
 """ENV"""
 EMAIL_LOCAL = bool(strtobool(os.getenv("EMAIL_LOCAL")))
 
-EMAIL_REMOTE_SMTP_HOST           = os.getenv("EMAIL_REMOTE_SMTP_HOST")
-EMAIL_REMOTE_SMTP_SECURE         = bool(strtobool(os.getenv("EMAIL_REMOTE_SMTP_SECURE")))
-EMAIL_REMOTE_SMTP_USER           = os.getenv("EMAIL_REMOTE_SMTP_USER")
-EMAIL_REMOTE_SMTP_PASSWORD       = os.getenv("EMAIL_REMOTE_SMTP_PASSWORD")
-EMAIL_REMOTE_EMAIL_FROM          = os.getenv("EMAIL_REMOTE_EMAIL_FROM")
+EMAIL_REMOTE_SMTP_HOST = os.getenv("EMAIL_REMOTE_SMTP_HOST")
+EMAIL_REMOTE_SMTP_SECURE = bool(strtobool(os.getenv("EMAIL_REMOTE_SMTP_SECURE")))
+EMAIL_REMOTE_SMTP_USER = os.getenv("EMAIL_REMOTE_SMTP_USER")
+EMAIL_REMOTE_SMTP_PASSWORD = os.getenv("EMAIL_REMOTE_SMTP_PASSWORD")
+EMAIL_REMOTE_EMAIL_FROM = os.getenv("EMAIL_REMOTE_EMAIL_FROM")
 
 """Base Email Session Manager"""
 class BaseEmailSessionManager(ABC):
@@ -40,18 +44,20 @@ class BaseEmailSessionManager(ABC):
 class RemoteEmailSessionManager(BaseEmailSessionManager):
     def __init__(self):
         """Initialisiert den Fernzugriff auf E-Mails über SMTP."""
+        logger.info(f"__init__(): (remote)")
 
     def get_session(self) -> Generator["BaseEmailSessionManager", None, None]:
         """Erzeugt eine Fern-E-Mail-Sitzung."""
+        logger.info(f"get_session(): (remote)")
         try:
-            print("Starting remote email session")
             yield self
         finally:
-            print("Ending remote email session")
+            logger.info(f"get_session(): closed session (remote)")
 
     def send(self, to: str, subject: str, body: str) -> bool:
         """Sendet eine E-Mail über SMTP."""
         if not all([EMAIL_REMOTE_SMTP_HOST, EMAIL_REMOTE_SMTP_USER, EMAIL_REMOTE_SMTP_PASSWORD, EMAIL_REMOTE_EMAIL_FROM]):
+            logger.error("send(): Missing environment variables for SMTP configuration.")
             raise ValueError("Missing environment variables for SMTP configuration.")
         
         try:
@@ -67,37 +73,42 @@ class RemoteEmailSessionManager(BaseEmailSessionManager):
             # Verbindung zum SMTP-Server aufbauen
             if EMAIL_REMOTE_SMTP_SECURE:
                 server = smtplib.SMTP_SSL(EMAIL_REMOTE_SMTP_HOST)
+                logger.info(f"send(): Using secure SMTP connection")
             else:
                 server = smtplib.SMTP(EMAIL_REMOTE_SMTP_HOST)
                 server.starttls()  # Verbindungsverschlüsselung starten, falls nicht SSL
+                logger.info(f"send(): Using non-secure SMTP connection with STARTTLS")
 
             server.login(EMAIL_REMOTE_SMTP_USER, EMAIL_REMOTE_SMTP_PASSWORD)
+            logger.info(f"send(): Logged in to SMTP server")
             server.sendmail(EMAIL_REMOTE_EMAIL_FROM, to, msg.as_string())
             server.quit()
             
-            print("Email sent successfully!")
+            logger.info(f"send(): Email sent successfully to {to}")
             return True
         except Exception as e:
-            print(f"Failed to send email: {e}")
+            logger.error(f"send(): Failed to send email: {e}")
             return False
+
 
 class LocalEmailSessionManager(BaseEmailSessionManager):
     def __init__(self):
         """Initialisiert den lokalen E-Mail-Zugang."""
+        logger.info(f"__init__(): (local)")
         self.email_repo = "outgoing/email"
         
         # Sicherstellen, dass der Ordner existiert
         if not os.path.exists(self.email_repo):
             os.makedirs(self.email_repo)
+            logger.info(f"__init__(): Created local email storage directory at {self.email_repo}")
 
     def get_session(self) -> Generator["BaseEmailSessionManager", None, None]:
         """Erzeugt eine lokale E-Mail-Sitzung."""
+        logger.info(f"get_session(): (local)")
         try:
-            # print(f"Starting local email session for {self.email_repo}")
             yield self
         finally:
-            pass
-            # print(f"Ending local email session for {self.email_repo}")
+            logger.info(f"get_session(): closed session (local)")
 
     def send(self, to: str, subject: str, body: str) -> bool:
         """Speichert die E-Mail lokal."""
@@ -120,29 +131,29 @@ class LocalEmailSessionManager(BaseEmailSessionManager):
             with open(filepath, 'w') as file:
                 file.write(msg.as_string())
             
-            # print(f"Email successfully saved to {filepath}")
+            logger.info(f"send(): Email successfully saved to {filepath}")
             return True
         except Exception as e:
-            # print(f"Failed to save email: {e}")
+            logger.error(f"send(): Failed to save email: {e}")
             return False
+
 
 class MemoryEmailSessionManager(BaseEmailSessionManager):
     def __init__(self):
         """Initialisiert den E-Mail-Speicher im Speicher."""
-        pass
+        logger.info(f"__init__(): (memory)")
 
     def get_session(self) -> Generator["BaseEmailSessionManager", None, None]:
         """Erzeugt eine transaktionale E-Mail-Sitzung im Speicher."""
+        logger.info(f"get_session(): (memory)")
         try:
-            # print("Starting in-memory email session")
             yield self
         finally:
-            pass
-            # print("Ending in-memory email session")
+            logger.info(f"get_session(): closed session (memory)")
 
     def send(self, to: str, subject: str, body: str) -> bool:
         """Simuliert das Senden einer E-Mail im Speicher."""
-        # print(f"Simulating email sent to {to} with subject '{subject}'")
+        logger.info(f"send(): Simulating email sent to {to} with subject '{subject}'")
         return True
 
 
@@ -150,18 +161,26 @@ _email_session_manager = None
 
 def init_email_session_manager():
     global _email_session_manager
+    logger.info(f"init_email_session_manager()")
+    
     if _email_session_manager is None:
         _email_session_manager = LocalEmailSessionManager() if EMAIL_LOCAL else RemoteEmailSessionManager()
+    else:
+        logger.warning(f"init_email_session_manager(): already initialized")
 
 
 def get_email_session():
     global _email_session_manager
+    logger.info(f"get_email_session()")
+    
     if _email_session_manager is None:
+        logger.error(f"get_email_session(): failed! manager not initialized")
         return
 
     try:
-        gen = _email_session_manager.get_session() 
+        gen = _email_session_manager.get_session()
         session = next(gen)
         yield session
     except Exception as e:
+        logger.error(f"get_email_session(): Error: {e}")
         raise e
