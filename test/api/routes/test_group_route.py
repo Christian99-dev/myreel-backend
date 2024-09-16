@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
-
+import os
+from dotenv import load_dotenv
 from api.utils.jwt import jwt
 from api.utils.jwt.jwt import read_jwt
 
@@ -85,7 +86,8 @@ def test_get_group_success(http_client: TestClient):
     assert response_data["group_id"] == group_id  # Überprüfe die group_id
     assert response_data["name"] == "Test Group for Deletion"  # Überprüfe den Gruppennamen
 
-def test_get_group_not_found(http_client: TestClient, admintoken: str):
+def test_get_group_not_found(http_client: TestClient):
+    admintoken = os.getenv("ADMIN_TOKEN")
     
     # Sende die GET-Anfrage für eine nicht existierende Gruppe
     response = http_client.get("/group/non-existent-group-id", headers={"admintoken" : admintoken})

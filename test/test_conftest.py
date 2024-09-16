@@ -1,33 +1,15 @@
 from sqlalchemy.orm import Session
-from api.utils.jwt.jwt import read_jwt
 from api.security.role_class import Role, RoleInfos
 from api.security.role_enum import RoleEnum
 from api.models.database.model import Edit, Group, Song, User, Slot, Invitation, LoginRequest, OccupiedSlot
-from test.role_creds import admin_req_creds, group_creator_req_creds, edit_creator_req_creds, external_req_creds, group_member_req_creds, group_creator_with_edit_id_req_creds, group_member_with_edit_id_req_creds
 from fastapi.testclient import TestClient
 from test.utils.role_tester_has_acccess import role_tester_has_access
 from api.sessions.files import BaseFileSessionManager
 from mock.database.data import data
 from main import app
 
-# -- user_1_jwt -- #
 
-def test_user_1_jwt(user_1_jwt: str):
-    assert user_1_jwt is not None
-    assert type(user_1_jwt) is str
-    
-    assert read_jwt(user_1_jwt) is 1
-    assert type(read_jwt(user_1_jwt)) is int
-    
-# -- admintoken -- #
-
-def admintoken(admintoken: str):
-    assert admintoken is not None
-    assert type(admintoken) is str
-
-
-# -- memory_database_session -- #
-
+"""Database"""
 def test_memory_database_session_isolation(memory_database_session: Session):
     """Test to ensure that each test function gets a separate session."""
     
@@ -130,8 +112,7 @@ def test_memory_database_session_data_test(memory_database_session: Session):
         assert expected_occupied_slot["edit_id"] == actual_occupied_slot.edit_id
         assert expected_occupied_slot["video_src"] == actual_occupied_slot.video_src
 
-# -- file_session_memory -- #
-
+"""Files"""
 def test_file_session_memory_isolation(memory_file_session: BaseFileSessionManager):
     """Testet die Isolation von MediaAccess."""
     
@@ -211,18 +192,15 @@ def test_file_session_memory_files_as_valid_name_check(memory_file_session: Base
     demo_videos = memory_file_session.list("demo_slot")
     assert len(demo_videos) == 1
 
-# -- email_session_memory -- #
-
+"""Email"""
 def test_email_session_does_something(memory_email_session):
     memory_email_session.send("to","subject","body")
 
-# -- instagram_session_memory -- #
-
+"""Instagram"""
 def test_instagram_session_does_something(memory_instagram_session):
     memory_instagram_session.upload(b"", "mp4", "hi")
    
-# -- http_client  -- #
-
+"""HTTP Client"""
 def test_http_client_has_prod_routes(http_client: TestClient):
     
     IGNORED_ROUTES_IN_PROD = [
@@ -260,101 +238,3 @@ def test_http_client_has_prod_routes(http_client: TestClient):
     for route in test_client_routes:
         assert route in filtered_prod_routes, f"Unexpected route {route} found in the test client app."
 
-# -- http_client_mocked_path_crud -- #
-
-def test_http_client_mocked_path_crud_isolation(http_client_mocked_path_crud: TestClient):
-    """Test to ensure that adding a song does not affect other sessions."""
-    
-    # Check that the database is empty at the beginning of the test
-    response = http_client_mocked_path_crud.get("/list")
-    assert response.status_code == 200
-    assert len(response.json()) == len(data["songs"])
-    
-    
-    # Add a new song using the HTTP client
-    response = http_client_mocked_path_crud.post("/add/Test Song A/Test Author")
-    assert response.status_code == 200
-    new_song = response.json()
-    assert new_song["name"] == "Test Song A"
-    assert new_song["author"] == "Test Author"
-
-    # Verify the song was added
-    response = http_client_mocked_path_crud.get("/list")
-    assert response.status_code == 200
-    songs = response.json()
-    assert len(songs) == len(data["songs"]) + 1
-    assert songs[len(songs) - 1]["name"] == "Test Song A"
-
-def test_http_client_mocked_path_crud_isolation_other(http_client_mocked_path_crud: TestClient):
-    """Test to ensure that changes in one session do not affect another session."""
-    
-    
-    # Check that the database is still empty for this test
-    response = http_client_mocked_path_crud.get("/list")
-    assert response.status_code == 200
-    assert len(response.json()) == len(data["songs"]), "Database should be empty at the beginning of this test."
-    
-
-    # This session should not have access to the song added in the previous test
-    response = http_client_mocked_path_crud.get("/list")
-    assert response.status_code == 200
-    songs = response.json()
-    assert len(songs) == len(data["songs"]), "Database should remain empty in this isolated session."
-    
-    # Add a song in this separate test
-    response = http_client_mocked_path_crud.post("/add/Test Song B/Test Artist")
-    assert response.status_code == 200
-    new_song = response.json()
-    assert new_song["name"] == "Test Song B"
-    assert new_song["author"] == "Test Artist"
-    
-    # Ensure the song is present in this session
-    response = http_client_mocked_path_crud.get("/list")
-    assert response.status_code == 200
-    songs = response.json()
-    assert len(songs) == len(songs)
-    assert songs[len(songs) - 1]["name"] == "Test Song B"
-
-# -- http_client_mocked_path_config -- #
-
-def test_http_client_mocked_path_config_config(http_client_mocked_path_config: TestClient):
-    assert http_client_mocked_path_config.get("/admin_no_subroles").status_code          == 403
-    assert http_client_mocked_path_config.get("/group_creator_no_subroles").status_code  == 403
-    assert http_client_mocked_path_config.get("/edit_creator_no_subroles").status_code   == 403
-    assert http_client_mocked_path_config.get("/group_member_no_subroles").status_code   == 403
-    assert http_client_mocked_path_config.get("/external_no_subroles").status_code       == 200
-    
-    assert http_client_mocked_path_config.get("/admin_subroles").status_code            == 403
-    assert http_client_mocked_path_config.get("/group_creator_subroles").status_code    == 403
-    assert http_client_mocked_path_config.get("/edit_creator_subroles").status_code     == 403
-    assert http_client_mocked_path_config.get("/group_member_subroles").status_code     == 403
-    assert http_client_mocked_path_config.get("/external_subroles").status_code         == 200
-
-# -- http_client_mocked_path_for_extracting_creds -- #
-
-def test_http_client_mocked_path_for_extracting_creds_config(http_client_mocked_path_for_extracting_creds: TestClient):
-    assert http_client_mocked_path_for_extracting_creds.get("/example").status_code                                 == 200
-    assert http_client_mocked_path_for_extracting_creds.post("/example", json={"key": "value"}).status_code         == 200
-    assert http_client_mocked_path_for_extracting_creds.post("/group/test-group-id").status_code                    == 200
-    assert http_client_mocked_path_for_extracting_creds.post("/edit/123").status_code                               == 200
-    assert http_client_mocked_path_for_extracting_creds.post("/example/group/test-group-id/example").status_code    == 200
-    assert http_client_mocked_path_for_extracting_creds.post("/example/edit/456/example").status_code               == 200
-    
-# -- NOT FIXTURE : mock data wich is not testet already -- #
-
-def test_mock_data_user_creds(memory_database_session: Session):
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=memory_database_session), RoleEnum.ADMIN)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_req_creds["userid"], groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=memory_database_session), RoleEnum.GROUP_CREATOR)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_with_edit_id_req_creds["userid"], groupid=None, editid=group_creator_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=memory_database_session), RoleEnum.GROUP_CREATOR)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_with_edit_id_req_creds["userid"], groupid=None, editid=group_member_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=memory_database_session), RoleEnum.GROUP_MEMBER)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=edit_creator_req_creds["userid"], groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=memory_database_session), RoleEnum.EDIT_CREATOR)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_req_creds["userid"], groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=memory_database_session), RoleEnum.GROUP_MEMBER)
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=memory_database_session), RoleEnum.EXTERNAL)    
-
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=admin_req_creds["req"]["headers"]["admintoken"], userid=None, groupid=None, editid=None), db_session=memory_database_session), admin_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_req_creds["userid"], groupid=group_creator_req_creds["req"]["params"]["groupid"], editid=None), db_session=memory_database_session), group_creator_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_creator_with_edit_id_req_creds["userid"], groupid=None, editid=group_creator_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=memory_database_session), group_creator_with_edit_id_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_with_edit_id_req_creds["userid"], groupid=None, editid=group_member_with_edit_id_req_creds["req"]["params"]["editid"]), db_session=memory_database_session), group_member_with_edit_id_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=edit_creator_req_creds["userid"], groupid=None, editid=edit_creator_req_creds["req"]["params"]["editid"]), db_session=memory_database_session), edit_creator_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=group_member_req_creds["userid"], groupid=group_member_req_creds["req"]["params"]["groupid"], editid=None), db_session=memory_database_session), group_member_req_creds["role"])
-    role_tester_has_access(Role(role_infos=RoleInfos(admintoken=None, userid=None, groupid=None, editid=None), db_session=memory_database_session), external_req_creds["role"])

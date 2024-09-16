@@ -4,11 +4,17 @@ from api.services.files.cover import get as get_cover
 from api.services.files.song import get as get_song
 from api.services.database.song import remove as remove_song_service
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
 
 # create
-def test_create(http_client: TestClient, memory_file_session: BaseFileSessionManager, admintoken: int): 
+def test_create(http_client: TestClient, memory_file_session: BaseFileSessionManager): 
     cover_file_bytes = get_cover(1, memory_file_session)  # Mock cover file
     song_file_bytes = get_song(1, memory_file_session)    # Mock song file
+    admintoken = os.getenv("ADMIN_TOKEN")
 
     valid_breakpoints = [0.0, 30.0, 60.0]  # Example valid breakpoints
 
@@ -37,10 +43,10 @@ def test_create(http_client: TestClient, memory_file_session: BaseFileSessionMan
     assert isinstance(response_data["cover_src"], str)
     assert isinstance(response_data["audio_src"], str)
     
-def test_create_not_good_breakpoints(http_client: TestClient, memory_file_session: BaseFileSessionManager, admintoken: int): 
+def test_create_not_good_breakpoints(http_client: TestClient, memory_file_session: BaseFileSessionManager): 
     cover_file_bytes = get_cover(1, memory_file_session)  # Mock cover file
     song_file_bytes = get_song(1, memory_file_session)    # Mock song file
-
+    admintoken = os.getenv("ADMIN_TOKEN")
     valid_breakpoints = [0.0, 30.0, 1000.0]  # Example valid breakpoints
 
     response = http_client.post(
@@ -63,14 +69,18 @@ def test_create_status(http_client: TestClient):
     assert http_client.post("/song/").status_code == 403
 
 # remove
-def test_delete_song(http_client: TestClient, admintoken: int):
+def test_delete_song(http_client: TestClient):
+    admintoken = os.getenv("ADMIN_TOKEN")
+
     # Step 1: Now, try to delete the created song
     delete_response = http_client.delete(f"/song/2", headers={"admintoken": admintoken})
 
     # Step 2: Validate the response from the DELETE request
     assert delete_response.status_code == 200  # Expecting a successful deletion
 
-def test_delete_non_existent_song(http_client: TestClient, admintoken: int):
+def test_delete_non_existent_song(http_client: TestClient):
+    admintoken = os.getenv("ADMIN_TOKEN")
+
     non_existent_song_id = 9999  # A song ID that doesn't exist
 
     delete_response = http_client.delete(f"/song/{non_existent_song_id}", headers={"admintoken": admintoken})

@@ -1,5 +1,60 @@
+from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
+import pytest
+from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
 
+"""Setup"""
+@pytest.fixture(scope="function")
+def http_client_mocked_path_for_extracting_creds():
+    app = FastAPI()
+
+    @app.middleware("http")
+    async def add_role_credentials(request: Request, call_next):
+        credentials = await extract_role_credentials_from_request(request)
+        request.state.credentials = credentials
+        response = await call_next(request)
+        return response
+
+    # from body / query
+    @app.get("/example")
+    async def example_route(request: Request):
+        return {"credentials": request.state.credentials}
+    
+    @app.post("/example")
+    async def example_route(request: Request):
+        return {"credentials": request.state.credentials}
+
+    # from path
+    @app.post("/group/{groupid}")
+    async def group_route(request: Request, groupid: str):
+        return {"credentials": request.state.credentials}
+
+    @app.post("/edit/{editid}")
+    async def edit_route(request: Request, editid: int):
+        return {"credentials": request.state.credentials}
+    
+    @app.post("/example/group/{groupid}/example")
+    async def nested_group_route(request: Request, groupid: str):
+        return {"credentials": request.state.credentials}
+
+    @app.post("/example/edit/{editid}/example")
+    async def nested_edit_route(request: Request, editid: int):
+        return {"credentials": request.state.credentials}
+    
+    # yield client with routes
+    with TestClient(app) as test_client:
+        yield test_client
+
+"""Test Setup"""
+def test_http_client_mocked_path_for_extracting_creds_config(http_client_mocked_path_for_extracting_creds: TestClient):
+    assert http_client_mocked_path_for_extracting_creds.get("/example").status_code                                 == 200
+    assert http_client_mocked_path_for_extracting_creds.post("/example", json={"key": "value"}).status_code         == 200
+    assert http_client_mocked_path_for_extracting_creds.post("/group/test-group-id").status_code                    == 200
+    assert http_client_mocked_path_for_extracting_creds.post("/edit/123").status_code                               == 200
+    assert http_client_mocked_path_for_extracting_creds.post("/example/group/test-group-id/example").status_code    == 200
+    assert http_client_mocked_path_for_extracting_creds.post("/example/edit/456/example").status_code               == 200
+
+"""Main test"""
 # from query
 def test_extract_credentials_from_request(http_client_mocked_path_for_extracting_creds: TestClient):
     headers = {
