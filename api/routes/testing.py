@@ -16,7 +16,7 @@ from api.services.instagram.upload import upload
 from api.utils.files.file_validation import file_validation
 from api.utils.media_manipulation.create_edit_video import create_edit_video
 from api.utils.media_manipulation.swap_slot_in_edit_video import swap_slot_in_edit
-from fastapi import FastAPI, File, UploadFile, HTTPException
+
 
 from api.sessions.files import get_file_session
 
@@ -82,10 +82,10 @@ def test3(
 
 @router.get("/4", tags=["testing"])
 async def upload_file(
-        # email_session:      BaseEmailSessionManager         = Depends(get_email_session),
+        email_session:      BaseEmailSessionManager         = Depends(get_email_session),
         database_session                                    = Depends(get_database_session),
-        # file_session:       BaseFileSessionManager          = Depends(get_file_session),
-        # instagram_session:  BaseInstagramSessionManager     = Depends(get_instagram_session)
+        file_session:       BaseFileSessionManager          = Depends(get_file_session),
+        instagram_session:  BaseInstagramSessionManager     = Depends(get_instagram_session)
     ):
     # invite("k.christian9@web.de", "testcode", "ttestid", "12111", email_session)
     return 17

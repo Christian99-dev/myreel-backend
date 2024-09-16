@@ -188,14 +188,20 @@ class MemoryInstagramSessionManager(BaseInstagramSessionManager):
 
 _instagram_session_manager = None
 
-def get_instagram_session():
+def init_instagram_session_manager():
     global _instagram_session_manager
-
-    # beim ersten Ausführen
     if _instagram_session_manager is None:
         _instagram_session_manager = LocalInstagramSessionManager() if INSTAGRAM_LOCAL else RemoteInstagramSessionManager()
 
-    # Öffnet die Session und gibt sie zurück
-    gen = _instagram_session_manager.get_session()
-    session = next(gen)
-    yield session
+
+def get_instagram_session():
+    global _instagram_session_manager
+    if _instagram_session_manager is None:
+        return
+
+    try:
+        gen = _instagram_session_manager.get_session() 
+        session = next(gen)
+        yield session
+    except Exception as e:
+        raise e

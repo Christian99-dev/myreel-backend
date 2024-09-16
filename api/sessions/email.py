@@ -148,14 +148,20 @@ class MemoryEmailSessionManager(BaseEmailSessionManager):
 
 _email_session_manager = None
 
-def get_email_session():
+def init_email_session_manager():
     global _email_session_manager
-    
-    # beim ersten Ausführen
     if _email_session_manager is None:
         _email_session_manager = LocalEmailSessionManager() if EMAIL_LOCAL else RemoteEmailSessionManager()
-    
-    # Öffnet die Session und gibt sie zurück
-    gen = _email_session_manager.get_session()
-    session = next(gen)
-    yield session
+
+
+def get_email_session():
+    global _email_session_manager
+    if _email_session_manager is None:
+        return
+
+    try:
+        gen = _email_session_manager.get_session() 
+        session = next(gen)
+        yield session
+    except Exception as e:
+        raise e

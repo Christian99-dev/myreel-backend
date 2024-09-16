@@ -214,14 +214,20 @@ class RemoteFileSessionManager(BaseFileSessionManager):
 
 _file_session_manager = None
 
+def init_file_session_manager():
+    global _file_session_manager
+    if _file_session_manager is None:
+        _file_session_manager = LocalFileSessionManager() if FILES_LOCAL else RemoteFileSessionManager()
+
+
 def get_file_session():
     global _file_session_manager
-    
-    # beim ersten ausführen
     if _file_session_manager is None:
-        _file_session_manager = LocalFileSessionManager() if FILES_LOCAL else MemoryFileSessionManager()
-    
-    # Öffnet die Session und gibt sie zurück
-    gen = _file_session_manager.get_session()
-    session = next(gen)
-    yield session
+        return
+
+    try:
+        gen = _file_session_manager.get_session() 
+        session = next(gen)
+        yield session
+    except Exception as e:
+        raise e

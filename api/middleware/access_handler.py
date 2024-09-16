@@ -1,12 +1,10 @@
+import time
 import logging
-from datetime import datetime
-from typing import Callable
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from api.utils.jwt import jwt
 from api.config.endpoints import EndpointConfig
 from api.security.role_class import Role, RoleInfos
-from api.utils.middleware.log_access import log_access
 from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
 
 logger = logging.getLogger("middleware.access_handler")
@@ -19,39 +17,61 @@ class AccessHandlerMiddleware(BaseHTTPMiddleware):
         self.get_database_session = get_database_session
 
     async def dispatch(self, request: Request, call_next):
-        logger.info("access_handler.dispatch()")
-        pathInfo = self.path_config.get_path_info(request.url.path, request.method)
+        start_time = time.time()  # Track request start time
+
+        # Extract the path and method for logging
+        path = request.url.path
+        method = request.method
+
+        # Log the basic request information (first line)
+        logger.info(f"Request Info: Path={path}, Method={method}")
         
+        # Retrieve path info from the config
+        pathInfo = self.path_config.get_path_info(path, method)
+
         if pathInfo is None:
-            return Response(status_code=401)
-            
-        # all cred
+            status_code = 401
+            duration = time.time() - start_time
+            # Log the result information (second line)
+            logger.info(f"Access Result: Status={status_code}, Duration={duration:.4f}s, Role=None, Required Role=None, Path={path}")
+            return Response(status_code=status_code)
+
+        # Extract credentials
         credentials = await extract_role_credentials_from_request(request)
-        
-        admintoken  = credentials.admintoken
-        groupid     = credentials.groupid
-        editid      = credentials.editid
-        
-        # user id from jwt
+
+        admintoken = credentials.admintoken
+        groupid = credentials.groupid
+        editid = credentials.editid
+
+        # Extract user ID from JWT
         userid = None
+        jwt_error = None
         try:
             userid = jwt.read_jwt(credentials.jwt)
-        except Exception as e:            
+        except Exception as e:
+            jwt_error = str(e)
             userid = None
-            
-        
-        # Datenbank-Sitzung verwenden
+
+        # Use the database session
         database_session_generator = self.get_database_session()
         database_session = next(database_session_generator)
 
+        # Initialize role with the extracted credentials
         role = Role(role_infos=RoleInfos(admintoken=admintoken, userid=userid, groupid=groupid, editid=editid), db_session=database_session)
-        logger.info(f"access_handler.dispatch(): is {role._role.name}")
-        logger.info(f"access_handler.dispatch(): needs {pathInfo.role.name}")
+        
+        # Check if the role has access
+        if not role.hasAccess(pathInfo):
+            status_code = 403
+            duration = time.time() - start_time
+            # Log the result information (combined line)
+            logger.info(f"Access Result: Status={status_code}, Duration={duration:.4f}s, Role={role._role.name}, Required Role={pathInfo.role.name}, Path={path}, JWT Error={jwt_error}")
+            return Response(status_code=status_code)
 
-        # Prüfen, ob die Rolle Zugriff hat
-        if role.hasAccess(pathInfo) is False:
-            log_access(request.url.path, 403, 0.0000, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), f"Role conflict! Role: {role._role}, Required: {pathInfo.role}")
-            return Response(status_code=403)
+        # Proceed if access is granted
+        response = await call_next(request)
+        
+        # Log the result of the request (combined line)
+        duration = time.time() - start_time
+        logger.info(f"Access Result: Status={response.status_code}, Duration={duration:.4f}s, Role={role._role.name}, Required Role={pathInfo.role.name}, Path={path}, JWT Error={jwt_error}")
 
-        # Wenn Zugriff gewährt wird, fortfahren
-        return await call_next(request)
+        return response

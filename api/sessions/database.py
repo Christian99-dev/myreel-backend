@@ -11,6 +11,8 @@ from api.models.database.model import Base, Group, Song, User, Edit, Slot, Invit
 from api.utils.database.print_database_contents import print_database_contents
 from mock.database.data import data
 
+#TODO DATABASE _PRINT SOLL DIE UTIL ERSETZEN, AUCH BEI FILES _PRINT 
+
 # Logger für die Session-Verwaltung
 logger = logging.getLogger("sessions.database")
 
@@ -113,7 +115,6 @@ class LocalDatabaseSessionManager(BaseDatabaseSessionManager):
         logger.info(f"__init__(): verbunden (local)")
 
         if DATABASE_LOCAL_FILL:
-            logger.info(f"__init__(): starte füllen (local)")
             self._fill(data)
 
     # @contextmanager
@@ -134,7 +135,6 @@ class MemoryDatabaseSessionManager(BaseDatabaseSessionManager):
         Base.metadata.create_all(bind=self.engine)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
         logger.info(f"__init__(): verbunden (memory)")
-
         self._fill(data)
 
     # @contextmanager
@@ -154,13 +154,22 @@ class MemoryDatabaseSessionManager(BaseDatabaseSessionManager):
 
 _database_session_manager = None
 
+def init_database_session_manager(): 
+    logger.info(f"init_database_manager()")
+    
+    global _database_session_manager
+    if _database_session_manager is None:
+        _database_session_manager = LocalDatabaseSessionManager() if DATABASE_LOCAL else RemoteDatabaseSessionManager()
+    else:
+        logger.warning(f"init_database_manager(): already initalized")
+
 def get_database_session():
     logger.info(f"get_database_session()")
+    
     global _database_session_manager
-
     if _database_session_manager is None:
-        logger.info(f"get_database_session(): init session-manager")
-        _database_session_manager = LocalDatabaseSessionManager() if DATABASE_LOCAL else RemoteDatabaseSessionManager()
+        logger.error("get_database_session(): failed! manager not initilized")
+        return
 
     try:
         gen = _database_session_manager.get_session() 
