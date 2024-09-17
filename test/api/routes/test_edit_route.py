@@ -60,7 +60,7 @@ def test_create_edit_no_song(http_client: TestClient):
         }, 
         headers={"Authorization": f"Bearer {jwt.create_jwt(2, 10)}"})
     
-    assert response.status_code == 422
+    assert response.status_code == 400
     
 def test_create_edit_auth(http_client: TestClient):
     response = http_client.post(

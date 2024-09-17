@@ -9,7 +9,7 @@ from mock.database.data import data
 # create
 def test_create(memory_database_session: Session):
     # Define user data
-    group_id = create_uuid()
+    group_id = "11111111-1111-1111-1111-111111111111"
     role = "admin"
     name = "Test User"
     email = "testuser@example.com"

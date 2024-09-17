@@ -1,12 +1,11 @@
 import logging
 import os
 from abc import ABC, abstractmethod
-from contextlib import contextmanager
 from distutils.util import strtobool
 from typing import Any, Generator
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, event
 from sqlalchemy.orm import Session, sessionmaker
 from tabulate import tabulate
 
@@ -225,6 +224,17 @@ class MemoryDatabaseSessionManager(BaseDatabaseSessionManager):
         logger.info(f"__init__(): (memory)")
         database_url = "sqlite:///:memory:"
         self.engine = create_engine(database_url, connect_args={"check_same_thread": False})
+
+        # Definiere die Funktion inline ohne self
+        def _set_foreign_keys_inline(dbapi_connection, connection_record):
+            """Füge das PRAGMA foreign_keys=ON Inline hinzu."""
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.close()
+
+        # Binde das Event an die Engine
+        event.listen(self.engine, "connect", _set_foreign_keys_inline)
+
         Base.metadata.create_all(bind=self.engine)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
         logger.info(f"__init__(): verbunden (memory)")
@@ -238,10 +248,18 @@ class MemoryDatabaseSessionManager(BaseDatabaseSessionManager):
         session = self.SessionLocal(bind=connection)
         try:
             yield session
+        except Exception:
+            logger.warning("get_session(): Error occurred, rolling back transaction")
+            transaction.rollback()  # Rollback only if an exception occurs
+            raise  # Reraise the exception
         finally:
-            session.close()
-            transaction.rollback()
-            connection.close()
+            # Immer Rollback, aber nur wenn die Transaktion noch aktiv ist
+            if transaction.is_active:
+                logger.info("get_session(): Rolling back active transaction")
+                transaction.rollback()  # Rollback für alle Fälle
+
+            session.close()  # Schließe die Session sauber
+            connection.close()  # Schließe die Verbindung
             logger.info(f"get_session(): closed session (memory)")
 
 

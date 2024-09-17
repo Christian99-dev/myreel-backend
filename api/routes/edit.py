@@ -1,15 +1,15 @@
-from typing import List
-from wsgiref import validate
 
-from fastapi import APIRouter, Body, Depends, Header, HTTPException, Request
+
+from fastapi import APIRouter, Body, Depends, Header, HTTPException
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from api.models.schema.edit import (AddSlotRequest, AddSlotResponse,
                                     ChangeSlotRequest, ChangeSlotResponse,
-                                    DeleteEditResponse, DeleteSlotRequest,
-                                    DeleteSlotResponse, EditListResponse,
-                                    GetEditResponse, GoLiveResponse,
-                                    PostRequest, PostResponse, Slot, User)
+                                    DeleteEditResponse, DeleteSlotResponse,
+                                    EditListResponse, GetEditResponse,
+                                    GoLiveResponse, PostRequest, PostResponse,
+                                    User)
 from api.services.database.edit import are_all_slots_occupied
 from api.services.database.edit import create as create_edit_service
 from api.services.database.edit import get as get_edit_serivce
@@ -43,6 +43,7 @@ from api.services.files.occupied_slot import \
     update as update_occupied_slot_media_service
 from api.services.files.song import get as get_song_audio
 from api.services.instagram.upload import upload as instram_upload_service
+# sessions
 from api.sessions.database import get_database_session
 from api.sessions.files import BaseFileSessionManager, get_file_session
 from api.sessions.instagram import get_instagram_session
@@ -97,75 +98,92 @@ def create_edit(
     if user_id is None or groupid is None:
         raise HTTPException(status_code=422, detail="Sorry, something went wrong")
     
-    # create db edit
-    new_edit = create_edit_service(
-        request.song_id, 
-        user_id,
-        groupid,
-        request.edit_name,
-        False,   
-        video_src="",
-        database_session=database_session
-    )
-    
-    if new_edit is None: 
-        raise HTTPException(status_code=422, detail="Problem when creating edit")
-    
-    # get demo video
-    demo_video_bytes = get_demo_video(file_session)
-    
-    if demo_video_bytes is None: 
-        raise HTTPException(status_code=422, detail="Problem with demo video")
+    try:
+        # create db edit
+        new_edit = create_edit_service(
+            request.song_id, 
+            user_id,
+            groupid,
+            request.edit_name,
+            False,   
+            video_src="",
+            database_session=database_session
+        )
 
-    # get song
-    song_audio_bytes = get_song_audio(request.song_id, file_session)
-    
-    if song_audio_bytes is None: 
-        raise HTTPException(status_code=422, detail="Problem with song audio")
-    
-    # create edit video
-    breakpoints = get_breakpoints(request.song_id, database_session)
-    
-    # creating video
-    edit_video_bytes = create_edit_video(
-        demo_video_bytes,
-        "mp4",
-        song_audio_bytes,
-        "mp3",
-        breakpoints,
-        "mp4"
-    )
-    
-    if edit_video_bytes is None:
-        raise HTTPException(status_code=422, detail="Error creating edit")
+        if new_edit is None: 
+            raise HTTPException(status_code=422, detail="Problem when creating edit")
         
-    edit_location = create_edit_file_session(
-        new_edit.edit_id, 
-        "mp4", 
-        edit_video_bytes, 
-        file_session
-    )
-    
-    if edit_location is None:
-        raise HTTPException(status_code=422, detail="Something went wrong while saving the edit")
-    
-    # Update the edit with the new video source
-    updated_edit = edit_update_service(new_edit.edit_id, video_src=edit_location, database_session=database_session)
-    
-    user = get_user_service(updated_edit.created_by, database_session)  # Retrieve the user details
-    
-    # Create the response object
-    response = PostResponse(
-        edit_id=updated_edit.edit_id,
-        song_id=updated_edit.song_id,
-        created_by=User(user_id=user.user_id, name=user.name),  # Assuming you have a way to get this, or replace with the user info if necessary
-        group_id=updated_edit.group_id,
-        name=updated_edit.name,
-        isLive=updated_edit.isLive,
-        video_src=updated_edit.video_src
-    )
+        # get demo video
+        demo_video_bytes = get_demo_video(file_session)
+        
+        if demo_video_bytes is None: 
+            raise HTTPException(status_code=422, detail="Problem with demo video")
 
-    return response
+        # get song
+        song_audio_bytes = get_song_audio(request.song_id, file_session)
+        
+        if song_audio_bytes is None: 
+            raise HTTPException(status_code=422, detail="Problem with song audio")
+        
+        # create edit video
+        breakpoints = get_breakpoints(request.song_id, database_session)
+        
+        # creating video
+        edit_video_bytes = create_edit_video(
+            demo_video_bytes,
+            "mp4",
+            song_audio_bytes,
+            "mp3",
+            breakpoints,
+            "mp4"
+        )
+        
+        if edit_video_bytes is None:
+            raise HTTPException(status_code=422, detail="Error creating edit")
+            
+        edit_location = create_edit_file_session(
+            new_edit.edit_id, 
+            "mp4", 
+            edit_video_bytes, 
+            file_session
+        )
+        
+        if edit_location is None:
+            raise HTTPException(status_code=422, detail="Something went wrong while saving the edit")
+        
+        # Update the edit with the new video source
+        updated_edit = edit_update_service(new_edit.edit_id, video_src=edit_location, database_session=database_session)
+        
+        user = get_user_service(updated_edit.created_by, database_session)  # Retrieve the user details
+        
+        # Create the response object
+        response = PostResponse(
+            edit_id=updated_edit.edit_id,
+            song_id=updated_edit.song_id,
+            created_by=User(user_id=user.user_id, name=user.name),  # Assuming you have a way to get this, or replace with the user info if necessary
+            group_id=updated_edit.group_id,
+            name=updated_edit.name,
+            isLive=updated_edit.isLive,
+            video_src=updated_edit.video_src
+        )
+        
+        return response
+
+    except IntegrityError as e:
+        # Handle database integrity errors (e.g., foreign key or unique constraint violations)
+        database_session.rollback()
+        raise HTTPException(status_code=400, detail=f"Database integrity error: {str(e.orig)}")
+
+    except SQLAlchemyError as e:
+        # Handle other SQLAlchemy database errors
+        database_session.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+    except Exception as e:
+        # Catch any other unexpected exceptions
+        database_session.rollback()
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
 @router.get("/group/{group_id}/list", response_model=EditListResponse, tags=["edit"])
 async def get_edits_for_group(group_id: str, database_session: Session = Depends(get_database_session)):
     # Abrufen aller Edits für die gegebene Gruppen-ID

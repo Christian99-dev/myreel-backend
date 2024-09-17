@@ -82,9 +82,9 @@ def setup_logging(env: str):
                 handlers={"console", "file"}
             ),
 
-
+            # Session loggers
             "sessions.database": get_logger(env, 
-                test={"level": "WARNING"},
+                test={"level": "DEBUG"},
                 dev={"level": "DEBUG"}, 
                 prod={"level": "WARNING"}, 
                 handlers={"console", "file"}
@@ -108,11 +108,20 @@ def setup_logging(env: str):
                 handlers={"console", "file"}
             ),
 
+            # Middleware
             "middleware.access_handler": get_logger(env, 
                 test={"level": "WARNING"},
                 dev={"level": "DEBUG"}, 
                 prod={"level": "INFO"}, 
                 handlers={"console", "file", "endpoints"}
+            ),
+
+            # inside test
+            "test.unittest": get_logger(env, 
+                test={"level": "DEBUG"},
+                dev={"level": "CRITICAL"}, 
+                prod={"level": "CRITICAL"}, 
+                handlers={"console", "file"}
             ),
         },
     })

@@ -1,3 +1,4 @@
+import logging
 from sqlalchemy.orm import Session
 
 from api.models.database.model import Edit, Slot, Song
@@ -6,6 +7,7 @@ from api.services.database.song import (create, create_slots_from_breakpoints,
                                         update)
 from mock.database.data import data
 
+logger = logging.getLogger("test.unittest")
 
 # create
 def test_create(memory_database_session: Session):
