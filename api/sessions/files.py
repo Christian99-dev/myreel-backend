@@ -3,7 +3,7 @@ import logging
 import os
 from abc import ABC, abstractmethod
 from distutils.util import strtobool
-from typing import Generator
+from typing import Dict, Generator, List, Optional
 
 from dotenv import load_dotenv
 
@@ -28,7 +28,7 @@ class BaseFileSessionManager(ABC):
         """Erzeugt eine Dateisitzung."""
         pass
 
-    def _fill(self, input_dir: str):
+    def _fill(self, input_dir: str) -> None:
         """Füllt den Dateispeicher mit Dateien aus einem Verzeichnis."""
         logger.info(f"_fill()")
         self._clear()  # Zuerst den Inhalt löschen
@@ -40,13 +40,13 @@ class BaseFileSessionManager(ABC):
                     file_data = f.read()
                     self.save(file_name, relative_path, file_data)
 
-    def _print(self):
+    def _print(self) -> None:
         """Druckt alle Dateien im Dateispeicher."""
         logger.info(f"_print()")
         all_files = self.list_all()
         logger.info(f"All files in file storage: {all_files}")
 
-    def _clear(self):
+    def _clear(self) -> None:
         """Löscht alle Dateien und Verzeichnisse im Dateispeicher."""
         logger.info(f"_clear()")
         self.clear()
@@ -58,17 +58,17 @@ class BaseFileSessionManager(ABC):
         pass
 
     @abstractmethod
-    def get(self, file_name: str, dir: str):
+    def get(self, file_name: str, dir: str) -> Optional[bytes]:
         """Liest eine Datei."""
         pass
 
     @abstractmethod
-    def list(self, dir: str):
+    def list(self, dir: str) -> List[str]:
         """Listet alle Dateien in einem Verzeichnis auf."""
         pass
 
     @abstractmethod
-    def list_all(self):
+    def list_all(self) -> List[str]:
         """Listet alle Dateien im Dateispeicher auf."""
         pass
 
@@ -85,7 +85,7 @@ class BaseFileSessionManager(ABC):
 
 """Implementations for Different File Session Managers"""
 class LocalFileSessionManager(BaseFileSessionManager):
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialisiert den lokalen Dateispeicher."""
         logger.info(f"__init__(): (local)")
         self.local_media_repo_folder = f"./outgoing/files"
@@ -117,7 +117,7 @@ class LocalFileSessionManager(BaseFileSessionManager):
         logger.info(f"save(): Saved file '{file_name}' in '{dir}'")
         return f"http://localhost:8000/outgoing/files/{dir}/{file_name}"
 
-    def get(self, file_name: str, dir: str):
+    def get(self, file_name: str, dir: str) -> Optional[bytes]:
         file_path = os.path.join(self.local_media_repo_folder, dir, file_name)
         try:
             with open(file_path, 'rb') as f:
@@ -127,7 +127,7 @@ class LocalFileSessionManager(BaseFileSessionManager):
             logger.error(f"get(): File '{file_name}' not found in '{dir}'")
             return None
 
-    def list(self, dir: str):
+    def list(self, dir: str) -> List[str]:
         dir_path = os.path.join(self.local_media_repo_folder, dir)
         if os.path.exists(dir_path):
             files = os.listdir(dir_path)
@@ -136,7 +136,7 @@ class LocalFileSessionManager(BaseFileSessionManager):
         logger.info(f"list(): Directory '{dir}' does not exist")
         return []
 
-    def list_all(self):
+    def list_all(self) -> List[str]:
         all_files = []
         for dirpath, _, filenames in os.walk(self.local_media_repo_folder):
             for filename in filenames:
@@ -162,11 +162,10 @@ class LocalFileSessionManager(BaseFileSessionManager):
 
 
 class MemoryFileSessionManager(BaseFileSessionManager):
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialisiert den Dateispeicher im Speicher und füllt ihn mit Daten."""
         logger.info(f"__init__(): (memory)")
-        self.memory_storage = {}
-        # Ruft _fill aus der Basisklasse auf, um den Speicher zu füllen
+        self.memory_storage: Dict[str, Dict[str, bytes]] = {}
         self._fill("mock/files")
 
     def get_session(self) -> Generator["BaseFileSessionManager", None, None]:
@@ -186,17 +185,17 @@ class MemoryFileSessionManager(BaseFileSessionManager):
         logger.info(f"save(): Saved file '{file_name}' in memory under '{dir}'")
         return f"memory://{dir}/{file_name}"
 
-    def get(self, file_name: str, dir: str):
+    def get(self, file_name: str, dir: str) -> Optional[bytes]:
         logger.info(f"get(): Retrieving file '{file_name}' from memory under '{dir}'")
         return self.memory_storage.get(dir, {}).get(file_name, None)
 
-    def list(self, dir: str):
+    def list(self, dir: str) -> List[str]:
         files = list(self.memory_storage.get(dir, {}).keys())
         logger.info(f"list(): Listing files in memory directory '{dir}': {files}")
         return files
 
-    def list_all(self):
-        all_files = {dir: list(files.keys()) for dir, files in self.memory_storage.items()}
+    def list_all(self) -> List[str]:
+        all_files = [f"{dir}/{file}" for dir, files in self.memory_storage.items() for file in files.keys()]
         return all_files
 
     def delete(self, dir: str, file_name: str) -> None:
@@ -210,7 +209,7 @@ class MemoryFileSessionManager(BaseFileSessionManager):
 
 
 class RemoteFileSessionManager(BaseFileSessionManager):
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialisiert den Fernspeicher."""
         logger.info(f"__init__(): (remote)")
         
@@ -229,15 +228,15 @@ class RemoteFileSessionManager(BaseFileSessionManager):
         logger.info(f"save(): Saving file '{file_name}' remotely in '{dir}' (not implemented)")
         return "remote://not-implemented"
 
-    def get(self, file_name: str, dir: str):
+    def get(self, file_name: str, dir: str) -> Optional[bytes]:
         logger.info(f"get(): Retrieving file '{file_name}' remotely from '{dir}' (not implemented)")
         return None
 
-    def list(self, dir: str):
+    def list(self, dir: str) -> List[str]:
         logger.info(f"list(): Listing files remotely in '{dir}' (not implemented)")
         return []
 
-    def list_all(self):
+    def list_all(self) -> List[str]:
         logger.info(f"list_all(): Listing all remote files (not implemented)")
         return []
 
@@ -250,7 +249,7 @@ class RemoteFileSessionManager(BaseFileSessionManager):
 
 _file_session_manager = None
 
-def init_file_session_manager():
+def init_file_session_manager() -> None:
     global _file_session_manager
     logger.info(f"init_file_session_manager()")
     
@@ -260,7 +259,7 @@ def init_file_session_manager():
         logger.warning(f"init_file_session_manager(): already initialized")
 
 
-def get_file_session():
+def get_file_session() -> Generator[Optional[BaseFileSessionManager], None, None]:
     global _file_session_manager
     logger.info(f"get_file_session()")
     

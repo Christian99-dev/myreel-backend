@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger("test.unittest")
+
 def test_save(memory_file_session):
     """Test für die save() Methode."""
     memory_file_session.save('test_file.txt', 'test_dir', b'Test content')
@@ -23,8 +26,9 @@ def test_list_all(memory_file_session):
     memory_file_session.save('file1.txt', 'test_dir1', b'Content 1')
     memory_file_session.save('file2.txt', 'test_dir2', b'Content 2')
     all_files = memory_file_session.list_all()
-    assert 'file1.txt' in all_files['test_dir1']
-    assert 'file2.txt' in all_files['test_dir2']
+
+    assert 'test_dir1/file1.txt' in all_files
+    assert 'test_dir2/file2.txt' in all_files
 
 def test_delete(memory_file_session):
     """Test für die delete() Methode."""
