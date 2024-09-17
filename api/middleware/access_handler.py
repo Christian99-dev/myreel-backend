@@ -1,11 +1,14 @@
-import time
 import logging
+import time
+
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from api.utils.jwt import jwt
+
 from api.config.endpoints import EndpointConfig
 from api.security.role_class import Role, RoleInfos
-from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
+from api.utils.jwt import jwt
+from api.utils.routes.extract_role_credentials_from_request import \
+    extract_role_credentials_from_request
 
 logger = logging.getLogger("middleware.access_handler")
 

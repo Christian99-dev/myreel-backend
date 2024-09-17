@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
-from api.models.database.model import Group, User, Edit
+
+from api.models.database.model import Edit, Group, User
 from api.utils.database.create_uuid import create_uuid
+
 
 def create(
         name: str, 

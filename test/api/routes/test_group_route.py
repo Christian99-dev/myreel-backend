@@ -1,8 +1,11 @@
-from fastapi.testclient import TestClient
 import os
+
 from dotenv import load_dotenv
+from fastapi.testclient import TestClient
+
 from api.utils.jwt import jwt
 from api.utils.jwt.jwt import read_jwt
+
 
 # create
 def test_create_group_status(http_client: TestClient): 

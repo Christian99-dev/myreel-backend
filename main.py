@@ -1,27 +1,23 @@
-from contextlib import asynccontextmanager, contextmanager
 import os
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+
 from dotenv import load_dotenv
-from distutils.util import strtobool
+from fastapi import FastAPI
+
+from api.config.endpoints import path_config
+from api.middleware.access_handler import AccessHandlerMiddleware
+from api.routes.edit import router as edit_router
+from api.routes.group import router as group_router
+from api.routes.song import router as song_router
+from api.routes.static import router as static_router
+from api.routes.testing import router as testing_router
+from api.routes.user import router as user_router
+from api.sessions.database import (get_database_session,
+                                   init_database_session_manager)
 from api.sessions.email import init_email_session_manager
 from api.sessions.files import init_file_session_manager
 from api.sessions.instagram import init_instagram_session_manager
 from logging_config import setup_logging
-from api.config.endpoints import path_config
-
-# database
-from api.sessions.database import get_database_session, init_database_session_manager
-
-#routes
-from api.routes.song import router as song_router
-from api.routes.static import router as static_router
-from api.routes.testing import router as testing_router
-from api.routes.group import router as group_router
-from api.routes.user import router as user_router
-from api.routes.edit import router as edit_router
-
-# middleware 
-from api.middleware.access_handler import AccessHandlerMiddleware
 
 # env
 load_dotenv()

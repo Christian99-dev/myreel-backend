@@ -1,9 +1,11 @@
 import os
 import tempfile
-from typing import List
-from api.utils.media_manipulation.resize_for_instagram_reel import resize_for_instagram_reel
+
 from moviepy.editor import VideoFileClip, concatenate_videoclips
-from moviepy.video.fx.resize import resize
+
+from api.utils.media_manipulation.resize_for_instagram_reel import \
+    resize_for_instagram_reel
+
 
 def swap_slot_in_edit(
     input_video_bytes: bytes, 

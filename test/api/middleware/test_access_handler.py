@@ -1,15 +1,16 @@
 import os
+from test.utils.role_tester_has_acccess import role_tester_has_access
+
+import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
-import pytest
+from sqlalchemy.orm import Session
+
 from api.middleware.access_handler import AccessHandlerMiddleware
 from api.security.endpoints_class import EndpointConfig, EndpointInfo
 from api.security.role_class import Role, RoleInfos
 from api.security.role_enum import RoleEnum
 from api.utils.jwt import jwt
-from sqlalchemy.orm import Session
-
-from test.utils.role_tester_has_acccess import role_tester_has_access
 
 """Setup"""
 

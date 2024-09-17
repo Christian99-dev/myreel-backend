@@ -1,13 +1,14 @@
+import datetime
 import logging
 import os
-import time
-import datetime
-from typing import Generator
-import requests
 import tempfile
+import time
 from abc import ABC, abstractmethod
 from distutils.util import strtobool
 from ftplib import FTP, error_perm
+from typing import Generator
+
+import requests
 
 # Logger für die Session-Verwaltung
 logger = logging.getLogger("sessions.instagram")

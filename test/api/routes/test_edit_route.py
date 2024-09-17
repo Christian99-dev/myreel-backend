@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from api.utils.jwt import jwt
 
+
 # test edit go live
 def test_edit_go_live_success(http_client: TestClient):
     response = http_client.post("/edit/3/goLive", headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"})

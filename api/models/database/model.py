@@ -1,6 +1,8 @@
 from typing import List
-from sqlalchemy import Boolean, ForeignKey, String, Time, DateTime
-from sqlalchemy.orm import relationship, Mapped, mapped_column, declarative_base
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Time
+from sqlalchemy.orm import (Mapped, declarative_base, mapped_column,
+                            relationship)
 
 Base = declarative_base()
 

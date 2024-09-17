@@ -1,4 +1,5 @@
 from typing import NamedTuple
+
 from api.security.role_enum import RoleEnum
 
 

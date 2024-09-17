@@ -1,9 +1,12 @@
 import os
+from test.utils.role_tester_has_acccess import role_tester_has_access
+
+from dotenv import load_dotenv
 from sqlalchemy.orm import Session
+
 from api.security.role_class import Role, RoleInfos
 from api.security.role_enum import RoleEnum
-from dotenv import load_dotenv
-from test.utils.role_tester_has_acccess import role_tester_has_access
+
 load_dotenv()
 
 def test_role_has_access_methode_with_include_sub_roles():

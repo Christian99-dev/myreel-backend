@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
-from api.models.database.model import Slot, OccupiedSlot
+
+from api.models.database.model import OccupiedSlot, Slot
+
 
 def create(
         song_id: int, 

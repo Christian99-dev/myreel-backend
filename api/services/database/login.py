@@ -1,7 +1,10 @@
-from datetime import datetime, timedelta
 import secrets
+from datetime import datetime, timedelta
+
 from sqlalchemy.orm import Session
+
 from api.models.database.model import LoginRequest, User
+
 
 def create(user_id: int, database_session: Session, expires_in_minutes: int = 10) -> LoginRequest:
     pin = secrets.token_urlsafe(4)

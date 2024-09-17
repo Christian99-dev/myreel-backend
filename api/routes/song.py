@@ -1,20 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException
-from api.models.schema.song import DeleteResponse, GetResponse, ListResponse, PostRequest, PostResponse
-
-# sessions
-from api.sessions.files import BaseFileSessionManager
-from api.sessions.database import get_database_session
 from sqlalchemy.orm import Session
 
-# database
-from api.services.database.song import create as create_song_service, update as update_song_service, create_slots_from_breakpoints, remove as remove_song_service, get as get_song_service, list_all
-
-# media_service
-from api.services.files.song  import create as create_song_media_service, remove as remove_song_media_service
-from api.services.files.cover import create as create_cover_media_service, remove as remove_cover_media_service
+from api.models.schema.song import (DeleteResponse, GetResponse, ListResponse,
+                                    PostRequest, PostResponse)
+from api.services.database.song import create as create_song_service
+from api.services.database.song import create_slots_from_breakpoints
+from api.services.database.song import get as get_song_service
+from api.services.database.song import list_all
+from api.services.database.song import remove as remove_song_service
+from api.services.database.song import update as update_song_service
+from api.services.files.cover import create as create_cover_media_service
+from api.services.files.cover import remove as remove_cover_media_service
+from api.services.files.song import create as create_song_media_service
+from api.services.files.song import remove as remove_song_media_service
+from api.sessions.database import get_database_session
+from api.sessions.files import BaseFileSessionManager, get_file_session
 from api.utils.files.file_validation import file_validation
 from api.utils.files.get_audio_duration import get_audio_duration
-from api.sessions.files import get_file_session
 
 router = APIRouter(
     prefix="/song",

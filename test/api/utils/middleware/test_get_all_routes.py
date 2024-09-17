@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from api.utils.middleware.get_all_routes import get_all_routes
 
+
 def test_get_all_routes():
     app = FastAPI()
 

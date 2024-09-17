@@ -1,4 +1,5 @@
-from api.services.files.occupied_slot import get, create, remove, update
+from api.services.files.occupied_slot import create, get, remove, update
+
 
 # get
 def test_get_occupied_slot_file_found(memory_file_session):

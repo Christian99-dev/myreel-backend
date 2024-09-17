@@ -1,8 +1,10 @@
 from sqlalchemy.orm import Session
-from api.models.database.model import User, OccupiedSlot, LoginRequest
+
+from api.models.database.model import LoginRequest, OccupiedSlot, User
 from api.services.database.user import create, get, get_user_by_email, remove
 from api.utils.database.create_uuid import create_uuid
 from mock.database.data import data
+
 
 # create
 def test_create(memory_database_session: Session):

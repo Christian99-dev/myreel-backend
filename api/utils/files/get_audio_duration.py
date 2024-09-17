@@ -1,7 +1,9 @@
 import os
 import tempfile
+
 from fastapi import UploadFile
 from moviepy.editor import AudioFileClip
+
 
 def get_audio_duration(file: UploadFile, file_format: str) -> float:
     # Create a temporary file to save the uploaded audio content

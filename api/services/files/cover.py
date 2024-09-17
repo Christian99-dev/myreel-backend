@@ -1,5 +1,6 @@
 from api.sessions.files import BaseFileSessionManager
 
+
 def get(song_id: int, file_session: BaseFileSessionManager) -> bytes:
     """Holt sich eine Mediendatei basierend auf der cover_id."""
     files = file_session.list("covers")

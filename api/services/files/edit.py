@@ -1,5 +1,6 @@
 from api.sessions.files import BaseFileSessionManager
 
+
 def get(edit_id: int, file_session: BaseFileSessionManager) -> bytes:
     """Holt sich eine Mediendatei basierend auf der edit_id."""
     files = file_session.list("edits")

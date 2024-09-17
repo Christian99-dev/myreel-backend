@@ -1,7 +1,10 @@
-from datetime import datetime, timedelta
 import secrets
+from datetime import datetime, timedelta
+
 from sqlalchemy.orm import Session
+
 from api.models.database.model import Invitation
+
 
 def create(group_id: str, email: str, database_session: Session, expires_in_days: int = 7) -> Invitation:
     token = secrets.token_urlsafe(16)

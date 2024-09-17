@@ -1,9 +1,11 @@
-import os
+
 import re
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from typing import Dict, Any, Optional, Tuple
+from typing import Optional, Tuple
+
+from fastapi import UploadFile
 
 from api.config.file import file_config
+
 
 def file_validation(file: UploadFile, file_type: str) -> Tuple[Optional[UploadFile], str]:
     """Validiere die Datei basierend auf dem Typ und gebe die sanitierte Datei zurück oder None sowie eine Nachricht."""

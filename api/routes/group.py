@@ -1,24 +1,21 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
-from api.utils.jwt.jwt import read_jwt
-from api.models.schema.group import GetRoleResponse, PostRequest, DeleteResponse, GetMembersResponse, GetResponse, GroupExistsResponse,PostResponse
-
-from api.utils.jwt.jwt import create_jwt, read_jwt
-
-
-# sessions
-from api.sessions.database import get_database_session
 from sqlalchemy.orm import Session
 
-# database
+from api.models.schema.group import (DeleteResponse, GetMembersResponse,
+                                     GetResponse, GetRoleResponse,
+                                     GroupExistsResponse, PostRequest,
+                                     PostResponse)
 from api.services.database.group import create as create_group_service
 from api.services.database.group import get as get_group_service
-from api.services.database.group import is_group_member as is_group_member_group_service
-from api.services.database.group import is_group_creator as is_group_creator_group_service
+from api.services.database.group import \
+    is_group_member as is_group_member_group_service
+from api.services.database.group import \
+    list_members as list_members_groud_service
 from api.services.database.group import remove as remove_group_service
-from api.services.database.group import list_members as list_members_groud_service
-
 from api.services.database.user import create as create_user_service
 from api.services.database.user import get as get_user_service
+from api.sessions.database import get_database_session
+from api.utils.jwt.jwt import create_jwt, read_jwt
 
 router = APIRouter(
     prefix="/group",

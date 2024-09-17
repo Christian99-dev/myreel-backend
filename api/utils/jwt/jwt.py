@@ -1,6 +1,7 @@
-import jwt
 import os
 from datetime import datetime, timedelta
+
+import jwt
 from dotenv import load_dotenv
 
 # Load environment variables from .env file

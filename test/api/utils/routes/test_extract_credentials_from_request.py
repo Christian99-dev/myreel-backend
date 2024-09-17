@@ -1,7 +1,9 @@
+import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
-import pytest
-from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
+
+from api.utils.routes.extract_role_credentials_from_request import \
+    extract_role_credentials_from_request
 
 """Setup"""
 @pytest.fixture(scope="function")

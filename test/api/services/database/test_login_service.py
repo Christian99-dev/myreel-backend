@@ -1,7 +1,11 @@
 from datetime import datetime, timedelta
+
 from api.models.database.model import LoginRequest, User
-from api.services.database.login import create, delete, delete_all_from_email, get_login_request_by_groupid_and_token
+from api.services.database.login import (
+    create, delete, delete_all_from_email,
+    get_login_request_by_groupid_and_token)
 from mock.database.data import data
+
 
 # create
 def test_create(memory_database_session):

@@ -2,24 +2,18 @@
 
 import random
 import string
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import FileResponse
 
-from api.sessions.email import BaseEmailSessionManager, get_email_session
-from api.sessions.instagram import get_instagram_session, BaseInstagramSessionManager
-from api.sessions.files import get_file_session
-from api.sessions.database import get_database_session
-from api.sessions.files import BaseFileSessionManager
-from api.services.email.invite import invite
-from api.services.email.login import login
+from fastapi import APIRouter, Depends
+
 from api.services.instagram.upload import upload
-from api.utils.files.file_validation import file_validation
+from api.sessions.database import get_database_session
+from api.sessions.email import BaseEmailSessionManager, get_email_session
+from api.sessions.files import BaseFileSessionManager, get_file_session
+from api.sessions.instagram import (BaseInstagramSessionManager,
+                                    get_instagram_session)
 from api.utils.media_manipulation.create_edit_video import create_edit_video
-from api.utils.media_manipulation.swap_slot_in_edit_video import swap_slot_in_edit
-
-
-from api.sessions.files import get_file_session
-
+from api.utils.media_manipulation.swap_slot_in_edit_video import \
+    swap_slot_in_edit
 
 router = APIRouter(
     prefix="/testing",

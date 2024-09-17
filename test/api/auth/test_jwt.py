@@ -1,6 +1,9 @@
-import jwt
 from datetime import datetime, timedelta
-from api.utils.jwt.jwt import create_jwt, read_jwt, SECRET_KEY, ALGORITHM
+
+import jwt
+
+from api.utils.jwt.jwt import ALGORITHM, SECRET_KEY, create_jwt, read_jwt
+
 
 def test_create_and_read_jwt_valid():
     user_id = 1

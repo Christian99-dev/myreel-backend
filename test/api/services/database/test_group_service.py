@@ -1,7 +1,13 @@
 from sqlalchemy.orm import Session
-from api.models.database.model import Group, Edit, Invitation, User
-from api.services.database.group import create, get, get_group_by_edit_id, get_group_by_user_id, is_group_creator, is_group_member, list_members, remove
+
+from api.models.database.model import Edit, Group, Invitation, User
+from api.services.database.group import (create, get, get_group_by_edit_id,
+                                         get_group_by_user_id,
+                                         is_group_creator, is_group_member,
+                                         list_members, remove)
 from mock.database.data import data
+
+
 # create
 def test_create(memory_database_session: Session):
     name = "Test Group"

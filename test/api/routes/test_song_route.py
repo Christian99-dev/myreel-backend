@@ -1,11 +1,11 @@
+import os
+
+from dotenv import load_dotenv
 from fastapi.testclient import TestClient
-from api.sessions.files import BaseFileSessionManager
+
 from api.services.files.cover import get as get_cover
 from api.services.files.song import get as get_song
-from api.services.database.song import remove as remove_song_service
-from sqlalchemy.orm import Session
-from dotenv import load_dotenv
-import os
+from api.sessions.files import BaseFileSessionManager
 
 load_dotenv()
 

@@ -1,7 +1,8 @@
 
+from starlette.routing import Mount, Route
+
 from api.config.endpoints import EndpointConfig, EndpointInfo, path_config
 from api.security.role_enum import RoleEnum
-from starlette.routing import Mount, Route
 from main import app
 
 

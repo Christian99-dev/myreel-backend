@@ -1,5 +1,7 @@
 from fastapi.testclient import TestClient
+
 from api.utils.jwt import jwt
+
 
 # invite
 def test_invite_success(http_client: TestClient):

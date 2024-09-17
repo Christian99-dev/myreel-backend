@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
+
 from api.models.database.model import OccupiedSlot
+
 
 def create(
         user_id: int, 

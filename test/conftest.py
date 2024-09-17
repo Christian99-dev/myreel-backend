@@ -1,27 +1,22 @@
-import os
 import pytest
-import logging
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, Request
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-from api.sessions.database import MemoryDatabaseSessionManager
-from api.utils.jwt import jwt
+
 from api.config.endpoints import path_config
-from api.sessions.email import MemoryEmailSessionManager, get_email_session
-from api.sessions.instagram import MemoryInstagramSessionManager, get_instagram_session
-from api.sessions.files import MemoryFileSessionManager, get_file_session
 from api.middleware.access_handler import AccessHandlerMiddleware
-from api.models.database.model import Song
-from api.utils.routes.extract_role_credentials_from_request import extract_role_credentials_from_request
-from logging_config import setup_logging
-from api.routes.song import router as song_router
-from api.routes.group import router as group_router
-from api.routes.user import router as user_router
 from api.routes.edit import router as edit_router
-from api.security.endpoints_class import EndpointConfig, EndpointInfo
-from api.security.role_enum import RoleEnum
-from api.sessions.database import get_database_session
+from api.routes.group import router as group_router
+from api.routes.song import router as song_router
+from api.routes.user import router as user_router
+from api.sessions.database import (MemoryDatabaseSessionManager,
+                                   get_database_session)
+from api.sessions.email import MemoryEmailSessionManager, get_email_session
+from api.sessions.files import MemoryFileSessionManager, get_file_session
+from api.sessions.instagram import (MemoryInstagramSessionManager,
+                                    get_instagram_session)
+from logging_config import setup_logging
 
 # env
 load_dotenv()

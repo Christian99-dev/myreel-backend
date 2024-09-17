@@ -1,6 +1,7 @@
 from api.config.endpoints import EndpointInfo
-from api.security.role_enum import RoleEnum
 from api.security.role_class import Role
+from api.security.role_enum import RoleEnum
+
 
 # this methode is testing, if the role_instance is the expected role.
 def role_tester_has_access(role_instance: Role, role_to_test: RoleEnum):

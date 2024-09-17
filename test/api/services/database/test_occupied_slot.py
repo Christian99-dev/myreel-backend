@@ -1,7 +1,11 @@
 from sqlalchemy.orm import Session
+
 from api.models.database.model import OccupiedSlot, Slot
-from api.services.database.occupied_slot import create, get, get_occupied_slots_for_edit, is_slot_occupied, remove
+from api.services.database.occupied_slot import (create, get,
+                                                 get_occupied_slots_for_edit,
+                                                 is_slot_occupied, remove)
 from mock.database.data import data
+
 
 # create
 def test_create_occupied_slot(memory_database_session: Session):

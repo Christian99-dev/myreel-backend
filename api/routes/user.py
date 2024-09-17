@@ -1,35 +1,28 @@
 from datetime import datetime
-from fastapi import APIRouter, Body, Depends, HTTPException, Request
-from api.utils.jwt.jwt import read_jwt
-from api.sessions.email import BaseEmailSessionManager, get_email_session
-from api.models.schema.user import InviteRequest, AcceptInviteRequest, LoginRequestRequest, LoginRequest
-from api.models.schema.user import InviteResponse, AcceptInviteResponse, LoginRequestResponse, LoginResponse
-from api.utils.jwt.jwt import create_jwt, read_jwt
 
-# sessions
-from api.sessions.database import get_database_session
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-# database
-from api.services.database.user import create as create_user_service
-from api.services.database.user import get_user_by_email 
-from api.services.database.user import get as get_user_service
-
+from api.models.schema.user import (AcceptInviteRequest, AcceptInviteResponse,
+                                    InviteRequest, InviteResponse,
+                                    LoginRequest, LoginRequestRequest,
+                                    LoginRequestResponse, LoginResponse)
 from api.services.database.invite import create as create_invite_service
 from api.services.database.invite import delete as delete_invite_service
+from api.services.database.invite import \
+    delete_all_by_email as delete_all_by_email_invite_service
 from api.services.database.invite import get as get_invite_service
-from api.services.database.invite import delete_all_by_email as delete_all_by_email_invite_service
-
 from api.services.database.login import create as create_loging_service
 from api.services.database.login import delete as delete_loging_service
-
 from api.services.database.login import get_login_request_by_groupid_and_token
-
-
-# email
+from api.services.database.user import create as create_user_service
+from api.services.database.user import get as get_user_service
+from api.services.database.user import get_user_by_email
 from api.services.email.invite import invite as email_invite_service
 from api.services.email.login import login as email_login_service
-
+from api.sessions.database import get_database_session
+from api.sessions.email import BaseEmailSessionManager, get_email_session
+from api.utils.jwt.jwt import create_jwt
 
 router = APIRouter(
     prefix="/user",

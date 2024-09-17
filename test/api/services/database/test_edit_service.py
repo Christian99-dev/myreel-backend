@@ -1,6 +1,9 @@
 from sqlalchemy.orm import Session
-from api.models.database.model import Edit, OccupiedSlot, Slot
-from api.services.database.edit import are_all_slots_occupied, create, get, get_edits_by_group, is_edit_creator, remove, set_is_live, update
+
+from api.models.database.model import Edit, OccupiedSlot
+from api.services.database.edit import (are_all_slots_occupied, create, get,
+                                        get_edits_by_group, is_edit_creator,
+                                        remove, set_is_live, update)
 from mock.database.data import data
 
 

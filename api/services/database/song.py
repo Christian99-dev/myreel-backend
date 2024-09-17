@@ -1,6 +1,9 @@
 from typing import List, Optional
+
 from sqlalchemy.orm import Session
-from api.models.database.model import Song, Slot
+
+from api.models.database.model import Slot, Song
+
 
 def create(
         name: str, 

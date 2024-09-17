@@ -1,6 +1,7 @@
+import base64
 import re
 import uuid
-import base64
+
 
 def create_uuid() -> str:
     rv = base64.b64encode(uuid.uuid4().bytes).decode('utf-8')

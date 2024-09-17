@@ -1,14 +1,13 @@
+import datetime
 import logging
 import os
-import datetime
 import smtplib
 from abc import ABC, abstractmethod
 from distutils.util import strtobool
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from typing import Generator
 
-# Logger für die Session-Verwaltung
 logger = logging.getLogger("sessions.email")
 
 """ENV"""

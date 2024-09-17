@@ -1,6 +1,6 @@
 from logging.config import dictConfig
 
-    
+
 def get_logger(env: str, prod: dict, dev: dict, test: dict, handlers: dict):
     """Gibt die passende Logger-Konfiguration basierend auf dem Environment zurück."""
     # Wähle die passende Logger-Konfiguration basierend auf dem Environment

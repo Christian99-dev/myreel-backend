@@ -1,7 +1,10 @@
 from datetime import datetime, timedelta
+
 from api.models.database.model import Invitation
-from api.services.database.invite import create, delete, delete_all_by_email, get
+from api.services.database.invite import (create, delete, delete_all_by_email,
+                                          get)
 from mock.database.data import data
+
 
 # create
 def test_create(memory_database_session):

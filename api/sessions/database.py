@@ -1,21 +1,20 @@
 import logging
-from abc import ABC, abstractmethod
 import os
-from typing import Any, Generator
+from abc import ABC, abstractmethod
 from contextlib import contextmanager
-from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
 from distutils.util import strtobool
-from api.models.database.model import Base, Group, Song, User, Edit, Slot, Invitation, LoginRequest, OccupiedSlot
-from api.utils.database.print_database_contents import print_database_contents
-from mock.database.data import data
-from sqlalchemy import select
-from api.models.database import model
+from typing import Any, Generator
+
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session, sessionmaker
 from tabulate import tabulate
 
-
-#TODO DATABASE _PRINT SOLL DIE UTIL ERSETZEN, AUCH BEI FILES _PRINT 
+from api.models.database import model
+from api.models.database.model import (Base, Edit, Group, Invitation,
+                                       LoginRequest, OccupiedSlot, Slot, Song,
+                                       User)
+from mock.database.data import data
 
 # Logger für die Session-Verwaltung
 logger = logging.getLogger("sessions.database")

@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from typing import List, Optional
+
 from fastapi import File, Form, UploadFile
 from pydantic import BaseModel
-from sqlalchemy import Float
 
-    
+
 class User(BaseModel):
     user_id: int
     name: str

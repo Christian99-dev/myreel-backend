@@ -1,10 +1,13 @@
 import os
 import tempfile
-from api.utils.media_manipulation.resize_for_instagram_reel import resize_for_instagram_reel
-from api.utils.media_manipulation.write_videofile_for_instagram_reel import write_videofile_for_instagram_reel
-from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
-import numpy as np
-import io
+
+from moviepy.editor import AudioFileClip, VideoFileClip, concatenate_videoclips
+
+from api.utils.media_manipulation.resize_for_instagram_reel import \
+    resize_for_instagram_reel
+from api.utils.media_manipulation.write_videofile_for_instagram_reel import \
+    write_videofile_for_instagram_reel
+
 
 def create_edit_video(
     video_bytes: bytes,

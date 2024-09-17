@@ -1,5 +1,6 @@
 from api.sessions.files import BaseFileSessionManager
 
+
 def get(occupied_slot_id: int, file_session: BaseFileSessionManager) -> bytes:
     """Holt sich eine Mediendatei basierend auf der slot_id."""
     files = file_session.list("occupied_slots")

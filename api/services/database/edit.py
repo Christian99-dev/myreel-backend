@@ -1,7 +1,9 @@
 from typing import List
-from sqlalchemy.orm import Session
-from api.models.database.model import Edit, OccupiedSlot, Slot
+
 from sqlalchemy import func
+from sqlalchemy.orm import Session
+
+from api.models.database.model import Edit, OccupiedSlot, Slot
 
 
 def create(

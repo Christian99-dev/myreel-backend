@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 # POST /invite
 class InviteRequest(BaseModel):
     groupid: str

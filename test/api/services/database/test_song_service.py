@@ -1,7 +1,11 @@
 from sqlalchemy.orm import Session
-from api.services.database.song import create, create_slots_from_breakpoints, get_breakpoints, list_all, get, update, remove
-from api.models.database.model import Song, Slot, Edit
+
+from api.models.database.model import Edit, Slot, Song
+from api.services.database.song import (create, create_slots_from_breakpoints,
+                                        get, get_breakpoints, list_all, remove,
+                                        update)
 from mock.database.data import data
+
 
 # create
 def test_create(memory_database_session: Session):

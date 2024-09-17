@@ -1,5 +1,7 @@
 import re
+
 from api.utils.database.create_uuid import create_uuid
+
 
 def test_create_uuid():
     uuid_str = create_uuid()
