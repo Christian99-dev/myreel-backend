@@ -84,7 +84,7 @@ def setup_logging(env: str):
 
             # Session loggers
             "sessions.database": get_logger(env, 
-                test={"level": "DEBUG"},
+                test={"level": "WARNING"},
                 dev={"level": "DEBUG"}, 
                 prod={"level": "WARNING"}, 
                 handlers={"console", "file"}

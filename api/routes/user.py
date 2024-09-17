@@ -13,7 +13,7 @@ from api.services.database.invite import \
     delete_all_by_email as delete_all_by_email_invite_service
 from api.services.database.invite import get as get_invite_service
 from api.services.database.login import create as create_loging_service
-from api.services.database.login import delete as delete_loging_service
+from api.services.database.login import remove as remove_loging_service
 from api.services.database.login import get_login_request_by_groupid_and_token
 from api.services.database.user import create as create_user_service
 from api.services.database.user import get as get_user_service
@@ -48,7 +48,7 @@ async def invite(request: InviteRequest = Body(...), database_session: Session =
 @router.post("/acceptInvite", response_model=AcceptInviteResponse,   tags=["user"])
 async def acceptInvite(request: AcceptInviteRequest = Body(...), database_session: Session = Depends(get_database_session)):
     
-    invite = get_invite_service(request.invitationid, db_session=database_session)
+    invite = get_invite_service(request.invitationid, database_session=database_session)
     
     # checke ob invite da ist 
     if invite is None: 
@@ -85,7 +85,7 @@ async def loginRequest(request: LoginRequestRequest = Body(...), database_sessio
         raise HTTPException(status_code=400, detail="Gruppe nicht Nutzer angehörig")  
         
         
-    delete_loging_service(user.user_id, database_session=database_session)
+    remove_loging_service(user.user_id, database_session=database_session)
     new_login_request = create_loging_service(user.user_id, expires_in_minutes=10, database_session=database_session)
 
     email_login_service(user.email, new_login_request.pin, email_session)
@@ -110,7 +110,7 @@ async def login(request: LoginRequest = Body(...), database_session: Session = D
         raise HTTPException(status_code=400, detail="Benutzer nicht gefunden")
 
     jwt = create_jwt(user.user_id, 30)
-    delete_loging_service(user.user_id, database_session=database_session)
+    remove_loging_service(user.user_id, database_session=database_session)
 
     return {"jwt": jwt, "user_id": user.user_id, "name":user.name }
 

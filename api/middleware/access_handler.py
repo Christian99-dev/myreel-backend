@@ -60,7 +60,7 @@ class AccessHandlerMiddleware(BaseHTTPMiddleware):
         database_session = next(database_session_generator)
 
         # Initialize role with the extracted credentials
-        role = Role(role_infos=RoleInfos(admintoken=admintoken, userid=userid, groupid=groupid, editid=editid), db_session=database_session)
+        role = Role(role_infos=RoleInfos(admintoken=admintoken, userid=userid, groupid=groupid, editid=editid), database_session=database_session)
         
         # Check if the role has access
         if not role.hasAccess(pathInfo):

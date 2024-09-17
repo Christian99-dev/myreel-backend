@@ -64,7 +64,7 @@ async def create(
             author=request.author,
             cover_src="",  # Zunächst leer, wird später gesetzt
             audio_src="",  # Zunächst leer, wird später gesetzt
-            db_session=database_session
+            database_session=database_session
         )
 
         # save song
@@ -78,11 +78,11 @@ async def create(
             song_id=new_song.song_id,
             cover_src=cover_location,
             audio_src=song_location,
-            db_session=database_session
+            database_session=database_session
         )
         
         # create slots from breakpoints
-        create_slots_from_breakpoints(new_song.song_id, breakpoints, db_session=database_session)
+        create_slots_from_breakpoints(new_song.song_id, breakpoints, database_session=database_session)
         
         if not updated_song:
             raise HTTPException(status_code=500, detail="Song not found during update.")
@@ -114,12 +114,12 @@ async def delete(song_id: int, database_session: Session = Depends(get_database_
 
 @router.get("/list", response_model=ListResponse, tags=["song"])
 async def list_songs(database_session: Session = Depends(get_database_session)):
-    songs = list_all(db_session=database_session)
+    songs = list_all(database_session=database_session)
     return {"songs": songs}
 
 @router.get("/{song_id}", response_model=GetResponse, tags=["song"])
 async def get(song_id: int, database_session: Session = Depends(get_database_session)):
-    song = get_song_service(song_id=song_id, db_session=database_session)
+    song = get_song_service(song_id=song_id, database_session=database_session)
     if not song:
         raise HTTPException(status_code=404, detail="Song not found")
     return song

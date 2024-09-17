@@ -71,7 +71,7 @@ def test_update(memory_database_session: Session):
         name=new_name,
         author=new_author,
         cover_src=new_cover_src,
-        db_session=memory_database_session
+        database_session=memory_database_session
     )
     
     # Assert: Check that the song was updated correctly
@@ -98,7 +98,7 @@ def test_update_song_not_found(memory_database_session: Session):
     updated_song = update(
         song_id=non_existing_song_id,
         name="New Name",
-        db_session=memory_database_session
+        database_session=memory_database_session
     )
     
     # Assert: Ensure that None is returned when the song doesn't exist

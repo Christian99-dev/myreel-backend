@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from api.models.database.model import LoginRequest, User
 from api.services.database.login import (
-    create, delete, delete_all_from_email,
+    create, remove, delete_all_from_email,
     get_login_request_by_groupid_and_token)
 from mock.database.data import data
 
@@ -23,7 +23,7 @@ def test_delete_login_request(memory_database_session):
     existing_login_request = memory_database_session.query(LoginRequest).first()
 
     # Act: Lösche die Login-Anfrage
-    delete(existing_login_request.user_id, memory_database_session)
+    remove(existing_login_request.user_id, memory_database_session)
 
     # Verify: Stelle sicher, dass die Login-Anfrage nicht mehr in der Datenbank vorhanden ist
     login_request_in_database_session = memory_database_session.query(LoginRequest).filter_by(user_id=existing_login_request.user_id).one_or_none()
@@ -35,7 +35,7 @@ def test_delete_login_request_failed(memory_database_session):
     non_existent_user_id = 9999
 
     # Act: Versuche, die Login-Anfrage mit der ungültigen ID zu löschen
-    delete(non_existent_user_id, memory_database_session)
+    remove(non_existent_user_id, memory_database_session)
 
     # Assert: Stelle sicher, dass kein Fehler auftritt (keine Ausnahme)
     assert True  # Prüfung, dass die Funktion ohne Fehler durchläuft
