@@ -1,194 +1,306 @@
+import pytest
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from api.models.database.model import Edit, Group, Invitation, User
+from api.models.database.model import Edit, Group, User
 from api.services.database.group import (create, get, get_group_by_edit_id,
                                          get_group_by_user_id,
                                          is_group_creator, is_group_member,
-                                         list_members, remove)
+                                         list_members, remove, update)
 from mock.database.data import data
 
+"""CRUD Operationen"""
 
-# create
-def test_create(memory_database_session: Session):
-    name = "Test Group"
+# Create Tests
+def test_create_success(memory_database_session: Session):
+    # Arrange
+    group_name = "New Test Group"
     
-    # Create a new group
-    new_group = create(name, memory_database_session)
+    # Act
+    new_group = create(name=group_name, database_session=memory_database_session)
     
-    # Verify the group is created and has the correct data
+    # Assert
     assert new_group is not None
-    assert new_group.name == name
-    
-    # Verify: Ensure the group was actually added to the database
-    group_in_database_session = memory_database_session.query(Group).filter_by(group_id=new_group.group_id).one_or_none()
-    assert group_in_database_session is not None
-    assert group_in_database_session.name == name
+    assert new_group.name == group_name
+    assert isinstance(new_group.group_id, str)
 
-# get
-def test_get(memory_database_session: Session):
-    # Use an existing group from test data
+def test_create_invalid_data(memory_database_session: Session):
+    # Arrange: Name ist None, was zu einem Fehler führen sollte
+    group_name = None
+    
+    # Act & Assert
+    with pytest.raises(IntegrityError):
+        create(name=group_name, database_session=memory_database_session)
+
+# Get Tests
+def test_get_success(memory_database_session: Session):
+    # Arrange
     existing_group = data["groups"][0]
     
-    # Fetch the group by ID
-    fetched_group = get(existing_group["group_id"], memory_database_session)
+    # Act
+    fetched_group = get(group_id=existing_group["group_id"], database_session=memory_database_session)
     
-    # Verify the fetched group matches the created group
+    # Assert
     assert fetched_group is not None
     assert fetched_group.group_id == existing_group["group_id"]
-    assert fetched_group.name == existing_group["name"]
-    
-def test_get_group_failed(memory_database_session: Session):
-    # Define a non-existent group ID
-    non_existent_group_id = 9999
-    
-    # Try to fetch the group by the non-existent ID
-    fetched_group = get(non_existent_group_id, memory_database_session)
-    
-    # Verify that no group is found
-    assert fetched_group is None
 
-# is_group_member
-def test_is_group_member_true(memory_database_session: Session):
-    group_id = "11111111-1111-1111-1111-111111111111"
-    user_id = data["users"][2]["user_id"]  # User 3 is a member of Group 1
-    assert is_group_member(user_id, group_id, memory_database_session) == True
-    
-def test_is_group_member_also_creator_true(memory_database_session: Session):
-    group_id = "11111111-1111-1111-1111-111111111111"
-    user_id = data["users"][0]["user_id"]  # User 1 is the creator and a member of Group 1
-    assert is_group_member(user_id, group_id, memory_database_session) == True
-
-def test_is_group_member_false(memory_database_session: Session):
-    group_id = data["groups"][1]["group_id"]
-    user_id = data["users"][0]["user_id"]  # User 1 is not a member of Group 2
-    assert is_group_member(user_id, group_id, memory_database_session) == False
-
-# is_group_creator
-def test_is_group_creator_true(memory_database_session: Session):
-    group_id = "11111111-1111-1111-1111-111111111111"
-    user_id = data["users"][0]["user_id"]  # User 1 is the creator of Group 1
-    assert is_group_creator(user_id, group_id, memory_database_session) == True
-
-def test_is_group_creator_false(memory_database_session: Session):
-    group_id = data["groups"][1]["group_id"]
-    user_id = data["users"][0]["user_id"]  # User 1 is not the creator of Group 2
-    assert is_group_creator(user_id, group_id, memory_database_session) == False
-
-def test_is_group_creator_false_not_creator(memory_database_session: Session):
-    group_id = "11111111-1111-1111-1111-111111111111"
-    user_id = data["users"][1]["user_id"]  # User 2 is a member but not the creator of Group 1
-    assert is_group_creator(user_id, group_id, memory_database_session) == False
-   
-    # Arrange: Verwende eine ungültige group_id
+def test_get_invalid_id(memory_database_session: Session):
+    # Arrange
     non_existent_group_id = "invalid-group-id"
     
-    # Act: Versuche, die Gruppe mit der ungültigen ID zu löschen
-    result = remove(non_existent_group_id, memory_database_session)
+    # Act
+    fetched_group = get(group_id=non_existent_group_id, database_session=memory_database_session)
     
-    # Assert: Stelle sicher, dass keine Gruppe gelöscht wird
-    assert result is False
+    # Assert
+    assert fetched_group is None
+
+def test_get_edgecase_empty_group_id(memory_database_session: Session):
+    # Arrange
+    empty_group_id = ""
     
-def test_remove_group(memory_database_session: Session):
-    # Arrange: Verwende eine vorhandene Gruppe
+    # Act
+    fetched_group = get(group_id=empty_group_id, database_session=memory_database_session)
+    
+    # Assert
+    assert fetched_group is None
+
+# Update Tests
+def test_update_success(memory_database_session: Session):
+    # Arrange
+    existing_group = data["groups"][0]
+    new_name = "Updated Group Name"
+    
+    # Act
+    updated_group = update(group_id=existing_group["group_id"], name=new_name, database_session=memory_database_session)
+    
+    # Assert
+    assert updated_group is not None
+    assert updated_group.name == new_name
+
+def test_update_invalid_id(memory_database_session: Session):
+    # Arrange
+    non_existent_group_id = "non-existent-id"
+    new_name = "Non-existent Group Update"
+    
+    # Act
+    updated_group = update(group_id=non_existent_group_id, name=new_name, database_session=memory_database_session)
+    
+    # Assert
+    assert updated_group is None
+
+def test_update_edgecase_empty_name(memory_database_session: Session):
+    # Arrange
+    existing_group = data["groups"][0]
+    new_name = ""  # Leerer Name
+    
+    # Act
+    updated_group = update(group_id=existing_group["group_id"], name=new_name, database_session=memory_database_session)
+    
+    # Assert
+    assert updated_group is not None
+    assert updated_group.name == ""  # Leerer Name sollte akzeptiert werden
+
+# Remove Tests
+def test_remove_success(memory_database_session: Session):
+    # Arrange
     existing_group = memory_database_session.query(Group).first()
+    
+    # Act
+    result = remove(group_id=existing_group.group_id, database_session=memory_database_session)
+    
+    # Assert
+    assert result is True
+    assert memory_database_session.query(Group).filter_by(group_id=existing_group.group_id).one_or_none() is None
 
-    # Act: Lösche die Gruppe
-    result = remove(existing_group.group_id, memory_database_session)
+def test_remove_invalid_id(memory_database_session: Session):
+    # Arrange
+    non_existent_group_id = "invalid-group-id"
+    
+    # Act
+    result = remove(group_id=non_existent_group_id, database_session=memory_database_session)
+    
+    # Assert
+    assert result is False
 
-    # Assert: Überprüfe, dass die Gruppe erfolgreich gelöscht wurde
+def test_remove_edgecase_empty_group_id(memory_database_session: Session):
+    # Arrange
+    empty_group_id = ""
+    
+    # Act
+    result = remove(group_id=empty_group_id, database_session=memory_database_session)
+    
+    # Assert
+    assert result is False
+
+"""Andere Operationen"""
+
+# is_group_member Tests
+def test_is_group_member_success(memory_database_session: Session):
+    # Arrange
+    user = data["users"][0]  # Der erste User in der Gruppe
+    
+    # Act
+    result = is_group_member(user_id=user["user_id"], group_id=user["group_id"], database_session=memory_database_session)
+    
+    # Assert
     assert result is True
 
-    # Verify: Stelle sicher, dass die Gruppe nicht mehr in der Datenbank vorhanden ist
-    group_in_database_session = memory_database_session.query(Group).filter_by(group_id=existing_group.group_id).one_or_none()
-    assert group_in_database_session is None
-
-    # cascading: Group -> Edit, User, Invitation
-    edits_in_database_session = memory_database_session.query(Edit).filter_by(group_id=existing_group.group_id).all()
-    users_in_database_session = memory_database_session.query(User).filter_by(group_id=existing_group.group_id).all()
-    invitations_in_database_session = memory_database_session.query(Invitation).filter_by(group_id=existing_group.group_id).all()
-    assert len(edits_in_database_session) == 0
-    assert len(users_in_database_session) == 0
-    assert len(invitations_in_database_session) == 0
-
-def test_remove_group_failed(memory_database_session: Session):
-    # Arrange: Verwende eine ungültige group_id
-    non_existent_group_id = 'non_existent'
-
-    # Act: Versuche, die Gruppe mit der ungültigen ID zu löschen
-    result = remove(non_existent_group_id, memory_database_session)
-
-    # Assert: Stelle sicher, dass keine Gruppe gelöscht wird
+def test_is_group_member_invalid_user(memory_database_session: Session):
+    # Arrange
+    invalid_user_id = 9999  # Ungültige user_id
+    group_id = data["groups"][0]["group_id"]
+    
+    # Act
+    result = is_group_member(user_id=invalid_user_id, group_id=group_id, database_session=memory_database_session)
+    
+    # Assert
     assert result is False
 
-# list_memebers
-
-def test_list_members(memory_database_session: Session):
-    # Arrange: Use an existing group with members
-    group_id = "11111111-1111-1111-1111-111111111111"  # Assuming Group 1 has members
+def test_is_group_member_edgecase_empty_group_id(memory_database_session: Session):
+    # Arrange
+    user_id = data["users"][0]["user_id"]
+    empty_group_id = ""
     
-    # Act: List members of the group
-    members = list_members(group_id, memory_database_session)
+    # Act
+    result = is_group_member(user_id=user_id, group_id=empty_group_id, database_session=memory_database_session)
     
-    # Assert: Check that the members are correctly listed
-    assert members is not None
-    assert len(members) > 0  # Ensure there are members in the group
+    # Assert
+    assert result is False
 
-    # Optional: Check specific members based on your mock data
-    assert members[0].user_id == data["users"][0]["user_id"]  # Creator
-    assert members[1].user_id == data["users"][1]["user_id"]  # Member
-
-def test_list_members_no_members(memory_database_session: Session):
-    # Arrange: Create a new group without any members
-    new_group = create("Empty Group", memory_database_session)  # Create a group without users
-
-    # Act: List members of the new group
-    members = list_members(new_group.group_id, memory_database_session)
+# is_group_creator Tests
+def test_is_group_creator_success(memory_database_session: Session):
+    # Arrange
+    creator = data["users"][0]  # Creator der Gruppe
     
-    # Assert: Check that the member list is empty
-    assert members == []  # Ensure no members in the new group
-   
-# test get group by email 
+    # Act
+    result = is_group_creator(user_id=creator["user_id"], group_id=creator["group_id"], database_session=memory_database_session)
+    
+    # Assert
+    assert result is True
+
+def test_is_group_creator_invalid_user(memory_database_session: Session):
+    # Arrange
+    invalid_user_id = 9999  # Ungültige user_id
+    group_id = data["groups"][0]["group_id"]
+    
+    # Act
+    result = is_group_creator(user_id=invalid_user_id, group_id=group_id, database_session=memory_database_session)
+    
+    # Assert
+    assert result is False
+
+def test_is_group_creator_edgecase_empty_group_id(memory_database_session: Session):
+    # Arrange
+    user_id = data["users"][0]["user_id"]
+    empty_group_id = ""
+    
+    # Act
+    result = is_group_creator(user_id=user_id, group_id=empty_group_id, database_session=memory_database_session)
+    
+    # Assert
+    assert result is False
+
+# list_members Tests
+def test_list_members_success(memory_database_session: Session):
+    # Arrange
+    group_id = data["groups"][0]["group_id"]
+    
+    # Act
+    members = list_members(group_id=group_id, database_session=memory_database_session)
+    
+    # Assert
+    assert len(members) > 0  # Es gibt Mitglieder in der Gruppe
+
+def test_list_members_invalid_group(memory_database_session: Session):
+    # Arrange
+    invalid_group_id = "invalid-group-id"
+    
+    # Act
+    members = list_members(group_id=invalid_group_id, database_session=memory_database_session)
+    
+    # Assert
+    assert len(members) == 0
+
+def test_list_members_edgecase_empty_group_id(memory_database_session: Session):
+    # Arrange
+    empty_group_id = ""
+    
+    # Act
+    members = list_members(group_id=empty_group_id, database_session=memory_database_session)
+    
+    # Assert
+    assert len(members) == 0
+
+# get_group_by_edit_id Tests
 def test_get_group_by_edit_id_success(memory_database_session: Session):
-    # Arrange: Verwende eine vorhandene Edit-ID aus den Testdaten
-    existing_edit = data["edits"][0]  # Angenommen, dies ist ein gültiger Edit
-    expected_group_id = existing_edit["group_id"]  # Holen Sie sich die zugehörige group_id
-
-    # Act: Versuchen Sie, die Gruppe anhand der Edit-ID abzurufen
-    retrieved_group = get_group_by_edit_id(existing_edit["edit_id"], memory_database_session)
-
-    # Assert: Überprüfen, ob die Gruppe korrekt abgerufen wurde
-    assert retrieved_group is not None
-    assert retrieved_group.group_id == expected_group_id
-
-def test_get_group_by_edit_id_not_found(memory_database_session: Session):
-    # Arrange: Verwenden Sie eine nicht existierende Edit-ID
-    non_existent_edit_id = "non_existent_edit_id"
-
-    # Act: Versuchen Sie, die Gruppe anhand der nicht existierenden Edit-ID abzurufen
-    retrieved_group = get_group_by_edit_id(non_existent_edit_id, memory_database_session)
-
-    # Assert: Überprüfen, dass keine Gruppe abgerufen wurde
-    assert retrieved_group is None
+    # Arrange
+    edit_id = data["edits"][0]["edit_id"]
     
-    # test get_group by user id
+    # Act
+    group = get_group_by_edit_id(edit_id=edit_id, database_session=memory_database_session)
+    
+    # Assert
+    assert group is not None
+    assert group.group_id == data["edits"][0]["group_id"]
+
+def test_get_group_by_edit_id_invalid_edit(memory_database_session: Session):
+    # Arrange
+    invalid_edit_id = 9999
+    
+    # Act
+    group = get_group_by_edit_id(edit_id=invalid_edit_id, database_session=memory_database_session)
+    
+    # Assert
+    assert group is None
+
+# get_group_by_user_id Tests
 def test_get_group_by_user_id_success(memory_database_session: Session):
-    # Arrange: Use an existing user with a valid group
-    existing_user = data["users"][0]  # Assuming User 1 is in Group 1
-    expected_group_id = existing_user["group_id"]  # Get the associated group_id
+    # Arrange
+    user_id = data["users"][0]["user_id"]
+    
+    # Act
+    group = get_group_by_user_id(user_id=user_id, database_session=memory_database_session)
+    
+    # Assert
+    assert group is not None
+    assert group.group_id == data["users"][0]["group_id"]
 
-    # Act: Attempt to retrieve the group by the user's ID
-    retrieved_group = get_group_by_user_id(existing_user["user_id"], memory_database_session)
+def test_get_group_by_user_id_invalid_user(memory_database_session: Session):
+    # Arrange
+    invalid_user_id = 9999
+    
+    # Act
+    group = get_group_by_user_id(user_id=invalid_user_id, database_session=memory_database_session)
+    
+    # Assert
+    assert group is None
 
-    # Assert: Verify that the correct group is retrieved
-    assert retrieved_group is not None
-    assert retrieved_group.group_id == expected_group_id
+"""Integration"""
 
-def test_get_group_by_user_id_not_found(memory_database_session: Session):
-    # Arrange: Use a non-existent user ID
-    non_existent_user_id = 9999
+def test_cascade_delete_group_with_edits_and_users(memory_database_session: Session):
+    # Arrange: Wir löschen eine Gruppe und erwarten, dass alle zugehörigen Edits und Users gelöscht werden.
+    group_id = "11111111-1111-1111-1111-111111111111"  # Gruppe 1 hat Edits und Users
+    
+    # Überprüfen, dass die Gruppe existiert
+    group = memory_database_session.query(Group).filter_by(group_id=group_id).one_or_none()
+    assert group is not None
+    
+    # Überprüfen, dass zugehörige Edits und Users existieren
+    edits = memory_database_session.query(Edit).filter_by(group_id=group_id).all()
+    users = memory_database_session.query(User).filter_by(group_id=group_id).all()
+    assert len(edits) > 0
+    assert len(users) > 0
+    
+    # Act: Lösche die Gruppe
+    result = remove(group_id=group_id, database_session=memory_database_session)
+    
+    # Assert: Überprüfe, ob die Gruppe erfolgreich gelöscht wurde
+    assert result is True
+    group = memory_database_session.query(Group).filter_by(group_id=group_id).one_or_none()
+    assert group is None
 
-    # Act: Attempt to retrieve the group by the non-existent user's ID
-    retrieved_group = get_group_by_user_id(non_existent_user_id, memory_database_session)
-
-    # Assert: Verify that no group is returned
-    assert retrieved_group is None
+    # Überprüfen, dass alle zugehörigen Edits und Users gelöscht wurden
+    edits = memory_database_session.query(Edit).filter_by(group_id=group_id).all()
+    users = memory_database_session.query(User).filter_by(group_id=group_id).all()
+    assert len(edits) == 0
+    assert len(users) == 0

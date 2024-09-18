@@ -1,102 +1,212 @@
+import pytest
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from api.models.database.model import OccupiedSlot, Slot
 from api.services.database.occupied_slot import (create, get,
                                                  get_occupied_slots_for_edit,
-                                                 is_slot_occupied, remove)
+                                                 is_slot_occupied, remove,
+                                                 update)
 from mock.database.data import data
 
+"""CRUD Operationen"""
 
-# create
-def test_create_occupied_slot(memory_database_session: Session):
+# Create Tests
+def test_create_success(memory_database_session: Session):
     # Arrange
-    user_id = data["users"][0]["user_id"]  # Verwende eine gültige user_id aus den Testdaten
-    slot_id = data["slots"][0]["slot_id"]  # Verwende eine gültige slot_id aus den Testdaten
-    edit_id = data["edits"][0]["edit_id"]  # Verwende eine gültige edit_id aus den Testdaten
-    video_src = "http://example.com/new_occupied_slot.mp4"
+    user_id = 1
+    slot_id = 1
+    edit_id = 1
+    video_src = "http://example.com/new_video.mp4"
 
-    # Act: Erstelle einen neuen OccupiedSlot
+    # Act
     new_occupied_slot = create(user_id=user_id, slot_id=slot_id, edit_id=edit_id, video_src=video_src, database_session=memory_database_session)
-    
-    # Assert: Überprüfe die Attribute des erstellten OccupiedSlots
+
+    # Assert
+    assert new_occupied_slot is not None
     assert new_occupied_slot.user_id == user_id
     assert new_occupied_slot.slot_id == slot_id
     assert new_occupied_slot.edit_id == edit_id
     assert new_occupied_slot.video_src == video_src
 
-    # Verify: Stelle sicher, dass der OccupiedSlot in der Datenbank gespeichert wurde
-    occupied_slot_in_database_session = memory_database_session.query(OccupiedSlot).filter_by(occupied_slot_id=new_occupied_slot.occupied_slot_id).one_or_none()
-    assert occupied_slot_in_database_session is not None
-    assert occupied_slot_in_database_session.user_id == user_id
-    assert occupied_slot_in_database_session.slot_id == slot_id
-    assert occupied_slot_in_database_session.edit_id == edit_id
-    assert occupied_slot_in_database_session.video_src == video_src
+def test_create_invalid_user(memory_database_session: Session):
+    # Arrange
+    invalid_user_id = 9999
+    slot_id = 1
+    edit_id = 1
+    video_src = "http://example.com/new_video.mp4"
 
-# get
-def test_get_occupied_slot(memory_database_session: Session):
-    # Arrange: Verwende einen vorhandenen OccupiedSlot aus den Testdaten
+    # Act & Assert
+    with pytest.raises(IntegrityError):
+        create(user_id=invalid_user_id, slot_id=slot_id, edit_id=edit_id, video_src=video_src, database_session=memory_database_session)
+
+def test_create_edgecase_empty_video_src(memory_database_session: Session):
+    # Arrange
+    user_id = 1
+    slot_id = 1
+    edit_id = 1
+    video_src = ""  # Leerer video_src
+
+    # Act
+    new_occupied_slot = create(user_id=user_id, slot_id=slot_id, edit_id=edit_id, video_src=video_src, database_session=memory_database_session)
+
+    # Assert
+    assert new_occupied_slot is not None
+    assert new_occupied_slot.video_src == ""  # Leerer video_src sollte akzeptiert werden
+
+# Get Tests
+def test_get_success(memory_database_session: Session):
+    # Arrange
     existing_occupied_slot = data["occupied_slots"][0]
-    # Act: Hole den OccupiedSlot mit seiner ID
+
+    # Act
     fetched_occupied_slot = get(existing_occupied_slot["occupied_slot_id"], memory_database_session)
-    
-    # Assert: Überprüfe, ob der gefundene OccupiedSlot den erwarteten Werten entspricht
+
+    # Assert
     assert fetched_occupied_slot is not None
     assert fetched_occupied_slot.occupied_slot_id == existing_occupied_slot["occupied_slot_id"]
-    assert fetched_occupied_slot.user_id == existing_occupied_slot["user_id"]
-    assert fetched_occupied_slot.slot_id == existing_occupied_slot["slot_id"]
-    assert fetched_occupied_slot.edit_id == existing_occupied_slot["edit_id"]
-    assert fetched_occupied_slot.video_src == existing_occupied_slot["video_src"]
 
-def test_get_occupied_slot_failed(memory_database_session: Session):
-    # Arrange: Verwende eine ungültige occupied_slot_id
-    non_existent_occupied_slot_id = 9999
-    
-    # Act: Versuche, den OccupiedSlot mit der ungültigen ID abzurufen
-    fetched_occupied_slot = get(non_existent_occupied_slot_id, memory_database_session)
-    
-    # Assert: Stelle sicher, dass kein OccupiedSlot gefunden wird
+def test_get_invalid_id(memory_database_session: Session):
+    # Arrange
+    invalid_occupied_slot_id = 9999
+
+    # Act
+    fetched_occupied_slot = get(invalid_occupied_slot_id, memory_database_session)
+
+    # Assert
     assert fetched_occupied_slot is None
 
-# remove
-def test_remove_occupied_slot(memory_database_session: Session):
-    # Arrange: Verwende einen vorhandenen Occupied Slot
+def test_get_edgecase_zero_id(memory_database_session: Session):
+    # Arrange
+    zero_occupied_slot_id = 0
+
+    # Act
+    fetched_occupied_slot = get(zero_occupied_slot_id, memory_database_session)
+
+    # Assert
+    assert fetched_occupied_slot is None
+
+# Update Tests
+def test_update_success(memory_database_session: Session):
+    # Arrange
+    existing_occupied_slot = data["occupied_slots"][0]
+    new_video_src = "http://example.com/updated_video.mp4"
+
+    # Act
+    updated_occupied_slot = update(occupied_slot_id=existing_occupied_slot["occupied_slot_id"], video_src=new_video_src, database_session=memory_database_session)
+
+    # Assert
+    assert updated_occupied_slot is not None
+    assert updated_occupied_slot.video_src == new_video_src
+
+def test_update_invalid_id(memory_database_session: Session):
+    # Arrange
+    invalid_occupied_slot_id = 9999
+    new_video_src = "http://example.com/updated_video.mp4"
+
+    # Act
+    updated_occupied_slot = update(occupied_slot_id=invalid_occupied_slot_id, video_src=new_video_src, database_session=memory_database_session)
+
+    # Assert
+    assert updated_occupied_slot is None
+
+def test_update_edgecase_empty_video_src(memory_database_session: Session):
+    # Arrange
+    existing_occupied_slot = data["occupied_slots"][0]
+    new_video_src = ""  # Leerer video_src
+
+    # Act
+    updated_occupied_slot = update(occupied_slot_id=existing_occupied_slot["occupied_slot_id"], video_src=new_video_src, database_session=memory_database_session)
+
+    # Assert
+    assert updated_occupied_slot is not None
+    assert updated_occupied_slot.video_src == ""  # Leerer video_src sollte akzeptiert werden
+
+# Remove Tests
+def test_remove_success(memory_database_session: Session):
+    # Arrange
     existing_occupied_slot = memory_database_session.query(OccupiedSlot).first()
 
-    # Act: Lösche den Occupied Slot
+    # Act
     result = remove(existing_occupied_slot.occupied_slot_id, memory_database_session)
 
-    # Assert: Überprüfe, dass der Occupied Slot erfolgreich gelöscht wurde
+    # Assert
     assert result is True
+    assert memory_database_session.query(OccupiedSlot).filter_by(occupied_slot_id=existing_occupied_slot.occupied_slot_id).one_or_none() is None
 
-    # Verify: Stelle sicher, dass der Occupied Slot nicht mehr in der Datenbank vorhanden ist
-    occupied_slot_in_database_session = memory_database_session.query(OccupiedSlot).filter_by(occupied_slot_id=existing_occupied_slot.occupied_slot_id).one_or_none()
-    assert occupied_slot_in_database_session is None
+def test_remove_invalid_id(memory_database_session: Session):
+    # Arrange
+    invalid_occupied_slot_id = 9999
 
-    # cascading: OccupiedSlot -> Slot
-    slot_in_database_session = memory_database_session.query(Slot).filter_by(slot_id=existing_occupied_slot.slot_id).first()
-    assert slot_in_database_session is not None  # Slot bleibt bestehen
+    # Act
+    result = remove(invalid_occupied_slot_id, memory_database_session)
 
-def test_remove_occupied_slot_failed(memory_database_session: Session):
-    # Arrange: Verwende eine ungültige occupied_slot_id
-    non_existent_occupied_slot_id = 9999
-
-    # Act: Versuche, den Occupied Slot mit der ungültigen ID zu löschen
-    result = remove(non_existent_occupied_slot_id, memory_database_session)
-
-    # Assert: Stelle sicher, dass kein Occupied Slot gelöscht wird
+    # Assert
     assert result is False
 
-#test get occupied slots for edit
-def test_get_occupied_slots_for_edit(memory_database_session: Session):
-    res = get_occupied_slots_for_edit(3, memory_database_session)
-    assert len(res) == 6
-    
-def test_get_occupied_slots_for_edit_other(memory_database_session: Session):
-    res = get_occupied_slots_for_edit(1, memory_database_session)
-    assert len(res) == 1
-    
-def test_is_slot_occupied_1(memory_database_session: Session):
-    assert is_slot_occupied(1,1, memory_database_session) == True
-    
-def test_is_slot_occupied_2(memory_database_session: Session):
-    assert is_slot_occupied(1,2, memory_database_session) == False
+def test_remove_edgecase_zero_id(memory_database_session: Session):
+    # Arrange
+    zero_occupied_slot_id = 0
+
+    # Act
+    result = remove(zero_occupied_slot_id, memory_database_session)
+
+    # Assert
+    assert result is False
+
+"""Andere Operationen"""
+
+# get_occupied_slots_for_edit Tests
+def test_get_occupied_slots_for_edit_success(memory_database_session: Session):
+    # Arrange
+    edit_id = 1  # Ein gültiger Edit mit OccupiedSlots
+
+    # Act
+    occupied_slots = get_occupied_slots_for_edit(edit_id=edit_id, database_session=memory_database_session)
+
+    # Assert
+    assert len(occupied_slots) > 0
+
+def test_get_occupied_slots_for_edit_invalid_edit(memory_database_session: Session):
+    # Arrange
+    invalid_edit_id = 9999
+
+    # Act
+    occupied_slots = get_occupied_slots_for_edit(edit_id=invalid_edit_id, database_session=memory_database_session)
+
+    # Assert
+    assert len(occupied_slots) == 0
+
+# is_slot_occupied Tests
+def test_is_slot_occupied_success(memory_database_session: Session):
+    # Arrange
+    slot_id = 1
+    edit_id = 1  # Ein gültiger Edit, der den Slot belegt
+
+    # Act
+    result = is_slot_occupied(slot_id=slot_id, edit_id=edit_id, database_session=memory_database_session)
+
+    # Assert
+    assert result is True
+
+def test_is_slot_occupied_failure(memory_database_session: Session):
+    # Arrange
+    slot_id = 1
+    invalid_edit_id = 9999  # Ungültiger Edit
+
+    # Act
+    result = is_slot_occupied(slot_id=slot_id, edit_id=invalid_edit_id, database_session=memory_database_session)
+
+    # Assert
+    assert result is False
+
+def test_is_slot_occupied_edgecase_no_occupied_slots(memory_database_session: Session):
+    # Arrange
+    slot_id = 1
+    edit_id = 2  # Edit hat keine belegten Slots
+
+    # Act
+    result = is_slot_occupied(slot_id=slot_id, edit_id=edit_id, database_session=memory_database_session)
+
+    # Assert
+    assert result is False

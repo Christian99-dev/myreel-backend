@@ -1,113 +1,226 @@
+import pytest
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from api.models.database.model import LoginRequest, OccupiedSlot, User
-from api.services.database.user import create, get, get_user_by_email, remove
-from api.utils.database.create_uuid import create_uuid
+from api.models.database.model import Edit, LoginRequest, OccupiedSlot, User
+from api.services.database.user import (create, get, get_user_by_email, remove,
+                                        update)
 from mock.database.data import data
 
+"""CRUD Operationen"""
 
-# create
-def test_create(memory_database_session: Session):
-    # Define user data
+# Create Tests
+def test_create_success(memory_database_session: Session):
+    # Arrange
     group_id = "11111111-1111-1111-1111-111111111111"
-    role = "admin"
-    name = "Test User"
-    email = "testuser@example.com"
+    role = "member"
+    name = "New User"
+    email = "newuser@example.com"
     
-    # Create a new user
-    new_user = create(group_id, role, name, email, memory_database_session)
+    # Act
+    new_user = create(group_id=group_id, role=role, name=name, email=email, database_session=memory_database_session)
     
-    # Verify the user is created and has the correct data
+    # Assert
     assert new_user is not None
+    assert new_user.group_id == group_id
+    assert new_user.role == role
     assert new_user.name == name
     assert new_user.email == email
-    assert new_user.role == role
-    assert new_user.group_id == group_id
-    
-    # Verify: Ensure the user was actually added to the database
-    user_in_database_session = memory_database_session.query(User).filter_by(user_id=new_user.user_id).one_or_none()
-    assert user_in_database_session is not None
-    assert user_in_database_session.group_id == group_id
-    assert user_in_database_session.role == role
-    assert user_in_database_session.name == name
-    assert user_in_database_session.email == email
 
-# get
-def test_get(memory_database_session: Session):
-    # Assume the first user from the test data is used
-    user_id = data["users"][0]["user_id"]
-    retrieved_user = get(user_id, memory_database_session)
+def test_create_duplicate_email(memory_database_session: Session):
+    # Arrange
+    group_id = "11111111-1111-1111-1111-111111111111"
+    role = "member"
+    name = "Another User"
+    email = data["users"][0]["email"]  # Bereits vorhandene E-Mail
     
-    assert retrieved_user is not None
-    assert retrieved_user.user_id == user_id
-    assert retrieved_user.name == data["users"][0]["name"]
-    assert retrieved_user.email == data["users"][0]["email"]
-    assert retrieved_user.role == data["users"][0]["role"]
-    assert retrieved_user.group_id == data["users"][0]["group_id"]
+    # Act & Assert
+    with pytest.raises(IntegrityError):
+        create(group_id=group_id, role=role, name=name, email=email, database_session=memory_database_session)
+
+def test_create_invalid_group(memory_database_session: Session):
+    # Arrange
+    group_id = "invalid-group-id"  # Ungültige group_id
+    role = "member"
+    name = "Invalid Group User"
+    email = "invalidgroup@example.com"
     
-def test_get_user_failed(memory_database_session: Session):
-    # Define a non-existent user ID
+    # Act & Assert
+    with pytest.raises(IntegrityError):
+        create(group_id=group_id, role=role, name=name, email=email, database_session=memory_database_session)
+
+# Get Tests
+def test_get_success(memory_database_session: Session):
+    # Arrange
+    existing_user = data["users"][0]
+    
+    # Act
+    fetched_user = get(existing_user["user_id"], memory_database_session)
+    
+    # Assert
+    assert fetched_user is not None
+    assert fetched_user.user_id == existing_user["user_id"]
+
+def test_get_invalid_id(memory_database_session: Session):
+    # Arrange
     non_existent_user_id = 9999
     
-    # Try to fetch the user by the non-existent ID
+    # Act
     fetched_user = get(non_existent_user_id, memory_database_session)
     
-    # Verify that no user is found
+    # Assert
     assert fetched_user is None
+
+def test_get_edgecase_zero_id(memory_database_session: Session):
+    # Arrange
+    zero_user_id = 0
     
-# remove
-def test_remove_user(memory_database_session: Session):
-    # Arrange: Verwende einen vorhandenen User
-    existing_user = memory_database_session.query(User).first()
+    # Act
+    fetched_user = get(zero_user_id, memory_database_session)
+    
+    # Assert
+    assert fetched_user is None
 
-    # Act: Lösche den User
-    result = remove(existing_user.user_id, memory_database_session)
+# Update Tests
+def test_update_success(memory_database_session: Session):
+    # Arrange
+    existing_user = data["users"][0]
+    new_name = "Updated User Name"
+    
+    # Act
+    updated_user = update(user_id=existing_user["user_id"], name=new_name, database_session=memory_database_session)
+    
+    # Assert
+    assert updated_user is not None
+    assert updated_user.name == new_name
 
-    # Assert: Überprüfe, dass der User erfolgreich gelöscht wurde
-    assert result is True
-
-    # Verify: Stelle sicher, dass der User nicht mehr in der Datenbank vorhanden ist
-    user_in_database_session = memory_database_session.query(User).filter_by(user_id=existing_user.user_id).one_or_none()
-    assert user_in_database_session is None
-
-    # cascading: User -> OccupiedSlot, LoginRequest
-    occupied_slots_in_database_session = memory_database_session.query(OccupiedSlot).filter_by(user_id=existing_user.user_id).all()
-    login_requests_in_database_session = memory_database_session.query(LoginRequest).filter_by(user_id=existing_user.user_id).all()
-    assert len(occupied_slots_in_database_session) == 0
-    assert len(login_requests_in_database_session) == 0
-
-def test_remove_user_failed(memory_database_session: Session):
-    # Arrange: Verwende eine ungültige user_id
+def test_update_invalid_id(memory_database_session: Session):
+    # Arrange
     non_existent_user_id = 9999
+    new_name = "Non-Existent User Update"
+    
+    # Act
+    updated_user = update(user_id=non_existent_user_id, name=new_name, database_session=memory_database_session)
+    
+    # Assert
+    assert updated_user is None
 
-    # Act: Versuche, den User mit der ungültigen ID zu löschen
+def test_update_edgecase_empty_name(memory_database_session: Session):
+    # Arrange
+    existing_user = data["users"][0]
+    new_name = ""  # Leerer Name
+    
+    # Act
+    updated_user = update(user_id=existing_user["user_id"], name=new_name, database_session=memory_database_session)
+    
+    # Assert
+    assert updated_user is not None
+    assert updated_user.name == ""  # Leerer Name sollte akzeptiert werden
+
+# Remove Tests
+def test_remove_success(memory_database_session: Session):
+    # Arrange
+    existing_user = memory_database_session.query(User).first()
+    
+    # Act
+    result = remove(existing_user.user_id, memory_database_session)
+    
+    # Assert
+    assert result is True
+    assert memory_database_session.query(User).filter_by(user_id=existing_user.user_id).one_or_none() is None
+
+def test_remove_invalid_id(memory_database_session: Session):
+    # Arrange
+    non_existent_user_id = 9999
+    
+    # Act
     result = remove(non_existent_user_id, memory_database_session)
-
-    # Assert: Stelle sicher, dass kein User gelöscht wird
+    
+    # Assert
     assert result is False
-    
-# get user by email
-def test_get_user_by_email_success(memory_database_session: Session):
-    # Arrange: Verwende eine existierende E-Mail-Adresse aus den Testdaten
-    test_email = data["users"][0]["email"]
-    
-    # Act: Versuche, den Benutzer anhand der E-Mail-Adresse abzurufen
-    retrieved_user = get_user_by_email(test_email, memory_database_session)
-    
-    # Assert: Überprüfe, dass der Benutzer korrekt abgerufen wurde
-    assert retrieved_user is not None
-    assert retrieved_user.email == test_email
-    assert retrieved_user.name == data["users"][0]["name"]
-    assert retrieved_user.user_id == data["users"][0]["user_id"]
-    assert retrieved_user.group_id == data["users"][0]["group_id"]
-    assert retrieved_user.role == data["users"][0]["role"]
 
-def test_get_user_by_email_not_found(memory_database_session: Session):
-    # Arrange: Verwende eine E-Mail-Adresse, die nicht existiert
+def test_remove_edgecase_zero_id(memory_database_session: Session):
+    # Arrange
+    zero_user_id = 0
+    
+    # Act
+    result = remove(zero_user_id, memory_database_session)
+    
+    # Assert
+    assert result is False
+
+"""Andere Operationen"""
+
+# get_user_by_email Tests
+def test_get_user_by_email_success(memory_database_session: Session):
+    # Arrange
+    existing_user = data["users"][0]
+    
+    # Act
+    fetched_user = get_user_by_email(existing_user["email"], memory_database_session)
+    
+    # Assert
+    assert fetched_user is not None
+    assert fetched_user.email == existing_user["email"]
+
+def test_get_user_by_email_invalid_email(memory_database_session: Session):
+    # Arrange
     non_existent_email = "nonexistent@example.com"
     
-    # Act: Versuche, den Benutzer anhand der nicht existierenden E-Mail-Adresse abzurufen
-    retrieved_user = get_user_by_email(non_existent_email, memory_database_session)
+    # Act
+    fetched_user = get_user_by_email(non_existent_email, memory_database_session)
     
-    # Assert: Überprüfe, dass kein Benutzer abgerufen wurde
-    assert retrieved_user is None
+    # Assert
+    assert fetched_user is None
+
+def test_get_user_by_email_edgecase_empty_email(memory_database_session: Session):
+    # Arrange
+    empty_email = ""
+    
+    # Act
+    fetched_user = get_user_by_email(empty_email, memory_database_session)
+    
+    # Assert
+    assert fetched_user is None
+
+"""Integration"""
+
+def test_cascade_delete_user_with_edits_login_requests_and_occupied_slots(memory_database_session: Session):
+    # Arrange: Wir löschen einen Benutzer und erwarten, dass alle zugehörigen Edits, LoginRequests und OccupiedSlots gelöscht werden.
+    user_id = 1  # Benutzer 1
+
+    # Überprüfen, dass der Benutzer existiert
+    user = memory_database_session.query(User).filter_by(user_id=user_id).one_or_none()
+    assert user is not None
+
+    # Überprüfen, dass zugehörige Edits existieren
+    edits = memory_database_session.query(Edit).filter_by(created_by=user_id).all()
+    assert len(edits) > 0
+
+    # Überprüfen, dass zugehörige LoginRequests existieren
+    login_requests = memory_database_session.query(LoginRequest).filter_by(user_id=user_id).all()
+    assert len(login_requests) > 0
+
+    # Überprüfen, dass zugehörige OccupiedSlots existieren
+    occupied_slots = memory_database_session.query(OccupiedSlot).filter_by(user_id=user_id).all()
+    assert len(occupied_slots) > 0
+
+    # Act: Lösche den Benutzer
+    result = remove(user_id, memory_database_session)
+
+    # Assert: Überprüfe, ob der Benutzer erfolgreich gelöscht wurde
+    assert result is True
+    user = memory_database_session.query(User).filter_by(user_id=user_id).one_or_none()
+    assert user is None
+
+    # Überprüfen, dass alle zugehörigen Edits gelöscht wurden
+    edits = memory_database_session.query(Edit).filter_by(created_by=user_id).all()
+    assert len(edits) == 0
+
+    # Überprüfen, dass alle zugehörigen LoginRequests gelöscht wurden
+    login_requests = memory_database_session.query(LoginRequest).filter_by(user_id=user_id).all()
+    assert len(login_requests) == 0
+
+    # Überprüfen, dass alle zugehörigen OccupiedSlots gelöscht wurden
+    occupied_slots = memory_database_session.query(OccupiedSlot).filter_by(user_id=user_id).all()
+    assert len(occupied_slots) == 0

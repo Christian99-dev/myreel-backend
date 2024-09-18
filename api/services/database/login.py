@@ -56,3 +56,32 @@ def get_login_request_by_groupid_and_token(groupid: str, token: str, database_se
         User.group_id == groupid,
         LoginRequest.pin == token
     ).first()
+
+def create_or_update(user_id: int, database_session: Session, expires_in_minutes: int = 10) -> LoginRequest:
+    pin = secrets.token_urlsafe(4)
+    created_at = datetime.now()
+    expires_at = created_at + timedelta(minutes=expires_in_minutes)
+
+    # Überprüfe, ob bereits ein LoginRequest für diesen Benutzer existiert
+    existing_login_request = database_session.query(LoginRequest).filter(LoginRequest.user_id == user_id).first()
+
+    if existing_login_request:
+        # Falls vorhanden, aktualisiere den bestehenden LoginRequest
+        existing_login_request.pin = pin
+        existing_login_request.created_at = created_at
+        existing_login_request.expires_at = expires_at
+        database_session.commit()
+        database_session.refresh(existing_login_request)
+        return existing_login_request
+    else:
+        # Falls nicht vorhanden, erstelle einen neuen LoginRequest
+        new_login_request = LoginRequest(
+            user_id=user_id,
+            pin=pin,
+            created_at=created_at,
+            expires_at=expires_at
+        )
+        database_session.add(new_login_request)
+        database_session.commit()
+        database_session.refresh(new_login_request)
+        return new_login_request

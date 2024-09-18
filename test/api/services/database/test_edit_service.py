@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from api.models.database.model import Edit
+from api.models.database.model import Edit, OccupiedSlot
 from api.services.database.edit import (are_all_slots_occupied, create, get,
                                         get_edits_by_group, is_edit_creator,
                                         remove, set_is_live, update)
@@ -300,3 +300,29 @@ def test_get_edits_by_group_edgecase_empty_group_id(memory_database_session: Ses
     
     # Assert
     assert len(edits) == 0
+
+"""Integration"""
+
+def test_cascade_delete_edit_with_occupied_slots(memory_database_session: Session):
+    # Arrange: Wir löschen einen Edit und erwarten, dass alle zugehörigen OccupiedSlots gelöscht werden.
+    edit_id = 1  # Edit 1
+
+    # Überprüfen, dass der Edit existiert
+    edit = memory_database_session.query(Edit).filter_by(edit_id=edit_id).one_or_none()
+    assert edit is not None
+
+    # Überprüfen, dass zugehörige OccupiedSlots existieren
+    occupied_slots = memory_database_session.query(OccupiedSlot).filter_by(edit_id=edit_id).all()
+    assert len(occupied_slots) > 0
+
+    # Act: Lösche den Edit
+    result = remove(edit_id, memory_database_session)
+
+    # Assert: Überprüfe, ob der Edit erfolgreich gelöscht wurde
+    assert result is True
+    edit = memory_database_session.query(Edit).filter_by(edit_id=edit_id).one_or_none()
+    assert edit is None
+
+    # Überprüfen, dass alle zugehörigen OccupiedSlots gelöscht wurden
+    occupied_slots = memory_database_session.query(OccupiedSlot).filter_by(edit_id=edit_id).all()
+    assert len(occupied_slots) == 0
