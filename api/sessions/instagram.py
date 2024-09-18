@@ -10,6 +10,8 @@ from typing import Generator
 
 import requests
 
+from api.exceptions.instagram import FTPConnectionError, FTPUploadError, InstagramUploadError, MediaContainerCreationError, VideoPublishError
+
 # Logger für die Session-Verwaltung
 logger = logging.getLogger("sessions.instagram")
 
@@ -61,14 +63,18 @@ class RemoteInstagramSessionManager(BaseInstagramSessionManager):
         finally:
             logger.info(f"get_session(): closed session (remote)")
 
-    def upload(self, video_bytes: bytes, video_format: str, caption: str) -> bool:
+    def upload(self, video_bytes: bytes, video_format: str, caption: str) -> None:
         """Lädt ein Video über FTP zu Instagram hoch."""
         temp_file_path = None
+        ftp = None
         try:
             # Schritt 1: FTP-Verbindung herstellen
-            ftp = FTP(INSTAGRAM_REMOTE_FTP_HOST)
-            ftp.login(user=INSTAGRAM_REMOTE_FTP_USER, passwd=INSTAGRAM_REMOTE_FTP_PASS)
-            logger.info(f"upload(): Connected to FTP server")
+            try:
+                ftp = FTP(INSTAGRAM_REMOTE_FTP_HOST)
+                ftp.login(user=INSTAGRAM_REMOTE_FTP_USER, passwd=INSTAGRAM_REMOTE_FTP_PASS)
+                logger.info(f"upload(): Connected to FTP server")
+            except Exception as e:
+                raise FTPConnectionError(f"Failed to connect to FTP server: {e}")
 
             # Schritt 2: Verzeichnis erstellen oder wechseln
             try:
@@ -79,16 +85,19 @@ class RemoteInstagramSessionManager(BaseInstagramSessionManager):
             logger.info(f"upload(): Changed to FTP directory: public_html/{INSTAGRAM_REMOTE_FTP_REPO}")
 
             # Schritt 3: Temporäre Datei erstellen und auf FTP hochladen
-            with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{video_format}') as temp_file:
-                temp_file.write(video_bytes)
-                temp_file_path = temp_file.name
+            try:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{video_format}') as temp_file:
+                    temp_file.write(video_bytes)
+                    temp_file_path = temp_file.name
 
-            remote_file_path = f"{os.path.basename(temp_file_path)}"
-            with open(temp_file_path, 'rb') as file:
-                ftp.storbinary(f'STOR {remote_file_path}', file)
+                remote_file_path = f"{os.path.basename(temp_file_path)}"
+                with open(temp_file_path, 'rb') as file:
+                    ftp.storbinary(f'STOR {remote_file_path}', file)
+                logger.info(f"upload(): Video successfully uploaded to FTP")
+            except Exception as e:
+                raise FTPUploadError(f"Failed to upload video to FTP: {e}")
 
             video_url = f"{INSTAGRAM_REMOTE_FTP_REPO_CONTAINER_LINK}/{remote_file_path}"
-            logger.info(f"upload(): Video successfully uploaded to FTP: {video_url}")
 
             # Schritt 5: Instagram-Container erstellen
             create_media_endpoint = f"{INSTAGRAM_REMOTE_API_URL}/{INSTAGRAM_REMOTE_USER_ID}/media"
@@ -105,8 +114,7 @@ class RemoteInstagramSessionManager(BaseInstagramSessionManager):
                 container_id = create_media_result["id"]
                 logger.info(f"upload(): Media container created with ID: {container_id}")
             else:
-                logger.error(f"upload(): Failed to create media container: {create_media_result}")
-                return False
+                raise MediaContainerCreationError(f"Failed to create media container: {create_media_result}")
 
             # Schritt 6: Video veröffentlichen
             time.sleep(100)  # Warte 2 Minuten
@@ -118,25 +126,23 @@ class RemoteInstagramSessionManager(BaseInstagramSessionManager):
             publish_media_response = requests.post(publish_media_endpoint, data=publish_media_data)
             publish_media_result = publish_media_response.json()
 
-            if publish_media_response.status_code == 200 and "id" in publish_media_result:
-                logger.info(f"upload(): Video published successfully with Media ID: {publish_media_result['id']}")
-                return True
-            else:
-                logger.error(f"upload(): Failed to publish video: {publish_media_result}")
-                return False
+            if publish_media_response.status_code != 200 or "id" not in publish_media_result:
+                raise VideoPublishError(f"Failed to publish video: {publish_media_result}")
+
+            logger.info(f"upload(): Video published successfully with Media ID: {publish_media_result['id']}")
 
         except Exception as e:
-            logger.error(f"upload(): An error occurred: {e}")
-            return False
+            raise InstagramUploadError(f"An error occurred during the upload process: {e}")
 
         finally:
             if temp_file_path is not None and os.path.exists(temp_file_path):
                 os.remove(temp_file_path)
-            try:
-                ftp.quit()
-                logger.info(f"upload(): FTP connection closed")
-            except Exception as e:
-                logger.error(f"upload(): Error closing FTP connection: {e}")
+            if ftp:
+                try:
+                    ftp.quit()
+                    logger.info(f"upload(): FTP connection closed")
+                except Exception as e:
+                    logger.error(f"upload(): Error closing FTP connection: {e}")
 
 
 class LocalInstagramSessionManager(BaseInstagramSessionManager):
@@ -158,25 +164,25 @@ class LocalInstagramSessionManager(BaseInstagramSessionManager):
         finally:
             logger.info(f"get_session(): closed session (local)")
 
-    def upload(self, video_bytes: bytes, video_format: str, caption: str) -> bool:
+    def upload(self, video_bytes: bytes, video_format: str, caption: str) -> None:
         """Speichert das Video lokal."""
         try:
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"video_{timestamp}.{video_format}"
             filepath = os.path.join(self.instagram_repo, filename)
 
+            # Speichern des Videos
             with open(filepath, 'wb') as video_file:
                 video_file.write(video_bytes)
 
+            # Speichern der Bildunterschrift
             caption_filepath = os.path.join(self.instagram_repo, f"caption_{timestamp}.txt")
             with open(caption_filepath, 'w') as caption_file:
                 caption_file.write(caption)
 
             logger.info(f"upload(): Video successfully saved to {filepath} with caption.")
-            return True
         except Exception as e:
-            logger.error(f"upload(): Failed to save video locally: {e}")
-            return False
+            raise InstagramUploadError(f"Failed to save video locally: {e}")
 
 
 class MemoryInstagramSessionManager(BaseInstagramSessionManager):
@@ -192,10 +198,19 @@ class MemoryInstagramSessionManager(BaseInstagramSessionManager):
         finally:
             logger.info(f"get_session(): closed session (memory)")
 
-    def upload(self, video_bytes: bytes, video_format: str, caption: str) -> bool:
-        """Simuliert das Hochladen eines Videos im Speicher."""
-        logger.info(f"upload(): Simulating video upload with caption: {caption}")
-        return True
+    def upload(self, video_bytes: bytes, video_format: str, caption: str) -> None:
+        """Simuliert das Hochladen eines Videos und potenzielle Fehler im Speicher."""
+        try:
+            if not video_bytes or not caption:
+                raise InstagramUploadError("Video bytes or caption are missing.")
+                
+            if video_format not in ['mp4', 'mov']:
+                raise InstagramUploadError(f"Unsupported video format: {video_format}")
+
+            logger.info(f"upload(): Simulated video upload with caption: {caption}")
+
+        except Exception as e:
+            raise InstagramUploadError(f"Failed to simulate video upload: {e}")
 
 
 _instagram_session_manager = None

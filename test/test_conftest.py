@@ -213,7 +213,7 @@ def test_email_session_does_something(memory_email_session):
 
 """Instagram"""
 def test_instagram_session_does_something(memory_instagram_session):
-    memory_instagram_session.upload(b"", "mp4", "hi")
+    memory_instagram_session.upload(b"A", "mp4", "hi")
    
 """HTTP Client"""
 def test_http_client_has_prod_routes(http_client: TestClient):
