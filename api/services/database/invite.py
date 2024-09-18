@@ -1,6 +1,7 @@
 import secrets
 from datetime import datetime, timedelta
 
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from api.models.database.model import Invitation
@@ -26,12 +27,15 @@ def create(group_id: str, email: str, database_session: Session, expires_in_days
     return new_invitation
 
 def get(invitation_id: int, database_session: Session) -> Invitation:
-    return database_session.query(Invitation).filter(Invitation.invitation_id == invitation_id).one_or_none()
+    invitation = database_session.query(Invitation).filter(Invitation.invitation_id == invitation_id).one_or_none()
+    if not invitation:
+        raise NoResultFound(f"Invitation with ID {invitation_id} not found")
+    return invitation
 
 def update(invitation_id: int, email: str = None, expires_in_days: int = None, database_session: Session = None) -> Invitation:
     invitation = database_session.query(Invitation).filter(Invitation.invitation_id == invitation_id).first()
     if not invitation:
-        return None
+        raise NoResultFound(f"Invitation with ID {invitation_id} not found")
 
     if email is not None:
         invitation.email = email
@@ -43,19 +47,21 @@ def update(invitation_id: int, email: str = None, expires_in_days: int = None, d
     database_session.refresh(invitation)
     return invitation
 
-def delete(invitation_id: int, database_session: Session) -> bool:
+def remove(invitation_id: int, database_session: Session) -> None:
     invitation = database_session.query(Invitation).filter(Invitation.invitation_id == invitation_id).first()
-    if invitation:
-        database_session.delete(invitation)
-        database_session.commit()
-        return True
-    return False
+    if not invitation:
+        raise NoResultFound(f"Invitation with ID {invitation_id} not found")
+
+    database_session.delete(invitation)
+    database_session.commit()
 
 """Andere Operationen"""
 
-def delete_all_by_email(email: str, database_session: Session) -> None:
+def remove_all_by_email(email: str, database_session: Session) -> None:
     invitations_to_delete = database_session.query(Invitation).filter(Invitation.email == email).all()
-    
+    if not invitations_to_delete:
+        raise NoResultFound(f"No invitations found with email {email}")
+
     for invitation in invitations_to_delete:
         database_session.delete(invitation)
     

@@ -8,9 +8,9 @@ from api.models.schema.user import (AcceptInviteRequest, AcceptInviteResponse,
                                     LoginRequest, LoginRequestRequest,
                                     LoginRequestResponse, LoginResponse)
 from api.services.database.invite import create as create_invite_service
-from api.services.database.invite import delete as delete_invite_service
+from api.services.database.invite import remove as delete_invite_service
 from api.services.database.invite import \
-    delete_all_by_email as delete_all_by_email_invite_service
+    remove_all_by_email as remove_all_by_email_invite_service
 from api.services.database.invite import get as get_invite_service
 from api.services.database.login import create as create_loging_service
 from api.services.database.login import remove as remove_loging_service
@@ -69,7 +69,7 @@ async def acceptInvite(request: AcceptInviteRequest = Body(...), database_sessio
     delete_invite_service(invitation_id=invite.invitation_id, database_session=database_session)
     
     # lösche alle die noch da sind mit diesem user
-    delete_all_by_email_invite_service(email=invite.email, database_session=database_session)
+    remove_all_by_email_invite_service(email=invite.email, database_session=database_session)
     
     return {"jwt": jwt}
     

@@ -1,8 +1,8 @@
 import pytest
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
-from api.models.database.model import OccupiedSlot, Slot
+from api.models.database.model import OccupiedSlot
 from api.services.database.occupied_slot import (create, get,
                                                  get_occupied_slots_for_edit,
                                                  is_slot_occupied, remove,
@@ -17,11 +17,11 @@ def test_create_success(memory_database_session: Session):
     user_id = 1
     slot_id = 1
     edit_id = 1
-    video_src = "http://example.com/new_video.mp4"
-
+    video_src = "http://example.com/video.mp4"
+    
     # Act
     new_occupied_slot = create(user_id=user_id, slot_id=slot_id, edit_id=edit_id, video_src=video_src, database_session=memory_database_session)
-
+    
     # Assert
     assert new_occupied_slot is not None
     assert new_occupied_slot.user_id == user_id
@@ -34,8 +34,8 @@ def test_create_invalid_user(memory_database_session: Session):
     invalid_user_id = 9999
     slot_id = 1
     edit_id = 1
-    video_src = "http://example.com/new_video.mp4"
-
+    video_src = "http://example.com/video.mp4"
+    
     # Act & Assert
     with pytest.raises(IntegrityError):
         create(user_id=invalid_user_id, slot_id=slot_id, edit_id=edit_id, video_src=video_src, database_session=memory_database_session)
@@ -45,14 +45,14 @@ def test_create_edgecase_empty_video_src(memory_database_session: Session):
     user_id = 1
     slot_id = 1
     edit_id = 1
-    video_src = ""  # Leerer video_src
-
+    video_src = ""  # Leerer Video-Source
+    
     # Act
     new_occupied_slot = create(user_id=user_id, slot_id=slot_id, edit_id=edit_id, video_src=video_src, database_session=memory_database_session)
-
+    
     # Assert
     assert new_occupied_slot is not None
-    assert new_occupied_slot.video_src == ""  # Leerer video_src sollte akzeptiert werden
+    assert new_occupied_slot.video_src == ""  # Leerer Video-Source sollte akzeptiert werden
 
 # Get Tests
 def test_get_success(memory_database_session: Session):
@@ -70,21 +70,17 @@ def test_get_invalid_id(memory_database_session: Session):
     # Arrange
     invalid_occupied_slot_id = 9999
 
-    # Act
-    fetched_occupied_slot = get(invalid_occupied_slot_id, memory_database_session)
-
-    # Assert
-    assert fetched_occupied_slot is None
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get(invalid_occupied_slot_id, memory_database_session)
 
 def test_get_edgecase_zero_id(memory_database_session: Session):
     # Arrange
     zero_occupied_slot_id = 0
 
-    # Act
-    fetched_occupied_slot = get(zero_occupied_slot_id, memory_database_session)
-
-    # Assert
-    assert fetched_occupied_slot is None
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get(zero_occupied_slot_id, memory_database_session)
 
 # Update Tests
 def test_update_success(memory_database_session: Session):
@@ -104,23 +100,20 @@ def test_update_invalid_id(memory_database_session: Session):
     invalid_occupied_slot_id = 9999
     new_video_src = "http://example.com/updated_video.mp4"
 
-    # Act
-    updated_occupied_slot = update(occupied_slot_id=invalid_occupied_slot_id, video_src=new_video_src, database_session=memory_database_session)
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        update(occupied_slot_id=invalid_occupied_slot_id, video_src=new_video_src, database_session=memory_database_session)
 
-    # Assert
-    assert updated_occupied_slot is None
-
-def test_update_edgecase_empty_video_src(memory_database_session: Session):
+def test_update_edgecase_no_changes(memory_database_session: Session):
     # Arrange
     existing_occupied_slot = data["occupied_slots"][0]
-    new_video_src = ""  # Leerer video_src
 
     # Act
-    updated_occupied_slot = update(occupied_slot_id=existing_occupied_slot["occupied_slot_id"], video_src=new_video_src, database_session=memory_database_session)
+    updated_occupied_slot = update(occupied_slot_id=existing_occupied_slot["occupied_slot_id"], database_session=memory_database_session)  # Keine Änderungen
 
     # Assert
     assert updated_occupied_slot is not None
-    assert updated_occupied_slot.video_src == ""  # Leerer video_src sollte akzeptiert werden
+    assert updated_occupied_slot.video_src == existing_occupied_slot["video_src"]
 
 # Remove Tests
 def test_remove_success(memory_database_session: Session):
@@ -128,31 +121,27 @@ def test_remove_success(memory_database_session: Session):
     existing_occupied_slot = memory_database_session.query(OccupiedSlot).first()
 
     # Act
-    result = remove(existing_occupied_slot.occupied_slot_id, memory_database_session)
+    remove(existing_occupied_slot.occupied_slot_id, memory_database_session)
 
     # Assert
-    assert result is True
-    assert memory_database_session.query(OccupiedSlot).filter_by(occupied_slot_id=existing_occupied_slot.occupied_slot_id).one_or_none() is None
+    with pytest.raises(NoResultFound):
+        get(existing_occupied_slot.occupied_slot_id, memory_database_session)
 
 def test_remove_invalid_id(memory_database_session: Session):
     # Arrange
     invalid_occupied_slot_id = 9999
 
-    # Act
-    result = remove(invalid_occupied_slot_id, memory_database_session)
-
-    # Assert
-    assert result is False
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        remove(invalid_occupied_slot_id, memory_database_session)
 
 def test_remove_edgecase_zero_id(memory_database_session: Session):
     # Arrange
     zero_occupied_slot_id = 0
 
-    # Act
-    result = remove(zero_occupied_slot_id, memory_database_session)
-
-    # Assert
-    assert result is False
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        remove(zero_occupied_slot_id, memory_database_session)
 
 """Andere Operationen"""
 
@@ -171,17 +160,28 @@ def test_get_occupied_slots_for_edit_invalid_edit(memory_database_session: Sessi
     # Arrange
     invalid_edit_id = 9999
 
-    # Act
-    occupied_slots = get_occupied_slots_for_edit(edit_id=invalid_edit_id, database_session=memory_database_session)
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get_occupied_slots_for_edit(edit_id=invalid_edit_id, database_session=memory_database_session)
 
-    # Assert
-    assert len(occupied_slots) == 0
+def test_get_occupied_slots_for_edit_edgecase_no_occupied_slots(memory_database_session: Session):
+    # Arrange
+    edit_id = 2  # Ein Edit ohne OccupiedSlots
+    
+    # Lösche alle OccupiedSlots für den angegebenen Edit
+    memory_database_session.query(OccupiedSlot).filter(OccupiedSlot.edit_id == edit_id).delete()
+    memory_database_session.commit()
+
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get_occupied_slots_for_edit(edit_id=edit_id, database_session=memory_database_session)
+
 
 # is_slot_occupied Tests
 def test_is_slot_occupied_success(memory_database_session: Session):
     # Arrange
     slot_id = 1
-    edit_id = 1  # Ein gültiger Edit, der den Slot belegt
+    edit_id = 1  # Dieser Edit hat den Slot belegt
 
     # Act
     result = is_slot_occupied(slot_id=slot_id, edit_id=edit_id, database_session=memory_database_session)
@@ -189,24 +189,49 @@ def test_is_slot_occupied_success(memory_database_session: Session):
     # Assert
     assert result is True
 
-def test_is_slot_occupied_failure(memory_database_session: Session):
+def test_is_slot_occupied_invalid_edit(memory_database_session: Session):
     # Arrange
     slot_id = 1
     invalid_edit_id = 9999  # Ungültiger Edit
 
-    # Act
-    result = is_slot_occupied(slot_id=slot_id, edit_id=invalid_edit_id, database_session=memory_database_session)
-
-    # Assert
-    assert result is False
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        is_slot_occupied(slot_id=slot_id, edit_id=invalid_edit_id, database_session=memory_database_session)
 
 def test_is_slot_occupied_edgecase_no_occupied_slots(memory_database_session: Session):
     # Arrange
     slot_id = 1
-    edit_id = 2  # Edit hat keine belegten Slots
+    edit_id = 2  # Kein Slot belegt für diesen Edit
 
-    # Act
-    result = is_slot_occupied(slot_id=slot_id, edit_id=edit_id, database_session=memory_database_session)
+    # Lösche alle OccupiedSlots für den angegebenen Edit
+    memory_database_session.query(OccupiedSlot).filter(OccupiedSlot.edit_id == edit_id).delete()
+    memory_database_session.commit()
+    
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        is_slot_occupied(slot_id=slot_id, edit_id=edit_id, database_session=memory_database_session)
 
-    # Assert
-    assert result is False
+"""Integration - CRUD"""
+
+def test_integration_crud_occupied_slot(memory_database_session: Session):
+    # Create an occupied slot
+    new_occupied_slot = create(user_id=1, slot_id=1, edit_id=1, video_src="http://example.com/video.mp4", database_session=memory_database_session)
+    assert new_occupied_slot is not None
+
+    # Update the occupied slot
+    updated_occupied_slot = update(occupied_slot_id=new_occupied_slot.occupied_slot_id, video_src="http://example.com/updated_video.mp4", database_session=memory_database_session)
+    assert updated_occupied_slot is not None
+    assert updated_occupied_slot.video_src == "http://example.com/updated_video.mp4"
+
+    # Fetch the occupied slot and check the updated video source
+    fetched_occupied_slot = get(occupied_slot_id=new_occupied_slot.occupied_slot_id, database_session=memory_database_session)
+    assert fetched_occupied_slot is not None
+    assert fetched_occupied_slot.video_src == "http://example.com/updated_video.mp4"
+
+    # Remove the occupied slot
+    remove(new_occupied_slot.occupied_slot_id, memory_database_session)
+
+    # Ensure the occupied slot no longer exists
+    with pytest.raises(NoResultFound):
+        get(new_occupied_slot.occupied_slot_id, memory_database_session)
+

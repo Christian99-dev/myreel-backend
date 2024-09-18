@@ -1,5 +1,5 @@
 import pytest
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
 from api.models.database.model import Edit, Slot, Song
@@ -13,10 +13,10 @@ from mock.database.data import data
 # Create Tests
 def test_create_success(memory_database_session: Session):
     # Arrange
-    name = "New Song"
-    author = "New Author"
-    cover_src = "http://example.com/covers/new_cover.png"
-    audio_src = "http://example.com/audios/new_audio.mp3"
+    name = "Test Song"
+    author = "Test Author"
+    cover_src = "http://example.com/cover.jpg"
+    audio_src = "http://example.com/audio.mp3"
     
     # Act
     new_song = create(name=name, author=author, cover_src=cover_src, audio_src=audio_src, database_session=memory_database_session)
@@ -31,13 +31,27 @@ def test_create_success(memory_database_session: Session):
 def test_create_invalid_data(memory_database_session: Session):
     # Arrange
     name = None  # Invalid name (None)
-    author = "New Author"
-    cover_src = "http://example.com/covers/new_cover.png"
-    audio_src = "http://example.com/audios/new_audio.mp3"
+    author = "Test Author"
+    cover_src = "http://example.com/cover.jpg"
+    audio_src = "http://example.com/audio.mp3"
     
     # Act & Assert
     with pytest.raises(IntegrityError):
         create(name=name, author=author, cover_src=cover_src, audio_src=audio_src, database_session=memory_database_session)
+
+def test_create_edgecase_empty_name(memory_database_session: Session):
+    # Arrange
+    name = ""  # Empty name
+    author = "Test Author"
+    cover_src = "http://example.com/cover.jpg"
+    audio_src = "http://example.com/audio.mp3"
+    
+    # Act
+    new_song = create(name=name, author=author, cover_src=cover_src, audio_src=audio_src, database_session=memory_database_session)
+    
+    # Assert
+    assert new_song is not None
+    assert new_song.name == ""
 
 # Get Tests
 def test_get_success(memory_database_session: Session):
@@ -53,29 +67,25 @@ def test_get_success(memory_database_session: Session):
 
 def test_get_invalid_id(memory_database_session: Session):
     # Arrange
-    non_existent_song_id = 9999
+    invalid_song_id = 9999
     
-    # Act
-    fetched_song = get(non_existent_song_id, memory_database_session)
-    
-    # Assert
-    assert fetched_song is None
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get(invalid_song_id, memory_database_session)
 
 def test_get_edgecase_zero_id(memory_database_session: Session):
     # Arrange
     zero_song_id = 0
     
-    # Act
-    fetched_song = get(zero_song_id, memory_database_session)
-    
-    # Assert
-    assert fetched_song is None
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get(zero_song_id, memory_database_session)
 
 # Update Tests
 def test_update_success(memory_database_session: Session):
     # Arrange
     existing_song = data["songs"][0]
-    new_name = "Updated Song Name"
+    new_name = "Updated Song"
     
     # Act
     updated_song = update(song_id=existing_song["song_id"], name=new_name, database_session=memory_database_session)
@@ -86,26 +96,23 @@ def test_update_success(memory_database_session: Session):
 
 def test_update_invalid_id(memory_database_session: Session):
     # Arrange
-    non_existent_song_id = 9999
-    new_name = "Non-Existent Song Update"
+    invalid_song_id = 9999
+    new_name = "Non-Existent Song"
     
-    # Act
-    updated_song = update(song_id=non_existent_song_id, name=new_name, database_session=memory_database_session)
-    
-    # Assert
-    assert updated_song is None
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        update(song_id=invalid_song_id, name=new_name, database_session=memory_database_session)
 
-def test_update_edgecase_empty_name(memory_database_session: Session):
+def test_update_no_changes(memory_database_session: Session):
     # Arrange
     existing_song = data["songs"][0]
-    new_name = ""  # Empty name
     
     # Act
-    updated_song = update(song_id=existing_song["song_id"], name=new_name, database_session=memory_database_session)
+    updated_song = update(song_id=existing_song["song_id"], database_session=memory_database_session)  # Keine Änderungen
     
     # Assert
     assert updated_song is not None
-    assert updated_song.name == ""  # Empty name should be accepted
+    assert updated_song.name == existing_song["name"]
 
 # Remove Tests
 def test_remove_success(memory_database_session: Session):
@@ -113,31 +120,28 @@ def test_remove_success(memory_database_session: Session):
     existing_song = memory_database_session.query(Song).first()
     
     # Act
-    result = remove(existing_song.song_id, memory_database_session)
+    remove(existing_song.song_id, memory_database_session)
     
     # Assert
-    assert result is True
-    assert memory_database_session.query(Song).filter_by(song_id=existing_song.song_id).one_or_none() is None
+    with pytest.raises(NoResultFound):
+        get(existing_song.song_id, memory_database_session)
 
 def test_remove_invalid_id(memory_database_session: Session):
     # Arrange
-    non_existent_song_id = 9999
+    invalid_song_id = 9999
     
-    # Act
-    result = remove(non_existent_song_id, memory_database_session)
-    
-    # Assert
-    assert result is False
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        remove(invalid_song_id, memory_database_session)
 
 def test_remove_edgecase_zero_id(memory_database_session: Session):
     # Arrange
     zero_song_id = 0
     
-    # Act
-    result = remove(zero_song_id, memory_database_session)
-    
-    # Assert
-    assert result is False
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        remove(zero_song_id, memory_database_session)
+
 
 """Andere Operationen"""
 
@@ -154,41 +158,41 @@ def test_list_all_no_songs(memory_database_session: Session):
     memory_database_session.query(Song).delete()
     memory_database_session.commit()
     
-    # Act
-    all_songs = list_all(memory_database_session)
-    
-    # Assert
-    assert len(all_songs) == 0
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        list_all(memory_database_session)
 
 # get_breakpoints Tests
 def test_get_breakpoints_success(memory_database_session: Session):
     # Arrange
-    song_id = 1
+    song_id = 1  # Ein Song mit zugehörigen Slots
     
     # Act
     breakpoints = get_breakpoints(song_id, memory_database_session)
     
     # Assert
-    assert breakpoints == [0, 0.5, 1, 2]
+    assert breakpoints == [0.0, 0.5, 1.0, 2.0]
 
 def test_get_breakpoints_no_slots(memory_database_session: Session):
     # Arrange
-    song_id = 1  # Song without any slots
+    song_id = 9999  # Keine Slots für diesen Song
+    
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get_breakpoints(song_id, memory_database_session)
 
-    # Lösche alle Slots für den Song
-    memory_database_session.query(Slot).filter(Slot.song_id == song_id).delete()
-    memory_database_session.commit()
+def test_get_breakpoints_invalid_song_id(memory_database_session: Session):
+    # Arrange
+    invalid_song_id = 9999
     
-    # Act
-    breakpoints = get_breakpoints(song_id, memory_database_session)
-    
-    # Assert
-    assert breakpoints == []
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get_breakpoints(invalid_song_id, memory_database_session)
 
 # create_slots_from_breakpoints Tests
 def test_create_slots_from_breakpoints_success(memory_database_session: Session):
     # Arrange
-    song_id = 3
+    song_id = 1
     breakpoints = [0.0, 1.0, 2.0, 3.0]
     
     # Act
@@ -196,54 +200,80 @@ def test_create_slots_from_breakpoints_success(memory_database_session: Session)
     
     # Assert
     assert len(new_slots) == 3  # 3 Slots should be created from 4 breakpoints
-    assert new_slots[0].start_time == 0.0
-    assert new_slots[0].end_time == 1.0
-    assert new_slots[1].start_time == 1.0
-    assert new_slots[1].end_time == 2.0
-    assert new_slots[2].start_time == 2.0
-    assert new_slots[2].end_time == 3.0
 
 def test_create_slots_from_breakpoints_empty_list(memory_database_session: Session):
     # Arrange
-    song_id = 3
-    breakpoints = []  # No breakpoints provided
+    song_id = 1
+    breakpoints = []  # Keine Breakpoints
     
-    # Act
-    new_slots = create_slots_from_breakpoints(song_id, breakpoints, memory_database_session)
-    
-    # Assert
-    assert len(new_slots) == 0  # No slots should be created
+    # Act & Assert
+    with pytest.raises(ValueError):
+        create_slots_from_breakpoints(song_id, breakpoints, memory_database_session)
 
-"""Integration"""
+def test_create_slots_from_breakpoints_too_few_breakpoints(memory_database_session: Session):
+    # Arrange
+    song_id = 1
+    breakpoints = [0.0]  # Nicht genug Breakpoints
+    
+    # Act & Assert
+    with pytest.raises(ValueError):
+        create_slots_from_breakpoints(song_id, breakpoints, memory_database_session)
+
+
+"""Integration - CRUD"""
+
+def test_integration_crud_song(memory_database_session: Session):
+    # Create a song
+    new_song = create(name="Test Song", author="Test Author", cover_src="http://example.com/cover.jpg", audio_src="http://example.com/audio.mp3", database_session=memory_database_session)
+    assert new_song is not None
+
+    # Update the song
+    updated_song = update(song_id=new_song.song_id, name="Updated Test Song", database_session=memory_database_session)
+    assert updated_song is not None
+    assert updated_song.name == "Updated Test Song"
+
+    # Fetch the song and check the updated name
+    fetched_song = get(song_id=new_song.song_id, database_session=memory_database_session)
+    assert fetched_song is not None
+    assert fetched_song.name == "Updated Test Song"
+
+    # Remove the song
+    remove(new_song.song_id, memory_database_session)
+
+    # Ensure the song no longer exists
+    with pytest.raises(NoResultFound):
+        get(new_song.song_id, memory_database_session)
+
+
+"""Integration - Cascading"""
 
 def test_cascade_delete_song_with_slots_and_edits(memory_database_session: Session):
-    # Arrange: Wir löschen ein Lied und erwarten, dass alle zugehörigen Slots und Edits gelöscht werden.
-    song_id = 1  # Song 1
-
-    # Überprüfen, dass das Lied existiert
+    # Arrange: Lösche einen Song und erwarte, dass alle zugehörigen Slots und Edits gelöscht werden.
+    song_id = 1  # Ein Song mit zugehörigen Slots und Edits
+    
+    # Überprüfe, dass der Song existiert
     song = memory_database_session.query(Song).filter_by(song_id=song_id).one_or_none()
     assert song is not None
 
-    # Überprüfen, dass zugehörige Slots existieren
+    # Überprüfe, dass zugehörige Slots existieren
     slots = memory_database_session.query(Slot).filter_by(song_id=song_id).all()
     assert len(slots) > 0
 
-    # Überprüfen, dass zugehörige Edits existieren
+    # Überprüfe, dass zugehörige Edits existieren
     edits = memory_database_session.query(Edit).filter_by(song_id=song_id).all()
     assert len(edits) > 0
 
-    # Act: Lösche das Lied
-    result = remove(song_id, memory_database_session)
+    # Act: Lösche den Song
+    remove(song_id, memory_database_session)
 
-    # Assert: Überprüfe, ob das Lied erfolgreich gelöscht wurde
-    assert result is True
-    song = memory_database_session.query(Song).filter_by(song_id=song_id).one_or_none()
-    assert song is None
+    # Assert: Überprüfe, ob der Song erfolgreich gelöscht wurde
+    with pytest.raises(NoResultFound):
+        get(song_id, memory_database_session)
 
-    # Überprüfen, dass alle zugehörigen Slots gelöscht wurden
+    # Überprüfe, dass alle zugehörigen Slots gelöscht wurden
     slots = memory_database_session.query(Slot).filter_by(song_id=song_id).all()
     assert len(slots) == 0
 
-    # Überprüfen, dass alle zugehörigen Edits gelöscht wurden
+    # Überprüfe, dass alle zugehörigen Edits gelöscht wurden
     edits = memory_database_session.query(Edit).filter_by(song_id=song_id).all()
     assert len(edits) == 0

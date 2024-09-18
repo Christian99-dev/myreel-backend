@@ -1,16 +1,13 @@
-import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import pytest
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
 from api.models.database.model import Invitation
-from api.services.database.invite import (create, delete, delete_all_by_email,
-                                          get, update)
+from api.services.database.invite import (create, get, remove,
+                                          remove_all_by_email, update)
 from mock.database.data import data
-
-logger = logging.getLogger("test.unittest")
 
 """CRUD Operationen"""
 
@@ -28,31 +25,27 @@ def test_create_success(memory_database_session: Session):
     assert new_invitation is not None
     assert new_invitation.group_id == group_id
     assert new_invitation.email == email
-    assert isinstance(new_invitation.created_at, datetime)
     assert new_invitation.expires_at == new_invitation.created_at + timedelta(days=expires_in_days)
 
-def test_create_invalid_group_id(memory_database_session: Session):
+def test_create_invalid_group(memory_database_session: Session):
     # Arrange
-    group_id = "invalid_group_id"  # Ungültige group_id
-    email = "new_invitee@example.com"
-    expires_in_days = 7
+    invalid_group_id = "invalid-group-id"
+    email = "invitee@example.com"
     
     # Act & Assert
     with pytest.raises(IntegrityError):
-        create(group_id=group_id, email=email, expires_in_days=expires_in_days, database_session=memory_database_session)
+        create(group_id=invalid_group_id, email=email, expires_in_days=7, database_session=memory_database_session)
 
-def test_create_edgecase_no_email(memory_database_session: Session):
+def test_create_edgecase_no_expiry(memory_database_session: Session):
     # Arrange
     group_id = "11111111-1111-1111-1111-111111111111"
-    email = ""  # Leere E-Mail
-    expires_in_days = 7
+    email = "invitee@example.com"
     
     # Act
-    new_invitation = create(group_id=group_id, email=email, expires_in_days=expires_in_days, database_session=memory_database_session)
+    new_invitation = create(group_id=group_id, email=email, expires_in_days=0, database_session=memory_database_session)
     
     # Assert
-    assert new_invitation is not None
-    assert new_invitation.email == ""  # Leere E-Mail sollte akzeptiert werden
+    assert new_invitation.expires_at == new_invitation.created_at
 
 # Get Tests
 def test_get_success(memory_database_session: Session):
@@ -60,7 +53,7 @@ def test_get_success(memory_database_session: Session):
     existing_invitation = data["invitations"][0]
     
     # Act
-    fetched_invitation = get(existing_invitation["invitation_id"], memory_database_session)
+    fetched_invitation = get(invitation_id=existing_invitation["invitation_id"], database_session=memory_database_session)
     
     # Assert
     assert fetched_invitation is not None
@@ -70,28 +63,24 @@ def test_get_invalid_id(memory_database_session: Session):
     # Arrange
     non_existent_invitation_id = 9999
     
-    # Act
-    fetched_invitation = get(non_existent_invitation_id, memory_database_session)
-    
-    # Assert
-    assert fetched_invitation is None
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get(invitation_id=non_existent_invitation_id, database_session=memory_database_session)
 
 def test_get_edgecase_zero_id(memory_database_session: Session):
     # Arrange
     zero_invitation_id = 0
     
-    # Act
-    fetched_invitation = get(zero_invitation_id, memory_database_session)
-    
-    # Assert
-    assert fetched_invitation is None
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get(invitation_id=zero_invitation_id, database_session=memory_database_session)
 
 # Update Tests
 def test_update_success(memory_database_session: Session):
     # Arrange
     existing_invitation = data["invitations"][0]
     new_email = "updated_invitee@example.com"
-    expires_in_days = 14
+    expires_in_days = 10
     
     # Act
     updated_invitation = update(invitation_id=existing_invitation["invitation_id"], email=new_email, expires_in_days=expires_in_days, database_session=memory_database_session)
@@ -99,90 +88,105 @@ def test_update_success(memory_database_session: Session):
     # Assert
     assert updated_invitation is not None
     assert updated_invitation.email == new_email
-
-    expires_at_expected = datetime.now() + timedelta(days=expires_in_days)
-
-    # Erlaube eine kleine Toleranz 
-    tolerance = timedelta(seconds=3)
-    assert abs(updated_invitation.expires_at - expires_at_expected) < tolerance
+    assert updated_invitation.expires_at > updated_invitation.created_at
 
 def test_update_invalid_id(memory_database_session: Session):
     # Arrange
-    non_existent_invitation_id = 9999
-    new_email = "updated_invitee@example.com"
+    invalid_invitation_id = 9999
     
-    # Act
-    updated_invitation = update(invitation_id=non_existent_invitation_id, email=new_email, database_session=memory_database_session)
-    
-    # Assert
-    assert updated_invitation is None
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        update(invitation_id=invalid_invitation_id, email="updated@example.com", expires_in_days=7, database_session=memory_database_session)
 
 def test_update_edgecase_empty_email(memory_database_session: Session):
     # Arrange
     existing_invitation = data["invitations"][0]
-    new_email = ""  # Leere E-Mail
+    new_email = ""  # Empty email should be accepted
     
     # Act
     updated_invitation = update(invitation_id=existing_invitation["invitation_id"], email=new_email, database_session=memory_database_session)
     
     # Assert
-    assert updated_invitation is not None
-    assert updated_invitation.email == ""  # Leere E-Mail sollte akzeptiert werden
+    assert updated_invitation.email == ""
 
-# Delete Tests
-def test_delete_success(memory_database_session: Session):
+# remove Tests
+def test_remove_success(memory_database_session: Session):
     # Arrange
     existing_invitation = data["invitations"][0]
     
     # Act
-    result = delete(existing_invitation["invitation_id"], memory_database_session)
+    remove(invitation_id=existing_invitation["invitation_id"], database_session=memory_database_session)
     
     # Assert
-    assert result is True
-    deleted_invitation = memory_database_session.query(Invitation).filter_by(invitation_id=existing_invitation["invitation_id"]).one_or_none()
-    assert deleted_invitation is None
+    with pytest.raises(NoResultFound):
+        get(invitation_id=existing_invitation["invitation_id"], database_session=memory_database_session)
 
-def test_delete_invalid_id(memory_database_session: Session):
+def test_remove_invalid_id(memory_database_session: Session):
     # Arrange
-    non_existent_invitation_id = 9999
+    invalid_invitation_id = 9999
     
-    # Act
-    result = delete(non_existent_invitation_id, memory_database_session)
-    
-    # Assert
-    assert result is False
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        remove(invitation_id=invalid_invitation_id, database_session=memory_database_session)
 
-def test_delete_edgecase_zero_id(memory_database_session: Session):
+def test_remove_edgecase_zero_id(memory_database_session: Session):
     # Arrange
     zero_invitation_id = 0
     
-    # Act
-    result = delete(zero_invitation_id, memory_database_session)
-    
-    # Assert
-    assert result is False
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        remove(invitation_id=zero_invitation_id, database_session=memory_database_session)
 
 """Andere Operationen"""
 
-def test_delete_all_by_email_success(memory_database_session: Session):
+# remove_all_by_email Tests
+def test_remove_all_by_email_success(memory_database_session: Session):
     # Arrange
     email = "invitee1@example.com"
     
     # Act
-    delete_all_by_email(email, memory_database_session)
+    remove_all_by_email(email=email, database_session=memory_database_session)
     
     # Assert
-    deleted_invitations = memory_database_session.query(Invitation).filter_by(email=email).all()
-    assert len(deleted_invitations) == 0
+    remaining_invitations = memory_database_session.query(Invitation).filter_by(email=email).all()
+    assert len(remaining_invitations) == 0
 
-def test_delete_all_by_email_no_match(memory_database_session: Session):
+def test_remove_all_by_email_invalid_email(memory_database_session: Session):
     # Arrange
-    non_existent_email = "nonexistent_email@example.com"
+    non_existent_email = "nonexistent@example.com"
     
-    # Act
-    delete_all_by_email(non_existent_email, memory_database_session)
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        remove_all_by_email(email=non_existent_email, database_session=memory_database_session)
+
+def test_remove_all_by_email_edgecase_empty_email(memory_database_session: Session):
+    # Arrange
+    empty_email = ""
     
-    # Assert
-    # Überprüfen, dass keine Einladungen gelöscht wurden, da es keine Übereinstimmung gab
-    all_invitations = memory_database_session.query(Invitation).all()
-    assert len(all_invitations) == len(data["invitations"])  # Die Anzahl der Einladungen sollte unverändert bleiben
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        remove_all_by_email(email=empty_email, database_session=memory_database_session)
+
+"""Integration - CRUD"""
+
+def test_integration_crud_invitation(memory_database_session: Session):
+    # Create an invitation
+    new_invitation = create(group_id="11111111-1111-1111-1111-111111111111", email="new@example.com", expires_in_days=7, database_session=memory_database_session)
+    assert new_invitation is not None
+
+    # Update the invitation
+    updated_invitation = update(invitation_id=new_invitation.invitation_id, email="updated@example.com", expires_in_days=10, database_session=memory_database_session)
+    assert updated_invitation is not None
+    assert updated_invitation.email == "updated@example.com"
+
+    # Fetch the invitation and check the updated email
+    fetched_invitation = get(invitation_id=new_invitation.invitation_id, database_session=memory_database_session)
+    assert fetched_invitation is not None
+    assert fetched_invitation.email == "updated@example.com"
+
+    # remove the invitation
+    remove(new_invitation.invitation_id, memory_database_session)
+
+    # Ensure the invitation no longer exists
+    with pytest.raises(NoResultFound):
+        get(new_invitation.invitation_id, memory_database_session)

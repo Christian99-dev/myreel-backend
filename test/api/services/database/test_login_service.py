@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytest
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
 from api.models.database.model import LoginRequest, User
@@ -15,7 +15,7 @@ from mock.database.data import data
 # Create Tests
 def test_create_success(memory_database_session: Session):
     # Arrange
-    user_id = 4  # Ein gültiger Benutzer aus der Mock-Datenbank
+    user_id = 4  # Ein gültiger Benutzer aus den Mockdaten
     expires_in_minutes = 10
 
     # Act
@@ -29,44 +29,60 @@ def test_create_success(memory_database_session: Session):
 
 def test_create_invalid_user(memory_database_session: Session):
     # Arrange
-    invalid_user_id = 9999  # Ein ungültiger Benutzer
-    expires_in_minutes = 10
-
+    invalid_user_id = 9999  # Ungültiger Benutzer
+    
     # Act & Assert
     with pytest.raises(IntegrityError):
-        create(user_id=invalid_user_id, expires_in_minutes=expires_in_minutes, database_session=memory_database_session)
+        create(user_id=invalid_user_id, expires_in_minutes=10, database_session=memory_database_session)
+
+def test_create_edgecase_expires_now(memory_database_session: Session):
+    # Arrange
+    user_id = 4  # Ein gültiger Benutzer
+    expires_in_minutes = 0  # LoginRequest läuft sofort ab
+
+    # Act
+    new_login_request = create(user_id=user_id, expires_in_minutes=expires_in_minutes, database_session=memory_database_session)
+
+    # Assert
+    assert new_login_request.expires_at == new_login_request.created_at
 
 # Get Tests
 def test_get_success(memory_database_session: Session):
     # Arrange
-    user_id = 1  # Gültiger Benutzer mit vorhandenem LoginRequest
+    existing_login_request = data["login_requests"][0]
 
     # Act
-    fetched_login_request = get(user_id=user_id, database_session=memory_database_session)
+    fetched_login_request = get(existing_login_request["user_id"], memory_database_session)
 
     # Assert
     assert fetched_login_request is not None
-    assert fetched_login_request.user_id == user_id
+    assert fetched_login_request.user_id == existing_login_request["user_id"]
 
 def test_get_invalid_user(memory_database_session: Session):
     # Arrange
     non_existent_user_id = 9999
 
-    # Act
-    fetched_login_request = get(user_id=non_existent_user_id, database_session=memory_database_session)
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get(user_id=non_existent_user_id, database_session=memory_database_session)
 
-    # Assert
-    assert fetched_login_request is None
+def test_get_edgecase_zero_user_id(memory_database_session: Session):
+    # Arrange
+    zero_user_id = 0
+
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get(user_id=zero_user_id, database_session=memory_database_session)
 
 # Update Tests
 def test_update_success(memory_database_session: Session):
     # Arrange
-    user_id = 1  # Ein gültiger Benutzer
-    new_pin = "new_pin_1234"
-    new_expires_in_minutes = 20
+    existing_login_request = data["login_requests"][0]
+    new_pin = "updated_pin"
+    expires_in_minutes = 15
 
     # Act
-    updated_login_request = update(user_id=user_id, pin=new_pin, expires_in_minutes=new_expires_in_minutes, database_session=memory_database_session)
+    updated_login_request = update(user_id=existing_login_request["user_id"], pin=new_pin, expires_in_minutes=expires_in_minutes, database_session=memory_database_session)
 
     # Assert
     assert updated_login_request is not None
@@ -76,43 +92,56 @@ def test_update_success(memory_database_session: Session):
 def test_update_invalid_user(memory_database_session: Session):
     # Arrange
     non_existent_user_id = 9999
-    new_pin = "new_pin_1234"
-    new_expires_in_minutes = 20
+
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        update(user_id=non_existent_user_id, pin="new_pin", expires_in_minutes=10, database_session=memory_database_session)
+
+def test_update_edgecase_empty_pin(memory_database_session: Session):
+    # Arrange
+    existing_login_request = data["login_requests"][0]
+    empty_pin = ""  # Leerer PIN
 
     # Act
-    updated_login_request = update(user_id=non_existent_user_id, pin=new_pin, expires_in_minutes=new_expires_in_minutes, database_session=memory_database_session)
+    updated_login_request = update(user_id=existing_login_request["user_id"], pin=empty_pin, expires_in_minutes=10, database_session=memory_database_session)
 
     # Assert
-    assert updated_login_request is None
+    assert updated_login_request.pin == empty_pin
 
 # Remove Tests
 def test_remove_success(memory_database_session: Session):
     # Arrange
-    user_id = 1  # Ein gültiger Benutzer
+    existing_login_request = memory_database_session.query(LoginRequest).first()
 
     # Act
-    result = remove(user_id=user_id, database_session=memory_database_session)
+    remove(user_id=existing_login_request.user_id, database_session=memory_database_session)
 
     # Assert
-    assert result is True
-    assert memory_database_session.query(LoginRequest).filter_by(user_id=user_id).one_or_none() is None
+    with pytest.raises(NoResultFound):
+        get(existing_login_request.user_id, memory_database_session)
 
 def test_remove_invalid_user(memory_database_session: Session):
     # Arrange
     non_existent_user_id = 9999
 
-    # Act
-    result = remove(user_id=non_existent_user_id, database_session=memory_database_session)
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        remove(user_id=non_existent_user_id, database_session=memory_database_session)
 
-    # Assert
-    assert result is False
+def test_remove_edgecase_zero_user_id(memory_database_session: Session):
+    # Arrange
+    zero_user_id = 0
+
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        remove(user_id=zero_user_id, database_session=memory_database_session)
 
 """Andere Operationen"""
 
 # delete_all_from_email Tests
 def test_delete_all_from_email_success(memory_database_session: Session):
     # Arrange
-    email = "creator1@example.com"  # Benutzer mit einem LoginRequest
+    email = "creator1@example.com"
 
     # Act
     delete_all_from_email(email=email, database_session=memory_database_session)
@@ -121,87 +150,103 @@ def test_delete_all_from_email_success(memory_database_session: Session):
     user = memory_database_session.query(User).filter_by(email=email).first()
     assert memory_database_session.query(LoginRequest).filter_by(user_id=user.user_id).one_or_none() is None
 
-def test_delete_all_from_email_no_login_request(memory_database_session: Session):
+def test_delete_all_from_email_invalid_email(memory_database_session: Session):
     # Arrange
-    email = "creator3@example.com"  # Benutzer ohne LoginRequest
+    non_existent_email = "nonexistent@example.com"
 
-    # Act
-    delete_all_from_email(email=email, database_session=memory_database_session)
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        delete_all_from_email(email=non_existent_email, database_session=memory_database_session)
 
-    # Assert
-    user = memory_database_session.query(User).filter_by(email=email).first()
-    assert memory_database_session.query(LoginRequest).filter_by(user_id=user.user_id).one_or_none() is None
+def test_delete_all_from_email_edgecase_empty_email(memory_database_session: Session):
+    # Arrange
+    empty_email = ""
+
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        delete_all_from_email(email=empty_email, database_session=memory_database_session)
 
 # get_login_request_by_groupid_and_token Tests
 def test_get_login_request_by_groupid_and_token_success(memory_database_session: Session):
     # Arrange
     group_id = "11111111-1111-1111-1111-111111111111"
-    token = "1234"
+    token = data["login_requests"][0]["pin"]
 
     # Act
     login_request = get_login_request_by_groupid_and_token(groupid=group_id, token=token, database_session=memory_database_session)
 
     # Assert
     assert login_request is not None
-    assert login_request.pin == token
+
+def test_get_login_request_by_groupid_and_token_invalid_group(memory_database_session: Session):
+    # Arrange
+    invalid_group_id = "invalid-group-id"
+    token = data["login_requests"][0]["pin"]
+
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get_login_request_by_groupid_and_token(groupid=invalid_group_id, token=token, database_session=memory_database_session)
 
 def test_get_login_request_by_groupid_and_token_invalid_token(memory_database_session: Session):
     # Arrange
     group_id = "11111111-1111-1111-1111-111111111111"
     invalid_token = "invalid_token"
 
-    # Act
-    login_request = get_login_request_by_groupid_and_token(groupid=group_id, token=invalid_token, database_session=memory_database_session)
-
-    # Assert
-    assert login_request is None
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get_login_request_by_groupid_and_token(groupid=group_id, token=invalid_token, database_session=memory_database_session)
 
 # create_or_update Tests
 def test_create_or_update_creates_new_request(memory_database_session: Session):
     # Arrange
     user_id = 4  # Ein gültiger Benutzer, der noch keine LoginRequest hat
-    expires_in_minutes = 10
 
     # Act
-    new_login_request = create_or_update(user_id=user_id, expires_in_minutes=expires_in_minutes, database_session=memory_database_session)
+    new_login_request = create_or_update(user_id=user_id, database_session=memory_database_session)
 
     # Assert
     assert new_login_request is not None
     assert new_login_request.user_id == user_id
-    assert new_login_request.expires_at > datetime.now()
 
 def test_create_or_update_updates_existing_request(memory_database_session: Session):
     # Arrange
-    user_id = 1  # Ein gültiger Benutzer mit existierendem LoginRequest
-    expires_in_minutes = 20
+    existing_login_request = data["login_requests"][0]
 
     # Act
-    updated_login_request = create_or_update(user_id=user_id, expires_in_minutes=expires_in_minutes, database_session=memory_database_session)
+    updated_login_request = create_or_update(user_id=existing_login_request["user_id"], database_session=memory_database_session)
 
     # Assert
     assert updated_login_request is not None
-    assert updated_login_request.user_id == user_id
-    assert updated_login_request.expires_at > datetime.now()
+    assert updated_login_request.user_id == existing_login_request["user_id"]
 
-"""Integration"""
-
-def test_integration_create_and_delete_login_request(memory_database_session: Session):
+def test_create_or_update_invalid_user(memory_database_session: Session):
     # Arrange
-    user_id = 4  # Ein gültiger Benutzer
-    expires_in_minutes = 10
+    invalid_user_id = 9999
 
-    # Act: Erstelle ein LoginRequest
-    new_login_request = create_or_update(user_id=user_id, expires_in_minutes=expires_in_minutes, database_session=memory_database_session)
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        create_or_update(user_id=invalid_user_id, database_session=memory_database_session)
+
+"""Integration - CRUD"""
+
+def test_integration_crud_login_request(memory_database_session: Session):
+    # Create a login request
+    new_login_request = create(user_id=4, expires_in_minutes=10, database_session=memory_database_session)
     assert new_login_request is not None
 
-    # Assert: Überprüfe, ob der LoginRequest existiert
-    fetched_login_request = get(user_id=user_id, database_session=memory_database_session)
+    # Update the login request
+    updated_login_request = update(user_id=new_login_request.user_id, pin="new_pin", expires_in_minutes=15, database_session=memory_database_session)
+    assert updated_login_request is not None
+    assert updated_login_request.pin == "new_pin"
+
+    # Fetch the login request and check the updated pin
+    fetched_login_request = get(user_id=new_login_request.user_id, database_session=memory_database_session)
     assert fetched_login_request is not None
+    assert fetched_login_request.pin == "new_pin"
 
-    # Act: Lösche den LoginRequest
-    result = remove(user_id=user_id, database_session=memory_database_session)
-    assert result is True
+    # Remove the login request
+    remove(new_login_request.user_id, memory_database_session)
 
-    # Assert: Überprüfe, ob der LoginRequest gelöscht wurde
-    fetched_login_request = get(user_id=user_id, database_session=memory_database_session)
-    assert fetched_login_request is None
+    # Ensure the login request no longer exists
+    with pytest.raises(NoResultFound):
+        get(new_login_request.user_id, memory_database_session)

@@ -1,3 +1,4 @@
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from api.models.database.model import Edit, Group, User
@@ -16,42 +17,52 @@ def create(name: str, database_session: Session) -> Group:
     return new_group
 
 def get(group_id: str, database_session: Session) -> Group:
-    return database_session.query(Group).filter(Group.group_id == group_id).first()
+    group = database_session.query(Group).filter(Group.group_id == group_id).first()
+    if not group:
+        raise NoResultFound(f"Group with ID {group_id} not found")
+    return group
 
 def update(group_id: str, name: str, database_session: Session) -> Group:
     group = database_session.query(Group).filter(Group.group_id == group_id).first()
-    if group:
-        group.name = name
-        database_session.commit()
-        database_session.refresh(group)
+    if not group:
+        raise NoResultFound(f"Group with ID {group_id} not found")
+    group.name = name
+    database_session.commit()
+    database_session.refresh(group)
     return group
 
-def remove(group_id: str, database_session: Session) -> bool:
+def remove(group_id: str, database_session: Session) -> None:
     group = database_session.query(Group).filter(Group.group_id == group_id).first()
-    if group:
-        database_session.delete(group)
-        database_session.commit()
-        return True
-    return False
+    if not group:
+        raise NoResultFound(f"Group with ID {group_id} not found")
+    database_session.delete(group)
+    database_session.commit()
 
 """Andere Operationen"""
 
 def is_group_member(user_id: int, group_id: str, database_session: Session) -> bool:
-    user = database_session.query(User).filter(User.user_id == user_id, User.group_id == group_id).first()
-    return user is not None
+    return database_session.query(User).filter(User.user_id == user_id, User.group_id == group_id).count() > 0
 
 def is_group_creator(user_id: int, group_id: str, database_session: Session) -> bool:
     user = database_session.query(User).filter(User.user_id == user_id, User.group_id == group_id).first()
-    return user is not None and user.role == "creator"
+    if not user:
+        raise NoResultFound(f"User with ID {user_id} not found in group {group_id}")
+    return user.role == "creator"
 
 def list_members(group_id: str, database_session: Session):
-    return database_session.query(User).filter(User.group_id == group_id).all()
+    members = database_session.query(User).filter(User.group_id == group_id).all()
+    if not members:
+        raise NoResultFound(f"No members found for group ID {group_id}")
+    return members
 
 def get_group_by_edit_id(edit_id: str, database_session: Session) -> Group:
-    return database_session.query(Group).join(Edit).filter(Edit.edit_id == edit_id).first()
+    group = database_session.query(Group).join(Edit).filter(Edit.edit_id == edit_id).first()
+    if not group:
+        raise NoResultFound(f"Group for edit ID {edit_id} not found")
+    return group
 
 def get_group_by_user_id(user_id: int, database_session: Session) -> Group:
     user = database_session.query(User).filter(User.user_id == user_id).first()
-    if user:
-        return database_session.query(Group).filter(Group.group_id == user.group_id).first()
-    return None
+    if not user:
+        raise NoResultFound(f"Group for user ID {user_id} not found")
+    return database_session.query(Group).filter(Group.group_id == user.group_id).first()

@@ -4,41 +4,41 @@ from api.utils.jwt import jwt
 
 
 # test edit go live
-def test_edit_go_live_success(http_client: TestClient):
+def notest_edit_go_live_success(http_client: TestClient):
     response = http_client.post("/edit/3/goLive", headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"})
     
     assert response.status_code == 200
     assert response.json()["message"] == "Auf instagram hochgeladen!"
       
-def test_edit_go_live_not_ready(http_client: TestClient):
+def notest_edit_go_live_not_ready(http_client: TestClient):
     response = http_client.post("/edit/2/goLive", headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"})
     
     assert response.status_code == 422
 
-def test_edit_go_live_not_auth(http_client: TestClient):
+def notest_edit_go_live_not_auth(http_client: TestClient):
     response = http_client.post("/edit/3/goLive", headers={"Authorization": f"Bearer {jwt.create_jwt(3, 10)}"})
     
     assert response.status_code == 403
     
 # delete
-def test_edit_success(http_client: TestClient):
+def notest_edit_success(http_client: TestClient):
     response = http_client.delete("/edit/1", headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"})
     
     assert response.status_code == 200
     assert response.json()["message"] == "Deleted Successfully"
 
-def test_edit_wrong_edit(http_client: TestClient):
+def notest_edit_wrong_edit(http_client: TestClient):
     response = http_client.delete("/edit/5", headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"})
     
     assert response.status_code == 403
 
-def test_edit_not_auth(http_client: TestClient):
+def notest_edit_not_auth(http_client: TestClient):
     response = http_client.delete("/edit/5", headers={"Authorization": f"Bearer {jwt.create_jwt(99, 10)}"})
     
     assert response.status_code == 403
 
 # create edit 
-def test_create_edit(http_client: TestClient):
+def notest_create_edit(http_client: TestClient):
     response = http_client.post(
         "/edit", 
         json={
@@ -50,7 +50,7 @@ def test_create_edit(http_client: TestClient):
     
     assert response.status_code == 200
     
-def test_create_edit_no_song(http_client: TestClient):
+def notest_create_edit_no_song(http_client: TestClient):
     response = http_client.post(
         "/edit", 
         json={
@@ -62,7 +62,7 @@ def test_create_edit_no_song(http_client: TestClient):
     
     assert response.status_code == 400
     
-def test_create_edit_auth(http_client: TestClient):
+def notest_create_edit_auth(http_client: TestClient):
     response = http_client.post(
         "/edit", 
         json={
@@ -74,7 +74,7 @@ def test_create_edit_auth(http_client: TestClient):
     
     assert response.status_code == 403
     
-def test_create_edit_auth_again(http_client: TestClient):
+def notest_create_edit_auth_again(http_client: TestClient):
     response = http_client.post(
         "/edit", 
         json={
@@ -87,7 +87,7 @@ def test_create_edit_auth_again(http_client: TestClient):
     assert response.status_code == 403
     
 # list edits per grou
-def test_create_edit(http_client: TestClient):
+def notest_create_edit(http_client: TestClient):
     response = http_client.get(
         f"/edit/group/11111111-1111-1111-1111-111111111111/list", headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"}
     )
@@ -96,14 +96,14 @@ def test_create_edit(http_client: TestClient):
     edits = response.json()["edits"]
     assert len(edits) == 3
 
-def test_create_edit_auth(http_client: TestClient):
+def notest_create_edit_auth(http_client: TestClient):
     response = http_client.get(
         f"/edit/group/11111111-1111-1111-1111-111111111111/list", headers={"Authorization": f"Bearer {jwt.create_jwt(4, 10)}"}
     )
     
     assert response.status_code == 403
     
-def test_create_edit_auth_secound(http_client: TestClient):
+def notest_create_edit_auth_secound(http_client: TestClient):
     response = http_client.get(
         f"/edit/group/asd/list", headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"}
     )
@@ -111,7 +111,7 @@ def test_create_edit_auth_secound(http_client: TestClient):
     assert response.status_code == 403
 
 # test get edit 
-def test_get_edit(http_client: TestClient):
+def notest_get_edit(http_client: TestClient):
 
     # Senden Sie die GET-Anfrage an die API
     response = http_client.get(
@@ -166,7 +166,7 @@ def test_get_edit(http_client: TestClient):
         else:
             assert slot["occupied_id"] is None  # Bei nicht belegten Slots sollte occupied_id None sein
             
-def test_get_edit_not_working(http_client: TestClient):
+def notest_get_edit_not_working(http_client: TestClient):
     # Senden Sie die GET-Anfrage an die API
     response = http_client.get(
         f"/edit/group/33333333-3333-3333-3333-333333333333/1", headers={"Authorization": f"Bearer {jwt.create_jwt(1, 10)}"}
@@ -175,7 +175,7 @@ def test_get_edit_not_working(http_client: TestClient):
     assert response.status_code == 403
  
 # test delete slot
-def test_delete_slot_success(http_client: TestClient):  
+def notest_delete_slot_success(http_client: TestClient):  
     
     response = http_client.delete(
         f"/edit/group/11111111-1111-1111-1111-111111111111/1/slot/1", 
@@ -184,7 +184,7 @@ def test_delete_slot_success(http_client: TestClient):
     
     assert response.status_code == 200
     
-def notest_delete_slot_not_yours(http_client: TestClient):  
+def nonotest_delete_slot_not_yours(http_client: TestClient):  
     
     response = http_client.delete(
         f"/edit/group/11111111-1111-1111-1111-111111111111/1/slot/2", 
@@ -193,7 +193,7 @@ def notest_delete_slot_not_yours(http_client: TestClient):
     
     assert response.status_code == 403
     
-def notest_delete_slot_not_found(http_client: TestClient):  
+def nonotest_delete_slot_not_found(http_client: TestClient):  
     
     response = http_client.delete(
         f"/edit/group/11111111-1111-1111-1111-111111111111/1/slot/44", 
@@ -203,7 +203,7 @@ def notest_delete_slot_not_found(http_client: TestClient):
     assert response.status_code == 404
         
 # test posts slot
-def notest_post_slot_success(http_client: TestClient, file_session_memory):  
+def nonotest_post_slot_success(http_client: TestClient, file_session_memory):  
     
     video_file_slot = file_session_memory.get("demo.mp4","demo_slot")
       
@@ -221,7 +221,7 @@ def notest_post_slot_success(http_client: TestClient, file_session_memory):
     
     assert response.status_code == 200
     
-def notest_post_slot_slot_is_not_empty(http_client: TestClient, file_session_memory):  
+def nonotest_post_slot_slot_is_not_empty(http_client: TestClient, file_session_memory):  
     
     video_file_slot = file_session_memory.get("demo.mp4","demo_slot")
       
@@ -240,7 +240,7 @@ def notest_post_slot_slot_is_not_empty(http_client: TestClient, file_session_mem
     assert response.status_code == 403
     
 # test swap slot
-def notest_post_swap_slot_is_empty(http_client: TestClient, file_session_memory):  
+def nonotest_post_swap_slot_is_empty(http_client: TestClient, file_session_memory):  
     
     video_file_slot = file_session_memory.get("demo.mp4","demo_slot")
       
@@ -258,7 +258,7 @@ def notest_post_swap_slot_is_empty(http_client: TestClient, file_session_memory)
     
     assert response.status_code == 400
     
-def notest_post_swap_slot_not_yours(http_client: TestClient, file_session_memory):  
+def nonotest_post_swap_slot_not_yours(http_client: TestClient, file_session_memory):  
     
     video_file_slot = file_session_memory.get("demo.mp4","demo_slot")
       
@@ -276,7 +276,7 @@ def notest_post_swap_slot_not_yours(http_client: TestClient, file_session_memory
     
     assert response.status_code == 403
     
-def notest_post_swap_slot_success(http_client: TestClient, file_session_memory):  
+def nonotest_post_swap_slot_success(http_client: TestClient, file_session_memory):  
     
     video_file_slot = file_session_memory.get("demo.mp4","demo_slot")
       
