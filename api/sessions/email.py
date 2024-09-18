@@ -89,7 +89,6 @@ class RemoteEmailSessionManager(BaseEmailSessionManager):
             logger.error(f"send(): Failed to send email: {e}")
             return False
 
-
 class LocalEmailSessionManager(BaseEmailSessionManager):
     def __init__(self):
         """Initialisiert den lokalen E-Mail-Zugang."""
@@ -135,7 +134,6 @@ class LocalEmailSessionManager(BaseEmailSessionManager):
         except Exception as e:
             logger.error(f"send(): Failed to save email: {e}")
             return False
-
 
 class MemoryEmailSessionManager(BaseEmailSessionManager):
     def __init__(self):

@@ -14,7 +14,7 @@ def get(song_id: int, file_session: BaseFileSessionManager) -> bytes:
 def create(song_id: int, file_extension: str, file: bytes, file_session: BaseFileSessionManager) -> str:
     """Speichert eine neue Mediendatei basierend auf der cover_id und der Dateierweiterung."""
     file_name = f"{song_id}.{file_extension}"  # z.B. "123.cover"
-    location = file_session.save(file_name, "covers", file)
+    location = file_session.create(file_name, "covers", file)
     
     if not location:
         raise Exception("Fehler beim Speichern der Datei.")
@@ -32,7 +32,7 @@ def remove(song_id: int, file_session: BaseFileSessionManager) -> bool:
             break
 
     if file_extension:
-        file_session.delete("covers", f"{song_id}.{file_extension}")
+        file_session.remove("covers", f"{song_id}.{file_extension}")
         return True
     return False
 

@@ -1,8 +1,12 @@
 
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from api.exceptions.sessions.files import (DirectoryNotFoundError,
+                                           FileDeleteError, FileExistsInSessionError,
+                                           FileNotFoundInSessionError)
 from api.models.database.model import (Edit, Group, Invitation, LoginRequest,
                                        OccupiedSlot, Slot, Song, User)
 from api.sessions.files import BaseFileSessionManager
@@ -117,30 +121,41 @@ def test_file_session_memory_isolation(memory_file_session: BaseFileSessionManag
     """Testet die Isolation von MediaAccess."""
     
     # Überprüfen, ob der Speicher zu Beginn leer ist
-    assert memory_file_session.list('test_dir') == []
+    with pytest.raises(DirectoryNotFoundError):
+        memory_file_session.list('test_dir')
 
     # Füge eine Datei zum Speicher hinzu
-    memory_file_session.save('test_file.txt', 'test_dir', b'Test content')
+    memory_file_session.create('test_file.txt', 'test_dir', b'Test content')
 
     # Überprüfen, ob die Datei im Speicher vorhanden ist
     assert 'test_file.txt' in memory_file_session.list('test_dir')
     assert memory_file_session.get('test_file.txt', 'test_dir') == b'Test content'
 
+    # Versuche, dieselbe Datei erneut zu erstellen, was zu einem Fehler führen sollte
+    with pytest.raises(FileExistsInSessionError):
+        memory_file_session.create('test_file.txt', 'test_dir', b'Test content')
+
 def test_file_session_memory_isolation_other(memory_file_session: BaseFileSessionManager):
     """Testet die Isolation, um sicherzustellen, dass ein anderer Test nicht die Daten beeinflusst."""
     
     # Überprüfen, ob der Speicher zu Beginn leer ist
-    assert memory_file_session.list('test_dir') == []
+    with pytest.raises(DirectoryNotFoundError):
+        memory_file_session.list('test_dir')
 
     # Überprüfen, ob die vorherige Testdatei nicht vorhanden ist
-    assert 'test_file.txt' not in memory_file_session.list('test_dir')
+    with pytest.raises(FileNotFoundInSessionError):
+        memory_file_session.get('test_file.txt', 'test_dir')
 
     # Füge eine neue Datei hinzu
-    memory_file_session.save('another_test_file.txt', 'test_dir', b'Another Test content')
+    memory_file_session.create('another_test_file.txt', 'test_dir', b'Another Test content')
 
     # Überprüfen, ob die neue Datei vorhanden ist
     assert 'another_test_file.txt' in memory_file_session.list('test_dir')
     assert memory_file_session.get('another_test_file.txt', 'test_dir') == b'Another Test content'
+
+    # Versuche, eine Datei zu entfernen, die nicht existiert, was zu einem Fehler führen sollte
+    with pytest.raises(FileDeleteError):
+        memory_file_session.remove('test_dir', 'non_existent_file.txt')
 
 def test_file_session_memory_files_as_valid_name_check(memory_file_session: BaseFileSessionManager, memory_database_session: Session):
     

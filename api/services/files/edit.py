@@ -14,7 +14,7 @@ def get(edit_id: int, file_session: BaseFileSessionManager) -> bytes:
 def create(edit_id: int, file_extension: str, file: bytes, file_session: BaseFileSessionManager) -> str:
     """Speichert eine neue Mediendatei basierend auf der edit_id und der Dateierweiterung."""
     file_name = f"{edit_id}.{file_extension}"  # z.B. "5678.mp3"
-    location = file_session.save(file_name, "edits", file)
+    location = file_session.create(file_name, "edits", file)
     
     if not location:
         raise Exception("Fehler beim Speichern der Datei.")
@@ -32,7 +32,7 @@ def remove(edit_id: int, file_session: BaseFileSessionManager) -> bool:
             break
 
     if file_extension:
-        file_session.delete("edits", f"{edit_id}.{file_extension}")
+        file_session.remove("edits", f"{edit_id}.{file_extension}")
         return True
     return False
 

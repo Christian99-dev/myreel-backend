@@ -7,6 +7,8 @@ from typing import Dict, Generator, List, Optional
 
 from dotenv import load_dotenv
 
+from api.exceptions.sessions.files import DirectoryNotFoundError, FileDeleteError, FileExistsInSessionError, FileNotFoundInSessionError
+
 # Logger für die Session-Verwaltung
 logger = logging.getLogger("sessions.files")
 
@@ -38,7 +40,10 @@ class BaseFileSessionManager(ABC):
                 file_path = os.path.join(root, file_name)
                 with open(file_path, 'rb') as f:
                     file_data = f.read()
-                    self.save(file_name, relative_path, file_data)
+                    try:
+                        self.create(file_name, relative_path, file_data)
+                    except FileExistsInSessionError:
+                        logger.warning(f"File '{file_name}' in '{relative_path}' already exists.")
 
     def _print(self) -> None:
         """Druckt alle Dateien im Dateispeicher."""
@@ -51,15 +56,29 @@ class BaseFileSessionManager(ABC):
         logger.info(f"_clear()")
         self.clear()
 
-    """Session specific methods"""
     @abstractmethod
-    def save(self, file_name: str, dir: str, file_data: bytes) -> str:
+    def create(self, file_name: str, dir: str, file_data: bytes) -> str:
         """Speichert eine Datei."""
         pass
 
     @abstractmethod
     def get(self, file_name: str, dir: str) -> Optional[bytes]:
         """Liest eine Datei."""
+        pass
+
+    @abstractmethod
+    def update(self, file_name: str, dir: str, new_file_data: bytes) -> str:
+        """Aktualisiert eine Datei."""
+        pass
+
+    @abstractmethod
+    def remove(self, dir: str, file_name: str) -> None:
+        """Löscht eine Datei."""
+        pass
+
+    @abstractmethod
+    def clear(self) -> None:
+        """Löscht alle Dateien und Verzeichnisse."""
         pass
 
     @abstractmethod
@@ -70,16 +89,6 @@ class BaseFileSessionManager(ABC):
     @abstractmethod
     def list_all(self) -> List[str]:
         """Listet alle Dateien im Dateispeicher auf."""
-        pass
-
-    @abstractmethod
-    def delete(self, dir: str, file_name: str) -> None:
-        """Löscht eine Datei."""
-        pass
-
-    @abstractmethod
-    def clear(self) -> None:
-        """Löscht alle Dateien und Verzeichnisse."""
         pass
 
 
@@ -94,8 +103,6 @@ class LocalFileSessionManager(BaseFileSessionManager):
 
         if FILES_LOCAL_FILL:
             logger.info(f"__init__(): Filling file storage with mock data")
-        
-        if FILES_LOCAL_FILL:
             self._fill("mock/files")
             
         if FILES_PRINT:
@@ -109,12 +116,15 @@ class LocalFileSessionManager(BaseFileSessionManager):
         finally:
             logger.info(f"get_session(): closed session (local)")
 
-    def save(self, file_name: str, dir: str, file_data: bytes) -> str:
+    def create(self, file_name: str, dir: str, file_data: bytes) -> str:
         file_path = os.path.join(self.local_media_repo_folder, dir, file_name)
+        if os.path.exists(file_path):
+            raise FileExistsInSessionError(f"File '{file_name}' already exists in '{dir}'")
+        
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, 'wb') as f:
             f.write(file_data)
-        logger.info(f"save(): Saved file '{file_name}' in '{dir}'")
+        logger.info(f"create(): Saved file '{file_name}' in '{dir}'")
         return f"http://localhost:8000/outgoing/files/{dir}/{file_name}"
 
     def get(self, file_name: str, dir: str) -> Optional[bytes]:
@@ -123,34 +133,26 @@ class LocalFileSessionManager(BaseFileSessionManager):
             with open(file_path, 'rb') as f:
                 logger.info(f"get(): Retrieved file '{file_name}' from '{dir}'")
                 return f.read()
-        except FileNotFoundError:
-            logger.error(f"get(): File '{file_name}' not found in '{dir}'")
-            return None
+        except FileNotFoundInSessionError:
+            raise FileNotFoundInSessionError(f"File '{file_name}' not found in '{dir}'")
 
-    def list(self, dir: str) -> List[str]:
-        dir_path = os.path.join(self.local_media_repo_folder, dir)
-        if os.path.exists(dir_path):
-            files = os.listdir(dir_path)
-            logger.info(f"list(): Listing files in directory '{dir}': {files}")
-            return files
-        logger.info(f"list(): Directory '{dir}' does not exist")
-        return []
-
-    def list_all(self) -> List[str]:
-        all_files = []
-        for dirpath, _, filenames in os.walk(self.local_media_repo_folder):
-            for filename in filenames:
-                relative_path = os.path.relpath(os.path.join(dirpath, filename), self.local_media_repo_folder)
-                all_files.append(relative_path)
-        return all_files
-
-    def delete(self, dir: str, file_name: str) -> None:
+    def update(self, file_name: str, dir: str, new_file_data: bytes) -> str:
         file_path = os.path.join(self.local_media_repo_folder, dir, file_name)
-        try:
-            os.remove(file_path)
-            logger.info(f"delete(): Deleted file '{file_name}' from '{dir}'")
-        except FileNotFoundError:
-            logger.error(f"delete(): File '{file_name}' not found in '{dir}'")
+        if not os.path.exists(file_path):
+            raise FileNotFoundInSessionError(f"File '{file_name}' not found in '{dir}'")
+        
+        with open(file_path, 'wb') as f:
+            f.write(new_file_data)
+        logger.info(f"update(): Updated file '{file_name}' in '{dir}'")
+        return f"http://localhost:8000/outgoing/files/{dir}/{file_name}"
+
+    def remove(self, dir: str, file_name: str) -> None:
+        file_path = os.path.join(self.local_media_repo_folder, dir, file_name)
+        if not os.path.exists(file_path):
+            raise FileDeleteError(f"File '{file_name}' not found in '{dir}'")
+        
+        os.remove(file_path)
+        logger.info(f"remove(): Deleted file '{file_name}' from '{dir}'")
 
     def clear(self) -> None:
         logger.info(f"clear(): Clearing all files from '{self.local_media_repo_folder}'")
@@ -160,6 +162,22 @@ class LocalFileSessionManager(BaseFileSessionManager):
             for dirname in os.listdir(dirpath):
                 os.rmdir(os.path.join(dirpath, dirname))
 
+    def list(self, dir: str) -> List[str]:
+        dir_path = os.path.join(self.local_media_repo_folder, dir)
+        if not os.path.exists(dir_path):
+            raise DirectoryNotFoundError(f"Directory '{dir}' does not exist")
+        
+        files = os.listdir(dir_path)
+        logger.info(f"list(): Listing files in directory '{dir}': {files}")
+        return files
+
+    def list_all(self) -> List[str]:
+        all_files = []
+        for dirpath, _, filenames in os.walk(self.local_media_repo_folder):
+            for filename in filenames:
+                relative_path = os.path.relpath(os.path.join(dirpath, filename), self.local_media_repo_folder)
+                all_files.append(relative_path)
+        return all_files
 
 class MemoryFileSessionManager(BaseFileSessionManager):
     def __init__(self) -> None:
@@ -178,18 +196,42 @@ class MemoryFileSessionManager(BaseFileSessionManager):
         finally:
             logger.info(f"get_session(): closed session (memory)")
 
-    def save(self, file_name: str, dir: str, file_data: bytes) -> str:
+    def create(self, file_name: str, dir: str, file_data: bytes) -> str:
         if dir not in self.memory_storage:
             self.memory_storage[dir] = {}
+        if file_name in self.memory_storage[dir]:
+            raise FileExistsInSessionError(f"File '{file_name}' already exists in memory under '{dir}'")
         self.memory_storage[dir][file_name] = file_data
-        logger.info(f"save(): Saved file '{file_name}' in memory under '{dir}'")
+        logger.info(f"create(): Saved file '{file_name}' in memory under '{dir}'")
         return f"memory://{dir}/{file_name}"
 
     def get(self, file_name: str, dir: str) -> Optional[bytes]:
         logger.info(f"get(): Retrieving file '{file_name}' from memory under '{dir}'")
-        return self.memory_storage.get(dir, {}).get(file_name, None)
+        file_data = self.memory_storage.get(dir, {}).get(file_name)
+        if file_data is None:
+            raise FileNotFoundInSessionError(f"File '{file_name}' not found in memory under '{dir}'")
+        return file_data
+
+    def update(self, file_name: str, dir: str, new_file_data: bytes) -> str:
+        if dir not in self.memory_storage or file_name not in self.memory_storage[dir]:
+            raise FileNotFoundInSessionError(f"update(): File '{file_name}' not found in memory under '{dir}'")
+        self.memory_storage[dir][file_name] = new_file_data
+        logger.info(f"update(): Updated file '{file_name}' in memory under '{dir}'")
+        return f"memory://{dir}/{file_name}"
+
+    def remove(self, dir: str, file_name: str) -> None:
+        if dir not in self.memory_storage or file_name not in self.memory_storage[dir]:
+            raise FileDeleteError(f"remove(): File '{file_name}' not found in memory under '{dir}'")
+        del self.memory_storage[dir][file_name]
+        logger.info(f"remove(): Deleted file '{file_name}' from memory under '{dir}'")
+
+    def clear(self) -> None:
+        logger.info(f"clear(): Clearing all memory storage")
+        self.memory_storage.clear()
 
     def list(self, dir: str) -> List[str]:
+        if dir not in self.memory_storage:
+            raise DirectoryNotFoundError(f"list(): Directory '{dir}' not found in memory")
         files = list(self.memory_storage.get(dir, {}).keys())
         logger.info(f"list(): Listing files in memory directory '{dir}': {files}")
         return files
@@ -197,16 +239,6 @@ class MemoryFileSessionManager(BaseFileSessionManager):
     def list_all(self) -> List[str]:
         all_files = [f"{dir}/{file}" for dir, files in self.memory_storage.items() for file in files.keys()]
         return all_files
-
-    def delete(self, dir: str, file_name: str) -> None:
-        if dir in self.memory_storage and file_name in self.memory_storage[dir]:
-            del self.memory_storage[dir][file_name]
-            logger.info(f"delete(): Deleted file '{file_name}' from memory under '{dir}'")
-
-    def clear(self) -> None:
-        logger.info(f"clear(): Clearing all memory storage")
-        self.memory_storage.clear()
-
 
 class RemoteFileSessionManager(BaseFileSessionManager):
     def __init__(self) -> None:
@@ -224,13 +256,23 @@ class RemoteFileSessionManager(BaseFileSessionManager):
         finally:
             logger.info(f"get_session(): closed session (remote)")
 
-    def save(self, file_name: str, dir: str, file_data: bytes) -> str:
+    def create(self, file_name: str, dir: str, file_data: bytes) -> str:
         logger.info(f"save(): Saving file '{file_name}' remotely in '{dir}' (not implemented)")
         return "remote://not-implemented"
 
     def get(self, file_name: str, dir: str) -> Optional[bytes]:
         logger.info(f"get(): Retrieving file '{file_name}' remotely from '{dir}' (not implemented)")
         return None
+
+    def update(self, file_name: str, dir: str, new_file_data: bytes) -> str:
+        logger.info(f"update(): Updating file '{file_name}' remotely in '{dir}' (not implemented)")
+        return "remote://not-implemented"
+
+    def remove(self, dir: str, file_name: str) -> None:
+        logger.info(f"delete(): Deleting file '{file_name}' remotely from '{dir}' (not implemented)")
+
+    def clear(self) -> None:
+        logger.info(f"clear(): Clearing all remote files (not implemented)")
 
     def list(self, dir: str) -> List[str]:
         logger.info(f"list(): Listing files remotely in '{dir}' (not implemented)")
@@ -239,13 +281,6 @@ class RemoteFileSessionManager(BaseFileSessionManager):
     def list_all(self) -> List[str]:
         logger.info(f"list_all(): Listing all remote files (not implemented)")
         return []
-
-    def delete(self, dir: str, file_name: str) -> None:
-        logger.info(f"delete(): Deleting file '{file_name}' remotely from '{dir}' (not implemented)")
-
-    def clear(self) -> None:
-        logger.info(f"clear(): Clearing all remote files (not implemented)")
-
 
 _file_session_manager = None
 
@@ -257,7 +292,6 @@ def init_file_session_manager() -> None:
         _file_session_manager = LocalFileSessionManager() if FILES_LOCAL else RemoteFileSessionManager()
     else:
         logger.warning(f"init_file_session_manager(): already initialized")
-
 
 def get_file_session() -> Generator[Optional[BaseFileSessionManager], None, None]:
     global _file_session_manager

@@ -18,7 +18,7 @@ def create(song_id: int, file_extension: str, file: bytes, file_session: BaseFil
     """Speichert eine neue Mediendatei basierend auf der song_id und der Dateierweiterung."""
     # Erstelle den Dateinamen aus der song_id und der Dateierweiterung
     file_name = f"{song_id}.{file_extension}"  # z.B. "1234.mp3"
-    location = file_session.save(file_name, "songs", file)
+    location = file_session.create(file_name, "songs", file)
     
     if not location:
         raise Exception("Fehler beim Speichern der Datei.")
@@ -36,6 +36,6 @@ def remove(song_id: int, file_session: BaseFileSessionManager):
 
     # Wenn die Datei gefunden wurde, entferne sie
     if file_extension:
-        file_session.delete("songs", f"{song_id}.{file_extension}")
+        file_session.remove("songs", f"{song_id}.{file_extension}")
         return True  # Rückgabe, dass die Datei erfolgreich entfernt wurde
     return False  # Rückgabe, dass die Datei nicht gefunden wurde

@@ -8,7 +8,7 @@ def test_get_cover_file_found(memory_file_session):
     file_name = f"{cover_id}.{file_extension}"
 
     # Simuliere das Vorhandensein der Datei in MemoryMediaAccess
-    memory_file_session.save(file_name, "covers", b"dummy_cover_data")  # Speichere Dummy-Daten
+    memory_file_session.create(file_name, "covers", b"dummy_cover_data")  # Speichere Dummy-Daten
 
     # Ruft die get-Funktion auf
     result = get(cover_id, memory_file_session)
@@ -47,7 +47,7 @@ def test_remove_cover_file_found(memory_file_session):
     file_name = f"{cover_id}.{file_extension}"
 
     # Simuliere das Vorhandensein der Datei in MemoryMediaAccess
-    memory_file_session.save(file_name, "covers", b"dummy_cover_data")  # Speichere Dummy-Daten
+    memory_file_session.create(file_name, "covers", b"dummy_cover_data")  # Speichere Dummy-Daten
 
     # Ruft die remove-Funktion auf
     result = remove(cover_id, memory_file_session)

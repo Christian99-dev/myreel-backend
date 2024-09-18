@@ -40,7 +40,7 @@ def test1(
         "mp4"
     )
     
-    file_session.save(f"{generate_random_characters()}.mp4", "testres", endresult)
+    file_session.create(f"{generate_random_characters()}.mp4", "testres", endresult)
     return 18
 
 @router.get("/2", tags=["testing"])
@@ -61,7 +61,7 @@ def test2(database_session = Depends(get_database_session), file_session: BaseFi
         "mp4"
     )
     
-    file_session.save(f"{name}_out.mp4", "testres", endresult)
+    file_session.create(f"{name}_out.mp4", "testres", endresult)
     return 17
 
 @router.get("/3", tags=["testing"])

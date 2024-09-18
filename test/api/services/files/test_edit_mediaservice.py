@@ -8,7 +8,7 @@ def test_get_edit_file_found(memory_file_session):
     file_name = f"{edit_id}.{file_extension}"
 
     # Simuliere das Vorhandensein der Datei in MemoryMediaAccess
-    memory_file_session.save(file_name, "edits", b"dummy_edit_data")  # Speichere Dummy-Daten
+    memory_file_session.create(file_name, "edits", b"dummy_edit_data")  # Speichere Dummy-Daten
 
     # Ruft die get-Funktion auf
     result = get(edit_id, memory_file_session)
@@ -47,7 +47,7 @@ def test_remove_edit_file_found(memory_file_session):
     file_name = f"{edit_id}.{file_extension}"
 
     # Simuliere das Vorhandensein der Datei in MemoryMediaAccess
-    memory_file_session.save(file_name, "edits", b"dummy_edit_data")  # Speichere Dummy-Daten
+    memory_file_session.create(file_name, "edits", b"dummy_edit_data")  # Speichere Dummy-Daten
 
     # Ruft die remove-Funktion auf
     result = remove(edit_id, memory_file_session)

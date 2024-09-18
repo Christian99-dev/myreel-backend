@@ -9,7 +9,7 @@ def test_get_file_found(memory_file_session):
     file_name = f"{song_id}.{file_extension}"
 
     # Simuliere das Vorhandensein der Datei in MemoryMediaAccess
-    memory_file_session.save(file_name, "songs", b"dummy_audio_data")  # Speichere Dummy-Daten
+    memory_file_session.create(file_name, "songs", b"dummy_audio_data")  # Speichere Dummy-Daten
 
     # Ruft die get-Funktion auf
     result = get(song_id, memory_file_session)
@@ -48,7 +48,7 @@ def test_remove_file_found(memory_file_session):
     file_name = f"{song_id}.{file_extension}"
 
     # Simuliere das Vorhandensein der Datei in MemoryMediaAccess
-    memory_file_session.save(file_name, "songs", b"dummy_audio_data")  # Speichere Dummy-Daten
+    memory_file_session.create(file_name, "songs", b"dummy_audio_data")  # Speichere Dummy-Daten
 
     # Ruft die remove-Funktion auf
     result = remove(song_id, memory_file_session)
