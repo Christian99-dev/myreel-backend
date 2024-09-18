@@ -8,6 +8,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Generator
 
+from api.exceptions.email import EmailConfigurationError, EmailConnectionError, EmailDeliveryError
+
 logger = logging.getLogger("sessions.email")
 
 """ENV"""
@@ -34,7 +36,7 @@ class BaseEmailSessionManager(ABC):
 
     """Session specific methods"""
     @abstractmethod
-    def send(self, to: str, subject: str, body: str) -> bool:
+    def send(self, to: str, subject: str, body: str) -> None:
         """Sendet eine E-Mail."""
         pass
 
@@ -53,11 +55,11 @@ class RemoteEmailSessionManager(BaseEmailSessionManager):
         finally:
             logger.info(f"get_session(): closed session (remote)")
 
-    def send(self, to: str, subject: str, body: str) -> bool:
-        """Sendet eine E-Mail über SMTP."""
+    def send(self, to: str, subject: str, body: str) -> None:
+        """Sendet eine E-Mail über SMTP. Löst bei Fehlern eine Exception aus."""
         if not all([EMAIL_REMOTE_SMTP_HOST, EMAIL_REMOTE_SMTP_USER, EMAIL_REMOTE_SMTP_PASSWORD, EMAIL_REMOTE_EMAIL_FROM]):
             logger.error("send(): Missing environment variables for SMTP configuration.")
-            raise ValueError("Missing environment variables for SMTP configuration.")
+            raise EmailConfigurationError("Missing environment variables for SMTP configuration.")
         
         try:
             # Erstelle die E-Mail
@@ -84,10 +86,16 @@ class RemoteEmailSessionManager(BaseEmailSessionManager):
             server.quit()
             
             logger.info(f"send(): Email sent successfully to {to}")
-            return True
+
+        except smtplib.SMTPAuthenticationError as e:
+            logger.error(f"send(): SMTP Authentication failed: {e}")
+            raise EmailConnectionError(f"SMTP Authentication failed: {e}")
+        except smtplib.SMTPException as e:
+            logger.error(f"send(): SMTP Error occurred: {e}")
+            raise EmailConnectionError(f"SMTP Error occurred: {e}")
         except Exception as e:
             logger.error(f"send(): Failed to send email: {e}")
-            return False
+            raise EmailDeliveryError(f"Failed to send email: {e}")
 
 class LocalEmailSessionManager(BaseEmailSessionManager):
     def __init__(self):
@@ -108,8 +116,20 @@ class LocalEmailSessionManager(BaseEmailSessionManager):
         finally:
             logger.info(f"get_session(): closed session (local)")
 
-    def send(self, to: str, subject: str, body: str) -> bool:
-        """Speichert die E-Mail lokal."""
+    def send(self, to: str, subject: str, body: str) -> None:
+        # Fehlerfall 1: Empfängeradresse fehlt
+        if not to:
+            raise EmailDeliveryError("Recipient email address is missing.")
+        
+        # Fehlerfall 2: Betreff fehlt
+        if not subject:
+            raise EmailDeliveryError("Email subject is missing.")
+        
+        # Fehlerfall 3: Nachrichtentext fehlt
+        if not body:
+            raise EmailDeliveryError("Email body is missing.")
+        
+        """Speichert die E-Mail lokal und löst bei Fehlern eine Exception aus."""
         try:
             # Erstelle die E-Mail
             msg = MIMEMultipart()
@@ -130,10 +150,9 @@ class LocalEmailSessionManager(BaseEmailSessionManager):
                 file.write(msg.as_string())
             
             logger.info(f"send(): Email successfully saved to {filepath}")
-            return True
         except Exception as e:
             logger.error(f"send(): Failed to save email: {e}")
-            return False
+            raise EmailDeliveryError(f"Failed to save email locally: {e}")
 
 class MemoryEmailSessionManager(BaseEmailSessionManager):
     def __init__(self):
@@ -148,10 +167,26 @@ class MemoryEmailSessionManager(BaseEmailSessionManager):
         finally:
             logger.info(f"get_session(): closed session (memory)")
 
-    def send(self, to: str, subject: str, body: str) -> bool:
-        """Simuliert das Senden einer E-Mail im Speicher."""
-        logger.info(f"send(): Simulating email sent to {to} with subject '{subject}'")
-        return True
+    def send(self, to: str, subject: str, body: str) -> None:
+        """Simuliert das Senden einer E-Mail im Speicher und löst bei Fehlern eine Exception aus."""
+        
+        # Fehlerfall 1: Empfängeradresse fehlt
+        if not to:
+            raise EmailDeliveryError("Recipient email address is missing.")
+        
+        # Fehlerfall 2: Betreff fehlt
+        if not subject:
+            raise EmailDeliveryError("Email subject is missing.")
+        
+        # Fehlerfall 3: Nachrichtentext fehlt
+        if not body:
+            raise EmailDeliveryError("Email body is missing.")
+        
+        try:
+            logger.info(f"send(): Simulating email sent to {to} with subject '{subject}'")
+        except Exception as e:
+            logger.error(f"send(): Failed to simulate email: {e}")
+            raise EmailDeliveryError(f"Failed to simulate email send: {e}")
 
 
 _email_session_manager = None
