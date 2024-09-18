@@ -14,9 +14,9 @@ logger = logging.getLogger("middleware.access_handler")
 
 
 class AccessHandlerMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, path_config: EndpointConfig, get_database_session):
+    def __init__(self, app, endpoint_config: EndpointConfig, get_database_session):
         super().__init__(app)
-        self.path_config = path_config
+        self.endpoint_config = endpoint_config
         self.get_database_session = get_database_session
 
     async def dispatch(self, request: Request, call_next):
@@ -30,7 +30,7 @@ class AccessHandlerMiddleware(BaseHTTPMiddleware):
         logger.info(f"Request Info: Path={path}, Method={method}")
         
         # Retrieve path info from the config
-        pathInfo = self.path_config.get_path_info(path, method)
+        pathInfo = self.endpoint_config.get_path_info(path, method)
 
         if pathInfo is None:
             status_code = 401

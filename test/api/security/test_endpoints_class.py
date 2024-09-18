@@ -1,7 +1,7 @@
 
 from starlette.routing import Mount, Route
 
-from api.config.endpoints import EndpointConfig, EndpointInfo, path_config
+from api.config.endpoints import EndpointConfig, EndpointInfo, endpoint_config
 from api.security.role_enum import RoleEnum
 from main import app
 
@@ -234,11 +234,11 @@ def test_all_paths_have_role_configuration():
             # Trailing Slash entfernen
             normalized_path = path.rstrip('/')
             # Überprüfen, ob der Pfad in der Konfiguration vorhanden ist
-            path_info = path_config.get_path_info(normalized_path, method)
+            path_info = endpoint_config.get_path_info(normalized_path, method)
             assert path_info is not None, f"Route {normalized_path} with method {method} is not configured."
 
     # Überprüfen, dass alle konfigurierten Pfade im Router vorhanden sind
-    config_paths = set(path.rstrip('/') for path in path_config.routes.keys())
+    config_paths = set(path.rstrip('/') for path in endpoint_config.routes.keys())
 
     # Trailing Slashes aus den App-Pfaden entfernen und ein Set erstellen
     app_paths = set(path.rstrip('/') for path, _ in prod_routes_and_methods)

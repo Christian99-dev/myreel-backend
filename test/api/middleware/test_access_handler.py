@@ -14,7 +14,7 @@ from api.utils.jwt import jwt
 
 """Setup"""
 
-mock_path_config = EndpointConfig({
+mock_endpoint_config = EndpointConfig({
     '/admin_no_subroles': {
         "GET": EndpointInfo(role=RoleEnum.ADMIN, has_subroles=False),
     },
@@ -143,7 +143,7 @@ def http_client_mocked_paths(memory_database_session: Session):
         yield memory_database_session
     
     # middleware for access testing 
-    app.add_middleware(AccessHandlerMiddleware, path_config=mock_path_config, get_database_session=get_database_session_override)
+    app.add_middleware(AccessHandlerMiddleware, endpoint_config=mock_endpoint_config, get_database_session=get_database_session_override)
     
     # every endpoints based on testconfig file
     def create_endpoint(m_name: str):
@@ -151,7 +151,7 @@ def http_client_mocked_paths(memory_database_session: Session):
             return f"You called {m_name}"
         return endpoint
 
-    for path, method in mock_path_config.get_all_paths_and_methods():
+    for path, method in mock_endpoint_config.get_all_paths_and_methods():
         app.add_api_route(f"{path}", create_endpoint(path), methods=[method])
     
     # yield client with routes
@@ -192,8 +192,8 @@ def test_mock_data_user_creds(memory_database_session: Session):
 
 """Main test"""
 def test_access_handler_with_subroles(http_client_mocked_paths: TestClient):     
-    for path, method in mock_path_config.get_all_paths_and_methods():
-        path_info = mock_path_config.get_path_info(path, method)
+    for path, method in mock_endpoint_config.get_all_paths_and_methods():
+        path_info = mock_endpoint_config.get_path_info(path, method)
         
         # Beispiel für Subrollen (angenommen, es gibt Subrollen für ADMIN)
         for current_creds in [

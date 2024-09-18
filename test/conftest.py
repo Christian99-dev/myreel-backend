@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from api.config.endpoints import path_config
+from api.config.endpoints import endpoint_config
 from api.middleware.access_handler import AccessHandlerMiddleware
 from api.routes.edit import router as edit_router
 from api.routes.group import router as group_router
@@ -83,7 +83,7 @@ def http_client(
         yield memory_file_session
     
     # adding middleware
-    app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_database_session=get_database_session_override)
+    app.add_middleware(AccessHandlerMiddleware, endpoint_config=endpoint_config, get_database_session=get_database_session_override)
     
     # Überschreibe die get_database_session-Abhängigkeit
     app.dependency_overrides[get_database_session] = get_database_session_override

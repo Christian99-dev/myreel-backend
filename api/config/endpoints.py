@@ -1,7 +1,7 @@
 from api.security.endpoints_class import EndpointConfig, EndpointInfo
 from api.security.role_enum import RoleEnum
 
-path_config = EndpointConfig({
+endpoint_config = EndpointConfig({
     
     # fastapi
     '/openapi.json':{

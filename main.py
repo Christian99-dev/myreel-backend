@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import FastAPI
 
-from api.config.endpoints import path_config
+from api.config.endpoints import endpoint_config
 from api.middleware.access_handler import AccessHandlerMiddleware
 from api.routes.edit import router as edit_router
 from api.routes.group import router as group_router
@@ -38,7 +38,7 @@ setup_logging(env=LOGGER_ENV)
 app = FastAPI(lifespan=lifespan)
 
 # add middleware
-app.add_middleware(AccessHandlerMiddleware, path_config=path_config, get_database_session=get_database_session)
+app.add_middleware(AccessHandlerMiddleware, endpoint_config=endpoint_config, get_database_session=get_database_session)
 
 # router
 app.include_router(testing_router)
