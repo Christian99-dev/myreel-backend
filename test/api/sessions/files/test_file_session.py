@@ -1,6 +1,6 @@
 import pytest
 
-from api.exceptions.sessions.files import (DirectoryNotFoundError,
+from api.exceptions.files import (DirectoryNotFoundError,
                                            FileDeleteError,
                                            FileExistsInSessionError,
                                            FileNotFoundInSessionError)
