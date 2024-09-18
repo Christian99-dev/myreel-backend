@@ -1,42 +1,17 @@
 from api.sessions.files import BaseFileSessionManager
 
+def create(song_id: int, file_extension: str, file: bytes, file_session: BaseFileSessionManager) -> str:
+    """Erstellt eine neue Datei im angegebenen Verzeichnis."""
+    return file_session.create(str(song_id), file_extension, file, "covers")
 
 def get(song_id: int, file_session: BaseFileSessionManager) -> bytes:
-    """Holt sich eine Mediendatei basierend auf der cover_id."""
-    files = file_session.list("covers")
-    
-    for file_name in files:
-        if file_name.startswith(f"{song_id}."):
-            media_data = file_session.get(file_name, "covers")
-            return media_data
-    return None
+    """Holt die Datei basierend auf der song_id (ohne Erweiterung)."""
+    return file_session.get(str(song_id), "covers")
 
-def create(song_id: int, file_extension: str, file: bytes, file_session: BaseFileSessionManager) -> str:
-    """Speichert eine neue Mediendatei basierend auf der cover_id und der Dateierweiterung."""
-    file_name = f"{song_id}.{file_extension}"  # z.B. "123.cover"
-    location = file_session.create(file_name, "covers", file)
-    
-    if not location:
-        raise Exception("Fehler beim Speichern der Datei.")
-    
-    return location
+def update(song_id: int, file: bytes, file_session: BaseFileSessionManager) -> str:
+    """Aktualisiert eine vorhandene Datei basierend auf der song_id (ohne Erweiterung)."""
+    return file_session.update(str(song_id), file, "covers")
 
-def remove(song_id: int, file_session: BaseFileSessionManager) -> bool:
-    """Entfernt eine Mediendatei basierend auf der cover_id."""
-    file_extension = None
-    files = file_session.list("covers")
-    
-    for file in files:
-        if file.startswith(f"{song_id}."):
-            file_extension = file.split('.')[-1]
-            break
-
-    if file_extension:
-        file_session.remove("covers", f"{song_id}.{file_extension}")
-        return True
-    return False
-
-def update(song_id: int, file_extension: str, file: bytes, file_session: BaseFileSessionManager) -> str:
-    """Aktualisiert eine bestehende Mediendatei, indem die alte gelöscht und eine neue hinzugefügt wird."""
-    remove(song_id, file_session)  # Alte Datei entfernen
-    return create(song_id, file_extension, file, file_session)  # Neue Datei hinzufügen
+def remove(song_id: int, file_session: BaseFileSessionManager) -> None:
+    """Löscht eine vorhandene Datei basierend auf der song_id (ohne Erweiterung)."""
+    file_session.remove(str(song_id), "covers")

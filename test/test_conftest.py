@@ -125,15 +125,15 @@ def test_file_session_memory_isolation(memory_file_session: BaseFileSessionManag
         memory_file_session.list('test_dir')
 
     # Füge eine Datei zum Speicher hinzu
-    memory_file_session.create('test_file.txt', 'test_dir', b'Test content')
+    memory_file_session.create('test_file', 'txt', b'Test content', 'test_dir')
 
     # Überprüfen, ob die Datei im Speicher vorhanden ist
     assert 'test_file.txt' in memory_file_session.list('test_dir')
-    assert memory_file_session.get('test_file.txt', 'test_dir') == b'Test content'
+    assert memory_file_session.get('test_file', 'test_dir') == b'Test content'
 
     # Versuche, dieselbe Datei erneut zu erstellen, was zu einem Fehler führen sollte
     with pytest.raises(FileExistsInSessionError):
-        memory_file_session.create('test_file.txt', 'test_dir', b'Test content')
+        memory_file_session.create('test_file', 'txt', b'Test content', 'test_dir')
 
 def test_file_session_memory_isolation_other(memory_file_session: BaseFileSessionManager):
     """Testet die Isolation, um sicherzustellen, dass ein anderer Test nicht die Daten beeinflusst."""
@@ -143,19 +143,19 @@ def test_file_session_memory_isolation_other(memory_file_session: BaseFileSessio
         memory_file_session.list('test_dir')
 
     # Überprüfen, ob die vorherige Testdatei nicht vorhanden ist
-    with pytest.raises(FileNotFoundInSessionError):
-        memory_file_session.get('test_file.txt', 'test_dir')
+    with pytest.raises(DirectoryNotFoundError):
+        memory_file_session.get('test_file', 'test_dir')
 
     # Füge eine neue Datei hinzu
-    memory_file_session.create('another_test_file.txt', 'test_dir', b'Another Test content')
+    memory_file_session.create('another_test_file', 'txt', b'Another Test content', 'test_dir')
 
     # Überprüfen, ob die neue Datei vorhanden ist
     assert 'another_test_file.txt' in memory_file_session.list('test_dir')
-    assert memory_file_session.get('another_test_file.txt', 'test_dir') == b'Another Test content'
+    assert memory_file_session.get('another_test_file', 'test_dir') == b'Another Test content'
 
     # Versuche, eine Datei zu entfernen, die nicht existiert, was zu einem Fehler führen sollte
     with pytest.raises(FileDeleteError):
-        memory_file_session.remove('test_dir', 'non_existent_file.txt')
+        memory_file_session.remove('non_existent_file', 'test_dir')
 
 def test_file_session_memory_files_as_valid_name_check(memory_file_session: BaseFileSessionManager, memory_database_session: Session):
     
@@ -184,7 +184,7 @@ def test_file_session_memory_files_as_valid_name_check(memory_file_session: Base
     # edits 
     db_edits = memory_database_session.query(Edit).all()  # Query for edits
     db_edit_ids = {edit.edit_id for edit in db_edits}  # Get all edit IDs
-    edits_in_database_session = {f"{edit_id}.mp4" for edit_id in db_edit_ids}  # Assuming edits are stored with .edit extension
+    edits_in_database_session = {f"{edit_id}.mp4" for edit_id in db_edit_ids}  # Assuming edits are stored with .mp4 extension
 
     edits_in_folder = set(memory_file_session.list("edits"))
 
@@ -195,7 +195,7 @@ def test_file_session_memory_files_as_valid_name_check(memory_file_session: Base
     # occupied slots 
     db_slots = memory_database_session.query(OccupiedSlot).all()  # Query for occupied slots
     db_slot_ids = {slot.occupied_slot_id for slot in db_slots}  # Get all occupied slot IDs
-    slots_in_database_session = {f"{slot_id}.mp4" for slot_id in db_slot_ids}  # Assuming slots are stored with .slot extension
+    slots_in_database_session = {f"{slot_id}.mp4" for slot_id in db_slot_ids}  # Assuming slots are stored with .mp4 extension
 
     slots_in_folder = set(memory_file_session.list("occupied_slots"))
 

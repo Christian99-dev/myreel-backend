@@ -4,119 +4,170 @@ from api.exceptions.sessions.files import (DirectoryNotFoundError,
                                            FileDeleteError,
                                            FileExistsInSessionError,
                                            FileNotFoundInSessionError)
-from api.sessions.files import MemoryFileSessionManager
+from api.sessions.files import BaseFileSessionManager, MemoryFileSessionManager
 
 
 # Create Tests
-def test_create_file_success(memory_file_session: MemoryFileSessionManager):
-    # Erstelle eine neue Datei
-    file_name = 'new_test_file.txt'
-    directory = 'test_dir'
-    file_data = b'Test content'
+def test_create_success(memory_file_session: BaseFileSessionManager):
+    """Testet das erfolgreiche Erstellen einer neuen Datei."""
+    # Arrange: Nutze eine nicht-existierende Datei
+    new_song_id = 999
+    file_extension = "png"
+    file_content = b"New test content"
+
+    # Act
+    location = memory_file_session.create(str(new_song_id), file_extension, file_content, "covers")
     
-    result = memory_file_session.create(file_name, directory, file_data)
-    assert result == f"memory://{directory}/{file_name}"
-    assert memory_file_session.get(file_name, directory) == file_data
+    # Assert
+    assert location == f"memory://covers/{new_song_id}.{file_extension}"
+    assert memory_file_session.get(str(new_song_id), "covers") == file_content
 
-def test_create_file_duplicate(memory_file_session: MemoryFileSessionManager):
-    # Versuche, eine bereits vorhandene Datei zu erstellen
-    file_name = '1.mp4'
-    directory = 'edits'
-    file_data = b'Test content'
-
+def test_create_file_exists(memory_file_session: BaseFileSessionManager):
+    """Testet das Erstellen einer Datei, die bereits existiert."""
+    # Arrange: Nutze eine bereits existierende Datei
+    existing_song_id = 1
+    file_extension = "png"
+    file_content = b"New content"
+    
+    # Act & Assert: Creating the same file again should raise an error
     with pytest.raises(FileExistsInSessionError):
-        memory_file_session.create(file_name, directory, file_data)
+        memory_file_session.create(str(existing_song_id), file_extension, file_content, "covers")
 
-def test_create_edgecase_empty_file_name(memory_file_session: MemoryFileSessionManager):
-    # Teste das Erstellen einer Datei ohne Namen
-    directory = 'test_dir'
-    file_data = b'Test content'
+def test_create_edge_case_empty_content(memory_file_session: BaseFileSessionManager):
+    """Testet das Erstellen einer Datei mit leerem Inhalt."""
+    # Arrange: Nutze eine neue Datei mit leerem Inhalt
+    song_id = 1000
+    file_extension = "png"
+    empty_content = b""
+    
+    # Act
+    location = memory_file_session.create(str(song_id), file_extension, empty_content, "covers")
+    
+    # Assert
+    assert location == f"memory://covers/{song_id}.{file_extension}"
+    assert memory_file_session.get(str(song_id), "covers") == empty_content
 
-    result = memory_file_session.create('', directory, file_data)
-    assert result == f"memory://{directory}/"
-    assert memory_file_session.get('', directory) == file_data
-
+def test_create_edge_case_large_file(memory_file_session: BaseFileSessionManager):
+    """Testet das Erstellen einer sehr großen Datei."""
+    large_song_id = 9999
+    file_extension = "png"
+    large_file_content = b"A" * 10**6  # 1 MB große Datei
+    
+    # Act
+    location = memory_file_session.create(str(large_song_id), file_extension, large_file_content, "covers")
+    
+    # Assert
+    assert location == f"memory://covers/{large_song_id}.{file_extension}"
+    assert memory_file_session.get(str(large_song_id), "covers") == large_file_content
 
 # Get Tests
-def test_get_file_success(memory_file_session: MemoryFileSessionManager):
-    # Hole eine bereits vorhandene Datei
-    file_name = '1.mp4'
-    directory = 'edits'
+def test_get_success(memory_file_session: BaseFileSessionManager):
+    """Testet das erfolgreiche Abrufen einer existierenden Datei."""
+    # Arrange: Nutze eine existierende Datei
+    song_id = 1
+    
+    # Act
+    retrieved_file = memory_file_session.get(str(song_id), "covers")
+    
+    # Assert
+    assert retrieved_file is not None
+    assert isinstance(retrieved_file, bytes)
 
-    assert memory_file_session.get(file_name, directory) is not None
-
-def test_get_file_not_found(memory_file_session: MemoryFileSessionManager):
-    # Versuche, eine nicht existierende Datei abzurufen
+def test_get_file_not_found(memory_file_session: BaseFileSessionManager):
+    """Testet das Abrufen einer Datei, die nicht existiert."""
+    # Arrange: Nutze eine nicht-existierende Datei
+    non_existing_song_id = 999
+    
+    # Act & Assert
     with pytest.raises(FileNotFoundInSessionError):
-        memory_file_session.get('non_existent_file.txt', 'test_dir')
+        memory_file_session.get(str(non_existing_song_id), "covers")
 
-def test_get_edgecase_empty_file_name(memory_file_session: MemoryFileSessionManager):
-    # Teste das Abrufen einer Datei ohne Namen
-    directory = 'test_dir'
-    file_data = b'Test content'
-
-    memory_file_session.create('', directory, file_data)
-    assert memory_file_session.get('', directory) == file_data
-
+def test_get_edge_case_existing_empty_file(memory_file_session: BaseFileSessionManager):
+    """Testet das Abrufen einer existierenden Datei mit leerem Inhalt."""
+    # Arrange: Simuliere eine Datei mit leerem Inhalt
+    song_id = 100
+    empty_content = b""
+    memory_file_session.create(str(song_id), "png", empty_content, "covers")
+    
+    # Act
+    retrieved_file = memory_file_session.get(str(song_id), "covers")
+    
+    # Assert
+    assert retrieved_file == empty_content
 
 # Update Tests
-def test_update_file_success(memory_file_session: MemoryFileSessionManager):
-    # Aktualisiere eine vorhandene Datei
-    file_name = '1.mp4'
-    directory = 'edits'
-    new_file_data = b'Updated content'
+def test_update_success(memory_file_session: BaseFileSessionManager):
+    """Testet das erfolgreiche Aktualisieren einer existierenden Datei."""
+    # Arrange: Nutze eine bereits existierende Datei
+    existing_song_id = 1
+    new_file_content = b"Updated content"
+    
+    # Act
+    updated_location = memory_file_session.update(str(existing_song_id), new_file_content, "covers")
+    
+    # Assert
+    assert updated_location == f"memory://covers/{existing_song_id}.png"
+    assert memory_file_session.get(str(existing_song_id), "covers") == new_file_content
 
-    result = memory_file_session.update(file_name, directory, new_file_data)
-    assert result == f"memory://{directory}/{file_name}"
-    assert memory_file_session.get(file_name, directory) == new_file_data
-
-def test_update_file_not_found(memory_file_session: MemoryFileSessionManager):
-    # Versuche, eine nicht existierende Datei zu aktualisieren
+def test_update_file_not_found(memory_file_session: BaseFileSessionManager):
+    """Testet das Aktualisieren einer Datei, die nicht existiert."""
+    # Arrange: Nutze eine nicht-existierende Datei
+    non_existing_song_id = 999
+    new_file_content = b"Content for non-existing file"
+    
+    # Act & Assert
     with pytest.raises(FileNotFoundInSessionError):
-        memory_file_session.update('non_existent_file.txt', 'test_dir', b'New content')
+        memory_file_session.update(str(non_existing_song_id), new_file_content, "covers")
 
-def test_update_edgecase_empty_file_name(memory_file_session: MemoryFileSessionManager):
-    # Aktualisiere eine Datei ohne Namen
-    directory = 'test_dir'
-    new_file_data = b'Updated content'
-
-    memory_file_session.create('', directory, b'Initial content')
-    result = memory_file_session.update('', directory, new_file_data)
-    assert result == f"memory://{directory}/"
-    assert memory_file_session.get('', directory) == new_file_data
-
+def test_update_edge_case_empty_content(memory_file_session: BaseFileSessionManager):
+    """Testet das Aktualisieren einer existierenden Datei mit leerem Inhalt."""
+    # Arrange: Nutze eine existierende Datei und aktualisiere sie mit leerem Inhalt
+    existing_song_id = 1
+    empty_file_content = b""
+    
+    # Act
+    updated_location = memory_file_session.update(str(existing_song_id), empty_file_content, "covers")
+    
+    # Assert
+    assert updated_location == f"memory://covers/{existing_song_id}.png"
+    assert memory_file_session.get(str(existing_song_id), "covers") == empty_file_content
 
 # Remove Tests
-def test_remove_file_success(memory_file_session: MemoryFileSessionManager):
-    # Entferne eine vorhandene Datei
-    file_name = '1.mp4'
-    directory = 'edits'
-
-    memory_file_session.remove(directory, file_name)
+def test_remove_success(memory_file_session: BaseFileSessionManager):
+    """Testet das erfolgreiche Löschen einer existierenden Datei."""
+    # Arrange: Nutze eine bereits existierende Datei
+    existing_song_id = 1
+    
+    # Act
+    memory_file_session.remove(str(existing_song_id), "covers")
+    
+    # Assert: Versuche, erneut zuzugreifen, sollte FileNotFoundInSessionError werfen
     with pytest.raises(FileNotFoundInSessionError):
-        memory_file_session.get(file_name, directory)
+        memory_file_session.get(str(existing_song_id), "covers")
 
-def test_remove_file_not_found(memory_file_session: MemoryFileSessionManager):
-    # Versuche, eine nicht existierende Datei zu entfernen
+def test_remove_file_not_found(memory_file_session: BaseFileSessionManager):
+    """Testet das Löschen einer Datei, die nicht existiert."""
+    # Arrange: Nutze eine nicht-existierende Datei
+    non_existing_song_id = 999
+    
+    # Act & Assert
     with pytest.raises(FileDeleteError):
-        memory_file_session.remove('test_dir', 'non_existent_file.txt')
+        memory_file_session.remove(str(non_existing_song_id), "covers")
 
-def test_remove_edgecase_empty_file_name(memory_file_session: MemoryFileSessionManager):
-    # Entferne eine Datei ohne Namen
-    directory = 'test_dir'
-
-    memory_file_session.create('', directory, b'File with empty name')
-    memory_file_session.remove(directory, '')
-    with pytest.raises(FileNotFoundInSessionError):
-        memory_file_session.get('', directory)
-
+def test_remove_edge_case_empty_directory(memory_file_session: BaseFileSessionManager):
+    """Testet das Löschen einer Datei in einem leeren Verzeichnis."""
+    # Arrange: Simuliere, dass das Verzeichnis leer ist
+    memory_file_session.clear()
+    
+    # Act & Assert
+    with pytest.raises(DirectoryNotFoundError):
+        memory_file_session.remove(str(1), "covers")  # Versuche, eine Datei zu löschen, die nicht existiert
 
 # Clear Tests
 def test_clear_success(memory_file_session: MemoryFileSessionManager):
     # Leere den gesamten Speicher
     memory_file_session.clear()
     assert memory_file_session.list_all() == []
-
 
 # List Tests
 def test_list_files_success(memory_file_session: MemoryFileSessionManager):
@@ -132,10 +183,9 @@ def test_list_directory_not_found(memory_file_session: MemoryFileSessionManager)
 
 def test_list_edgecase_empty_directory(memory_file_session: MemoryFileSessionManager):
     # Liste Dateien in einem leeren Verzeichnis auf
-    memory_file_session.create('test_file.txt', '', b'File in root directory')
+    memory_file_session.create('test_file',"txt", b'File in root directory', '',)
     files = memory_file_session.list('')
     assert 'test_file.txt' in files
-
 
 # List All Tests
 def test_list_all_files_success(memory_file_session: MemoryFileSessionManager):
