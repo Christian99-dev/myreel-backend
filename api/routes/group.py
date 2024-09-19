@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from api.models.schema.group import (DeleteResponse, GetMembersResponse,
-                                     GetResponse, GetRoleResponse,
+from api.models.schema.group import (DeleteResponse, GetResponse,
                                      GroupExistsResponse, PostRequest,
                                      PostResponse)
 from api.services.database.group import create as create_group_service
@@ -25,9 +24,6 @@ router = APIRouter(
 async def create(request: PostRequest = Body(...), database_session: Session = Depends(get_database_session)): 
     # Erstelle die Gruppe
     new_group = create_group_service(name=request.groupname, database_session=database_session)
-
-    if not new_group:
-        raise HTTPException(status_code=400, detail="Group creation failed")
 
     # Erstelle einen neuen Benutzer mit den übergebenen Daten
     new_user = create_user_service(
@@ -62,21 +58,6 @@ async def get(group_id: str, database_session: Session = Depends(get_database_se
         raise HTTPException(status_code=404, detail="Group not found")
     
     return group
-
-# Hole die Rolle des Benutzers in der Gruppe
-@router.get("/{group_id}/role", response_model=GetRoleResponse, tags=["group"])
-async def get_role(group_id: str, request: Request, database_session: Session = Depends(get_database_session)):
-    # Extrahiere den JWT-Token aus den Headern
-    jwt_token = request.headers.get('Authorization').replace("Bearer ", "")
-    
-    # Lese die Benutzer-ID aus dem JWT-Token
-    user_id = read_jwt(jwt_token)
-
-    if is_group_member_group_service(user_id=user_id, group_id=group_id, database_session=database_session):
-        user = get_user_service(user_id, database_session)
-        return {"role": user.role}
-    else:
-        raise HTTPException(status_code=404, detail="User not a member of this group")
         
 @router.get("/{group_id}/groupExists", response_model=GroupExistsResponse, tags=["group"])
 async def group_exist(group_id: str, database_session: Session = Depends(get_database_session)):
@@ -88,14 +69,5 @@ async def group_exist(group_id: str, database_session: Session = Depends(get_dat
     
     return {"exists":False}
 
-@router.get("/{group_id}/listMembers", response_model=GetMembersResponse, tags=["group"])
-async def list_members(group_id: str, database_session: Session = Depends(get_database_session)):
-    # Liste der Mitglieder der Gruppe abrufen
-    members = list_members_groud_service(group_id=group_id, database_session=database_session)
-    
-    if not members:
-        raise HTTPException(status_code=404, detail="No members found for this group")
 
-    return {"members":members}
-    
     

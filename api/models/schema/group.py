@@ -1,7 +1,4 @@
-from typing import List, Literal
-
 from pydantic import BaseModel
-
 
 class User(BaseModel):
     user_id: int
@@ -31,14 +28,6 @@ class DeleteResponse(BaseModel):
 class GetResponse(Group):
     pass
 
-# GET /{group_id}/role 
-class GetRoleResponse(BaseModel):
-    role: Literal["creator", "member"]
-
 # GET /{group_id}/groupExists
 class GroupExistsResponse(BaseModel):
     exists: bool
-
-# GET /{group_id}/listMembers
-class GetMembersResponse(BaseModel):
-    members: List[User]

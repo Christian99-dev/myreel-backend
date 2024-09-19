@@ -98,19 +98,6 @@ def notest_get_group_not_found(http_client: TestClient):
     # Überprüfe den Statuscode und die Fehlermeldung
     assert response.status_code == 404  # Not Found (403) für nicht keinen zugriff
     
-
-# get_role
-def notest_get_group_role(http_client: TestClient): 
-    response1 = http_client.get(f"/group/11111111-1111-1111-1111-111111111111/role", headers={"Authorization" : f"Bearer {jwt.create_jwt(1, 30)}"})
-    response2 = http_client.get(f"/group/11111111-1111-1111-1111-111111111111/role", headers={"Authorization" : f"Bearer {jwt.create_jwt(2, 30)}"})
-    response3 = http_client.get(f"/group/11111111-1111-1111-1111-111111111111/role", headers={"Authorization" : f"Bearer {jwt.create_jwt(5, 30)}"})
-    
-    assert response1.json().get("role") == "creator"
-    assert response2.json().get("role") == "member"
-    assert response1.status_code == 200
-    assert response2.status_code == 200
-    assert response3.status_code == 404
-    
 # group_exist
 def notest_group_exists_status(http_client: TestClient): 
 
@@ -127,23 +114,6 @@ def notest_group_exists_status(http_client: TestClient):
     assert response_not_there.status_code == 200
     response_data_not_there = response_not_there.json()
     assert response_data_not_there.get("exists") == False
-
-# list_members
-def notest_list_group_members_status(http_client: TestClient): 
-     # Sende die GET-Anfrage zur Abrufung der Mitglieder
-    response = http_client.get(f"/group/11111111-1111-1111-1111-111111111111/listMembers", headers={"Authorization" : f"Bearer {jwt.create_jwt(2, 30)}"})
-
-    assert response.status_code == 200
-    response_data = response.json()
-    assert response_data["members"] == [
-        {"user_id": 1, "group_id": "11111111-1111-1111-1111-111111111111", "role": "creator", "name": "Creator of Group 1", "email": "creator1@example.com"},
-        {"user_id": 2, "group_id": "11111111-1111-1111-1111-111111111111", "role": "member", "name": "Member 1 of Group 1", "email": "member1_1@example.com"},
-        {"user_id": 3, "group_id": "11111111-1111-1111-1111-111111111111", "role": "member", "name": "Member 2 of Group 1", "email": "member2_1@example.com"},
-    ]
-
-def notest_list_group_members_no_groupe(http_client: TestClient): 
-    assert http_client.get("/group/123/listMembers", headers={"Authorization" : f"Bearer {jwt.create_jwt(2, 30)}"}).status_code == 403
-
 
 
 
