@@ -1,5 +1,4 @@
 from fastapi.testclient import TestClient
-import pytest
 from sqlalchemy.orm import Session
 
 from api.models.database.model import Song
