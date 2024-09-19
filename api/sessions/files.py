@@ -123,6 +123,7 @@ class LocalFileSessionManager(BaseFileSessionManager):
             logger.info(f"get_session(): closed session (local)")
 
     def create(self, file_name: str, file_extension: str, file_data: bytes, dir: str) -> str:
+        logger.info("create(): (lokal)")
         """Speichert eine Datei mit Dateinamen und Dateiendung."""
         complete_file_name = f"{file_name}.{file_extension}"
         file_path = os.path.join(self.local_media_repo_folder, dir, complete_file_name)
@@ -138,6 +139,7 @@ class LocalFileSessionManager(BaseFileSessionManager):
         return f"http://localhost:8000/outgoing/files/{dir}/{complete_file_name}"
 
     def get(self, file_name: str, dir: str) -> bytes:
+        logger.info("get(): (lokal)")
         """Liest eine Datei basierend auf dem Dateinamen (ohne Endung)."""
         files = self.list(dir)
         for file in files:
@@ -150,6 +152,7 @@ class LocalFileSessionManager(BaseFileSessionManager):
         raise FileNotFoundInSessionError(f"File '{file_name}' not found in '{dir}'")
 
     def update(self, file_name: str, file_data: bytes, dir: str) -> str:
+        logger.info("update(): (lokal)")
         """Aktualisiert eine Datei basierend auf ihrem Dateinamen (ohne Endung)."""
         files = self.list(dir)
         for file in files:
@@ -163,6 +166,7 @@ class LocalFileSessionManager(BaseFileSessionManager):
         raise FileNotFoundInSessionError(f"File '{file_name}' not found in '{dir}'")
 
     def remove(self, file_name: str, dir: str) -> None:
+        logger.info("remove(): (lokal)")
         """Löscht eine Datei basierend auf ihrem Dateinamen (ohne Endung)."""
         files = self.list(dir)
         for file in files:
@@ -183,6 +187,7 @@ class LocalFileSessionManager(BaseFileSessionManager):
                 os.rmdir(os.path.join(dirpath, dirname))
 
     def list(self, dir: str) -> List[str]:
+        logger.info("list(): (lokal)")
         dir_path = os.path.join(self.local_media_repo_folder, dir)
         if not os.path.exists(dir_path):
             raise DirectoryNotFoundError(f"Directory '{dir}' does not exist")
@@ -192,6 +197,7 @@ class LocalFileSessionManager(BaseFileSessionManager):
         return files
 
     def list_all(self) -> List[str]:
+        logger.info("list_all(): (lokal)")
         all_files = []
         for dirpath, _, filenames in os.walk(self.local_media_repo_folder):
             for filename in filenames:
@@ -218,6 +224,7 @@ class MemoryFileSessionManager(BaseFileSessionManager):
 
     def create(self, file_name: str, file_extension: str, file_data: bytes, dir: str) -> str:
         """Speichert eine Datei mit Dateinamen und Dateiendung im Speicher."""
+        logger.info("create(): (memory)")
         complete_file_name = f"{file_name}.{file_extension}"
         if dir not in self.memory_storage:
             self.memory_storage[dir] = {}
@@ -229,6 +236,7 @@ class MemoryFileSessionManager(BaseFileSessionManager):
 
     def get(self, file_name: str, dir: str) -> bytes:
         """Liest eine Datei basierend auf dem Dateinamen (ohne Endung) aus dem Speicher."""
+        logger.info("get(): (memory)")
         if dir not in self.memory_storage:
             raise DirectoryNotFoundError(f"Directory '{dir}' not found in memory")
         for file in self.memory_storage[dir]:
@@ -239,6 +247,7 @@ class MemoryFileSessionManager(BaseFileSessionManager):
 
     def update(self, file_name: str, file_data: bytes, dir: str) -> str:
         """Aktualisiert eine Datei basierend auf ihrem Dateinamen (ohne Endung) im Speicher."""
+        logger.info("update(): (memory)")
         if dir not in self.memory_storage:
             raise DirectoryNotFoundError(f"Directory '{dir}' not found in memory")
         for file in self.memory_storage[dir]:
@@ -250,6 +259,7 @@ class MemoryFileSessionManager(BaseFileSessionManager):
 
     def remove(self, file_name: str, dir: str) -> None:
         """Löscht eine Datei basierend auf ihrem Dateinamen (ohne Endung) aus dem Speicher."""
+        logger.info("remove(): (memory)")
         if dir not in self.memory_storage:
             raise DirectoryNotFoundError(f"Directory '{dir}' not found in memory")
         for file in list(self.memory_storage[dir].keys()):
@@ -264,6 +274,7 @@ class MemoryFileSessionManager(BaseFileSessionManager):
         self.memory_storage.clear()
 
     def list(self, dir: str) -> List[str]:
+        logger.info("list(): (memory)")
         if dir not in self.memory_storage:
             raise DirectoryNotFoundError(f"list(): Directory '{dir}' not found in memory")
         files = list(self.memory_storage.get(dir, {}).keys())
@@ -272,6 +283,7 @@ class MemoryFileSessionManager(BaseFileSessionManager):
 
     def list_all(self) -> List[str]:
         all_files = [f"{dir}/{file}" for dir, files in self.memory_storage.items() for file in files.keys()]
+        logger.info("list_all(): (memory)")
         return all_files
 
 class RemoteFileSessionManager(BaseFileSessionManager):
