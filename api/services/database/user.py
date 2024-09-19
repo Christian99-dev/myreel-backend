@@ -48,8 +48,8 @@ def remove(user_id: int, database_session: Session) -> None:
 
 """Andere Operationen"""
 
-def get_user_by_email(email: str, database_session: Session) -> User:
-    user = database_session.query(User).filter(User.email == email).one_or_none()
+def get_user_by_email_and_group_id(email: str, group_id: str, database_session: Session) -> User:
+    user = database_session.query(User).filter(User.email == email, User.group_id == group_id).one_or_none()
     if not user:
-        raise NoResultFound(f"User with email {email} not found.")
+        raise NoResultFound(f"User with email {email} in group {group_id} not found.")
     return user
