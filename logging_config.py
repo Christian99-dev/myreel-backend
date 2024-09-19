@@ -108,6 +108,14 @@ def setup_logging(env: str):
                 handlers={"console", "file"}
             ),
 
+            # routes
+            "routes.user": get_logger(env, 
+                test={"level": "DEBUG"},
+                dev={"level": "INFO"}, 
+                prod={"level": "CRITICAL"}, 
+                handlers={"console", "file"}
+            ),
+
             # Middleware
             "middleware.access_handler": get_logger(env, 
                 test={"level": "CRITICAL"},

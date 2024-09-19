@@ -177,14 +177,14 @@ def add_exception_handlers(app: FastAPI):
     async def sqlalchemy_error_handler(request: Request, exc: SQLAlchemyError):
         return JSONResponse(
             status_code=500,
-            content={"detail": str(exc)}
+            content={"detail": "SQLAlchemyError"}
         )
 
     @app.exception_handler(IntegrityError)
     async def integrity_error_handler(request: Request, exc: IntegrityError):
         return JSONResponse(
             status_code=400,
-            content={"detail": str(exc)}
+            content={"detail": "IntegrityError"}
         )
 
     @app.exception_handler(NoResultFound)

@@ -19,6 +19,7 @@ from api.sessions.email import MemoryEmailSessionManager, get_email_session
 from api.sessions.files import MemoryFileSessionManager, get_file_session
 from api.sessions.instagram import (MemoryInstagramSessionManager,
                                     get_instagram_session)
+from api.utils.jwt import jwt
 from logging_config import setup_logging
 
 # env
@@ -33,6 +34,14 @@ def setup_test_logging():
 @pytest.fixture(scope="session")
 def admintoken():
     return os.getenv("ADMIN_TOKEN")
+
+@pytest.fixture(scope="session")
+def bearer_headers():
+    return [
+        {"Authorization": f"Bearer {jwt.create_jwt(1, 30)}"},
+        {"Authorization": f"Bearer {jwt.create_jwt(2, 30)}"},
+        {"Authorization": f"Bearer {jwt.create_jwt(3, 30)}"},
+    ]
     
 """Database"""
 @pytest.fixture(scope="function")

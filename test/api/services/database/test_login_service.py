@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import pytest
-from sqlalchemy.exc import IntegrityError, NoResultFound
+from sqlalchemy.exc import IntegrityError, NoResultFound, SAWarning
 from sqlalchemy.orm import Session
 
 from api.models.database.model import LoginRequest, User
@@ -58,9 +58,10 @@ def test_create_duplicate_login_request(memory_database_session: Session):
     assert first_login_request is not None
     assert first_login_request.user_id == user_id
 
-    # Act & Assert: Versuche, eine zweite Login-Anfrage für denselben Benutzer zu erstellen
-    with pytest.raises(IntegrityError):
-        create(user_id=user_id, expires_in_minutes=expires_in_minutes, database_session=memory_database_session)
+    # Act & Assert: Unterdrücke die SAWarning und überprüfe, dass ein IntegrityError auftritt
+    with pytest.warns(SAWarning):
+        with pytest.raises(IntegrityError):
+            create(user_id=user_id, expires_in_minutes=expires_in_minutes, database_session=memory_database_session)
         
 # Get Tests
 def test_get_success(memory_database_session: Session):

@@ -34,7 +34,8 @@ class LoginRequestResponse(BaseModel):
 # POST /login
 class LoginRequest(BaseModel):
     groupid: str
-    token: str
+    pin: str
+    email: str
 
 
 class LoginResponse(BaseModel):
