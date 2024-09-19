@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 
 from api.config.endpoints import endpoint_config
+from api.config.exceptions import add_exception_handlers
 from api.middleware.access_handler import AccessHandlerMiddleware
 from api.routes.edit import router as edit_router
 from api.routes.group import router as group_router
@@ -39,6 +40,9 @@ app = FastAPI(lifespan=lifespan)
 
 # add middleware
 app.add_middleware(AccessHandlerMiddleware, endpoint_config=endpoint_config, get_database_session=get_database_session)
+
+# add exception handler
+add_exception_handlers(app)
 
 # router
 app.include_router(testing_router)

@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from api.config.endpoints import endpoint_config
+from api.config.exceptions import add_exception_handlers
 from api.middleware.access_handler import AccessHandlerMiddleware
 from api.routes.edit import router as edit_router
 from api.routes.group import router as group_router
@@ -65,8 +66,11 @@ def http_client(
     app.include_router(group_router)
     app.include_router(user_router)
     app.include_router(edit_router)
-    
 
+    # add exception handler 
+    add_exception_handlers(app)
+    
+    # override sessions
     def get_database_session_override():
         yield memory_database_session
 
@@ -85,7 +89,7 @@ def http_client(
     # adding middleware
     app.add_middleware(AccessHandlerMiddleware, endpoint_config=endpoint_config, get_database_session=get_database_session_override)
     
-    # Überschreibe die get_database_session-Abhängigkeit
+    # Überschreibe die get_xxx_session-Abhängigkeit
     app.dependency_overrides[get_database_session] = get_database_session_override
     app.dependency_overrides[get_file_session] = get_file_session_override
     app.dependency_overrides[get_instagram_session] = get_instagram_session_override
