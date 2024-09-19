@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError, NoResultFound, SQLAlchemyError
 
@@ -21,6 +21,7 @@ from api.exceptions.sessions.instagram import (FTPConnectionError,
                                                MediaContainerCreationError,
                                                VideoPublishError)
 from main import app
+
 
 """ FILE VALIDATION """
 
@@ -191,4 +192,30 @@ async def no_result_found_error_handler(request: Request, exc: NoResultFound):
     return JSONResponse(
         status_code=404,
         content={"detail": str(exc)}
+    )
+
+""" MOVIEPY EXCEPTIONS """
+
+@app.exception_handler(OSError)
+async def moviepy_os_error_handler(request: Request, exc: OSError):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"MoviePy OSError: {str(exc)}"}
+    )
+
+
+""" UNHANDLED / OTHER EXCEPTIONS """
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"An unhandled exception occurred: {str(exc)}"}
+    )
+
+@app.exception_handler(ValueError)
+async def value_error_handler(request: Request, exc: ValueError):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": f"ValueError: {str(exc)}"}
     )
