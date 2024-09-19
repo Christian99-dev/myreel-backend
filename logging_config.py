@@ -39,7 +39,7 @@ def setup_logging(env: str):
                 "log_colors": {
                     "DEBUG": "cyan",
                     "INFO": "green",
-                    "WARNING": "yellow",
+                    "CRITICAL": "yellow",
                     "ERROR": "red",
                     "CRITICAL": "bold_red",
                 },
@@ -70,9 +70,9 @@ def setup_logging(env: str):
                 handlers={"console", "file"}
             ),
             "uvicorn.access": get_logger(env, 
-                test={"level": "WARNING"}, 
-                dev={"level": "WARNING"}, 
-                prod={"level": "WARNING"}, 
+                test={"level": "CRITICAL"}, 
+                dev={"level": "CRITICAL"}, 
+                prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}
             ),
             "app": get_logger(env, 
@@ -84,33 +84,33 @@ def setup_logging(env: str):
 
             # Session loggers
             "sessions.database": get_logger(env, 
-                test={"level": "WARNING"},
+                test={"level": "CRITICAL"},
                 dev={"level": "DEBUG"}, 
-                prod={"level": "WARNING"}, 
+                prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}
             ),
             "sessions.email": get_logger(env, 
-                test={"level": "WARNING"},
+                test={"level": "CRITICAL"},
                 dev={"level": "DEBUG"}, 
-                prod={"level": "WARNING"}, 
+                prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}
             ),
             "sessions.files": get_logger(env, 
-                test={"level": "WARNING"},
+                test={"level": "CRITICAL"},
                 dev={"level": "DEBUG"}, 
-                prod={"level": "WARNING"}, 
+                prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}
             ),
             "sessions.instagram": get_logger(env, 
-                test={"level": "WARNING"},
+                test={"level": "CRITICAL"},
                 dev={"level": "DEBUG"}, 
-                prod={"level": "WARNING"}, 
+                prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}
             ),
 
             # Middleware
             "middleware.access_handler": get_logger(env, 
-                test={"level": "WARNING"},
+                test={"level": "CRITICAL"},
                 dev={"level": "DEBUG"}, 
                 prod={"level": "INFO"}, 
                 handlers={"console", "file", "endpoints"}
@@ -118,9 +118,9 @@ def setup_logging(env: str):
 
             #utils
             "utils.media_manipulation": get_logger(env, 
-                test={"level": "WARNING"},
+                test={"level": "CRITICAL"},
                 dev={"level": "DEBUG"}, 
-                prod={"level": "WARNING"}, 
+                prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}
             ),
 
