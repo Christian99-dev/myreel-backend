@@ -95,7 +95,7 @@ def test_create_song_invalid_file_format(http_client: TestClient, memory_file_se
     assert response.status_code == 400
     assert "Dateityp video/mp4 nicht erlaubt für audio" in response.json()["detail"]
 
-def test_create_song_invalid_breakpoints(http_client: TestClient, memory_file_session: BaseFileSessionManager, admintoken: str):
+def test_create_song_breakpoints_exceede_time(http_client: TestClient, memory_file_session: BaseFileSessionManager, admintoken: str):
     # Arrange: Retrieve valid cover and song files
     cover_file_bytes = memory_file_session.get("1", "covers")
     song_file_bytes = memory_file_session.get("1", "songs")
@@ -114,14 +114,40 @@ def test_create_song_invalid_breakpoints(http_client: TestClient, memory_file_se
         data={
             "name": "Test Song with Invalid Breakpoints",
             "author": "Test Artist",
-            # Invalid breakpoints (end time > song duration)
-            "breakpoints": [0.0, 10000.0],  
+            "breakpoints": [1, 2, 132.51 + 0.1],  
         }
     )
 
     # Assert: Expect a 400 error due to invalid breakpoints
     assert response.status_code == 400
     assert "Breakpoints exceed song duration" in response.json()["detail"]
+
+def test_create_song_not_enough_breakpoint(http_client: TestClient, memory_file_session: BaseFileSessionManager, admintoken: str):
+    # Arrange: Retrieve valid cover and song files
+    cover_file_bytes = memory_file_session.get("1", "covers")
+    song_file_bytes = memory_file_session.get("1", "songs")
+
+    assert type(cover_file_bytes) is bytes 
+    assert type(song_file_bytes) is bytes 
+
+    # Act: Try to create a song with invalid breakpoints
+    response = http_client.post(
+        "/song/", 
+        headers={"admintoken": admintoken},
+        files={
+            "cover_file": ("test_cover.png", cover_file_bytes, "image/png"),
+            "song_file": ("test_song.wav", song_file_bytes, "audio/wav"),
+        },
+        data={
+            "name": "Test Song with Invalid Breakpoints",
+            "author": "Test Artist",
+            "breakpoints": [0.0, 1.0],  
+        }
+    )
+
+    # Assert: Expect a 400 error due to invalid breakpoints
+    assert response.status_code == 400
+    assert "Breakpoints need to be more then 2" in response.json()["detail"]
 
 # Test for deleting a song
 def test_delete_blank_access(http_client: TestClient):

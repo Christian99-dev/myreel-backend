@@ -1,10 +1,13 @@
+import logging
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from api.models.schema.song import (DeleteResponse, GetResponse, ListResponse,
                                     PostRequest, PostResponse)
 from api.services.database.song import create as create_song_database
-from api.services.database.song import create_slots_from_breakpoints as create_slots_from_breakpoints_database
+from api.services.database.song import \
+    create_slots_from_breakpoints as create_slots_from_breakpoints_database
 from api.services.database.song import get as get_song_database
 from api.services.database.song import list_all as list_all_songs_database
 from api.services.database.song import remove as remove_song_database
@@ -18,6 +21,8 @@ from api.sessions.files import BaseFileSessionManager, get_file_session
 from api.utils.files.file_validation import file_validation
 from api.utils.files.get_audio_duration import get_audio_duration
 
+logger = logging.getLogger("routes.song")
+
 router = APIRouter(
     prefix="/song",
 )    
@@ -28,6 +33,9 @@ async def create_song(
     database_session: Session = Depends(get_database_session),
     file_session: BaseFileSessionManager = Depends(get_file_session)
 ):
+    if len(request.breakpoints) <= 2:
+        raise ValueError("Breakpoints need to be more then 2")
+        
     breakpoints = request.breakpoints
 
     # Validate and read files
@@ -36,7 +44,8 @@ async def create_song(
 
     # Validate breakpoints against song duration
     song_duration = get_audio_duration(validated_song_file, "wav")
-    if song_duration < breakpoints[-1]:
+
+    if song_duration < (breakpoints[-1] - breakpoints[0]):
         raise ValueError("Breakpoints exceed song duration")
 
     song_file_bytes = await validated_song_file.read()
