@@ -68,7 +68,7 @@ class BaseFileSessionManager(ABC):
         pass
 
     @abstractmethod
-    def get(self, file_name: str, dir: str) -> Optional[bytes]:
+    def get(self, file_name: str, dir: str) -> bytes:
         """Liest eine Datei."""
         pass
 
@@ -137,7 +137,7 @@ class LocalFileSessionManager(BaseFileSessionManager):
         logger.info(f"create(): Saved file '{complete_file_name}' in '{dir}'")
         return f"http://localhost:8000/outgoing/files/{dir}/{complete_file_name}"
 
-    def get(self, file_name: str, dir: str) -> Optional[bytes]:
+    def get(self, file_name: str, dir: str) -> bytes:
         """Liest eine Datei basierend auf dem Dateinamen (ohne Endung)."""
         files = self.list(dir)
         for file in files:
@@ -227,7 +227,7 @@ class MemoryFileSessionManager(BaseFileSessionManager):
         logger.info(f"create(): Saved file '{complete_file_name}' in memory under '{dir}'")
         return f"memory://{dir}/{complete_file_name}"
 
-    def get(self, file_name: str, dir: str) -> Optional[bytes]:
+    def get(self, file_name: str, dir: str) -> bytes:
         """Liest eine Datei basierend auf dem Dateinamen (ohne Endung) aus dem Speicher."""
         if dir not in self.memory_storage:
             raise DirectoryNotFoundError(f"Directory '{dir}' not found in memory")
@@ -294,7 +294,7 @@ class RemoteFileSessionManager(BaseFileSessionManager):
         logger.info(f"save(): Saving file '{file_name}' remotely in '{dir}' (not implemented)")
         return "remote://not-implemented"
 
-    def get(self, file_name: str, dir: str) -> Optional[bytes]:
+    def get(self, file_name: str, dir: str) -> bytes:
         logger.info(f"get(): Retrieving file '{file_name}' remotely from '{dir}' (not implemented)")
         return None
 
