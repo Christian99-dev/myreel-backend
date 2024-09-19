@@ -1,6 +1,6 @@
 import pytest
 
-from api.exceptions.files import FileNotFoundInSessionError
+from api.exceptions.sessions.files import FileNotFoundInSessionError
 from api.services.files.demo_slot import get
 from api.sessions.files import BaseFileSessionManager
 

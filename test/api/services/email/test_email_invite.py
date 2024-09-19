@@ -1,6 +1,6 @@
 import pytest
 
-from api.exceptions.email import EmailDeliveryError
+from api.exceptions.sessions.email import EmailDeliveryError
 from api.services.email.invite import invite
 from api.sessions.email import MemoryEmailSessionManager
 

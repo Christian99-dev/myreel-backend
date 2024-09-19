@@ -8,7 +8,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Generator
 
-from api.exceptions.email import EmailConfigurationError, EmailConnectionError, EmailDeliveryError
+from api.exceptions.sessions.email import EmailConfigurationError, EmailConnectionError, EmailDeliveryError
 
 logger = logging.getLogger("sessions.email")
 

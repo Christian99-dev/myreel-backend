@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from api.exceptions.files import (DirectoryNotFoundError,
+from api.exceptions.sessions.files import (DirectoryNotFoundError,
                                            FileDeleteError, FileExistsInSessionError,
                                            FileNotFoundInSessionError)
 from api.models.database.model import (Edit, Group, Invitation, LoginRequest,

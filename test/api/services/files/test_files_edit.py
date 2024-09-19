@@ -1,6 +1,6 @@
 import pytest
 
-from api.exceptions.files import (FileDeleteError,
+from api.exceptions.sessions.files import (FileDeleteError,
                                            FileExistsInSessionError,
                                            FileNotFoundInSessionError)
 from api.services.files.edit import create, get, remove, update

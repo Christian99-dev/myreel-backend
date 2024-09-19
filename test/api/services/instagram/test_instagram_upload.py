@@ -1,6 +1,6 @@
 import pytest
 
-from api.exceptions.instagram import InstagramUploadError
+from api.exceptions.sessions.instagram import InstagramUploadError
 from api.services.instagram.upload import upload
 from api.sessions.instagram import MemoryInstagramSessionManager
 

@@ -7,7 +7,7 @@ from typing import Dict, Generator, List, Optional
 
 from dotenv import load_dotenv
 
-from api.exceptions.files import DirectoryNotFoundError, FileDeleteError, FileExistsInSessionError, FileNotFoundInSessionError
+from api.exceptions.sessions.files import DirectoryNotFoundError, FileDeleteError, FileExistsInSessionError, FileNotFoundInSessionError
 
 # Logger für die Session-Verwaltung
 logger = logging.getLogger("sessions.files")

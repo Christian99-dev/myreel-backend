@@ -10,7 +10,7 @@ from typing import Generator
 
 import requests
 
-from api.exceptions.instagram import FTPConnectionError, FTPUploadError, InstagramUploadError, MediaContainerCreationError, VideoPublishError
+from api.exceptions.sessions.instagram import FTPConnectionError, FTPUploadError, InstagramUploadError, MediaContainerCreationError, VideoPublishError
 
 # Logger für die Session-Verwaltung
 logger = logging.getLogger("sessions.instagram")
