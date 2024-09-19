@@ -116,6 +116,14 @@ def setup_logging(env: str):
                 handlers={"console", "file", "endpoints"}
             ),
 
+            #utils
+            "utils.media_manipulation": get_logger(env, 
+                test={"level": "WARNING"},
+                dev={"level": "DEBUG"}, 
+                prod={"level": "WARNING"}, 
+                handlers={"console", "file"}
+            ),
+
             # inside test
             "test.unittest": get_logger(env, 
                 test={"level": "DEBUG"},

@@ -1,6 +1,11 @@
-from api.exceptions.media_manipulation.media_manipulation import MediaManipulationError
+import logging
+
 from moviepy.editor import VideoFileClip
 
+from api.exceptions.media_manipulation.media_manipulation import \
+    MediaManipulationError
+
+logger = logging.getLogger("utils.media_manipulation")
 
 def write_videofile_for_instagram_reel(clip: VideoFileClip, output_path: str) -> None:
     """
@@ -10,7 +15,7 @@ def write_videofile_for_instagram_reel(clip: VideoFileClip, output_path: str) ->
         clip (VideoFileClip): Das Original-Video.
         output_path (str): Der Pfad, an dem das konvertierte Video gespeichert wird.
     """
-    # Setze die ffmpeg-Parameter entsprechend den Instagram-Spezifikationen
+    logger.info(f"write_videofile_for_instagram_reel(): Start writing video to {output_path}.")
     try:
         ffmpeg_params = [
             "-aspect", "9:16",
@@ -34,6 +39,8 @@ def write_videofile_for_instagram_reel(clip: VideoFileClip, output_path: str) ->
             audio_codec='aac',
             ffmpeg_params=ffmpeg_params
         )
+        logger.info(f"write_videofile_for_instagram_reel(): Video successfully written to {output_path}.")
 
     except Exception as e:
+        logger.error(f"write_videofile_for_instagram_reel(): Error occurred: {e}")
         raise MediaManipulationError(f"An error occurred while writing the video file: {e}")
