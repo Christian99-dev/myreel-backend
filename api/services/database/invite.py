@@ -57,10 +57,14 @@ def remove(invitation_id: int, database_session: Session) -> None:
 
 """Andere Operationen"""
 
-def remove_all_by_email(email: str, database_session: Session) -> None:
-    invitations_to_delete = database_session.query(Invitation).filter(Invitation.email == email).all()
+def remove_all_by_email_and_group_id(email: str, group_id: str, database_session: Session) -> None:
+    invitations_to_delete = database_session.query(Invitation).filter(
+        Invitation.email == email,
+        Invitation.group_id == group_id
+    ).all()
+    
     if not invitations_to_delete:
-        raise NoResultFound(f"No invitations found with email {email}")
+        raise NoResultFound(f"No invitations found with email {email} in group {group_id}")
 
     for invitation in invitations_to_delete:
         database_session.delete(invitation)
