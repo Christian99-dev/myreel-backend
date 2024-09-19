@@ -1,6 +1,7 @@
 import os
 import tempfile
 
+from api.exceptions.media_manipulation.media_manipulation import MediaManipulationError
 from moviepy.editor import VideoFileClip, concatenate_videoclips
 
 from api.utils.media_manipulation.resize_for_instagram_reel import \
@@ -62,6 +63,9 @@ def swap_slot_in_edit(
         # Lies die fertige Datei in ein Bytes-Objekt
         with open(output_file_path, 'rb') as file:
             result_bytes = file.read()
+    
+    except Exception as e:
+        raise MediaManipulationError(f"An error occurred during slot swapping: {e}")
     
     finally:
         # Schließe die Video- und Audiodateien und lösche die temporären Dateien

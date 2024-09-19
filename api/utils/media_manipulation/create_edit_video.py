@@ -1,6 +1,7 @@
 import os
 import tempfile
 
+from api.exceptions.media_manipulation.media_manipulation import MediaManipulationError
 from moviepy.editor import AudioFileClip, VideoFileClip, concatenate_videoclips
 
 from api.utils.media_manipulation.resize_for_instagram_reel import \
@@ -78,7 +79,7 @@ def create_edit_video(
             result_bytes = file.read()
 
     except Exception as e:
-        print(f"An error occurred during video editing: {e}")
+            raise MediaManipulationError(f"An error occurred during video editing: {e}")
         # Consider returning an error code or empty bytes here
 
     finally:
