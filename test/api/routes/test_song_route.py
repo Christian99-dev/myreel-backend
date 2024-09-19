@@ -43,6 +43,33 @@ def test_create_song_success(http_client: TestClient, memory_file_session: BaseF
     assert response_json["audio_src"] is not None
     assert response_json["cover_src"] is not None
 
+def test_create_empty_data(http_client: TestClient, memory_file_session: BaseFileSessionManager, admintoken: str):
+    
+    # Arrange
+    cover_file_bytes = memory_file_session.get("1", "covers")
+    song_file_bytes = memory_file_session.get("1", "songs")
+
+    assert type(cover_file_bytes) is bytes 
+    assert type(song_file_bytes) is bytes 
+
+    # Act
+    response = http_client.post(
+        "/song/", 
+        headers={"admintoken": admintoken},
+        files={
+            "cover_file": ("test_cover.png", cover_file_bytes, "image/png"),
+            "song_file": ("test_song.wav", song_file_bytes, "audio/wav"),
+        },
+        data={
+            "name": "",
+            "author": "",
+            "breakpoints": [0.0, 1.0, 2.5],
+        }
+    )
+
+    # Assert
+    assert response.status_code == 422
+
 def test_create_song_invalid_file_format(http_client: TestClient, memory_file_session: BaseFileSessionManager, admintoken: str):
     # Arrange: Retrieve a video file (which is an invalid format for the song upload)
     invalid_file_bytes = memory_file_session.get("demo", "demo_slot")  # Assuming you have videos in the file session

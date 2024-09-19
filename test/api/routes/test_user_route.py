@@ -111,6 +111,21 @@ def test_accept_invite_success(http_client: TestClient):
     assert response.status_code == 200
     assert "jwt" in response.json()
 
+def test_accept_invite_user_to_long(http_client: TestClient):
+    # Arrange & Act
+    response = http_client.post(
+        "/user/acceptInvite",
+        json={
+            "invitationid": "1",
+            "token": "token1",
+            "groupid": "11111111-1111-1111-1111-111111111111",
+            "name": "New User that is over 15 letters"
+        }
+    )
+
+    # Assert
+    assert response.status_code == 422
+
 def test_accept_invite_wrong_token(http_client: TestClient):
     # Arrange & Act
     response = http_client.post(

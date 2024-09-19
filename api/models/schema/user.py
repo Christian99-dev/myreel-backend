@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 # POST /invite
@@ -15,7 +15,7 @@ class AcceptInviteRequest(BaseModel):
     invitationid: str
     token: str
     groupid: str
-    name: str
+    name: str = Field(..., min_length=1, max_length=15)
 
 
 class AcceptInviteResponse(BaseModel):
