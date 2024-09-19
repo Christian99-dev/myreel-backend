@@ -261,12 +261,14 @@ class MemoryFileSessionManager(BaseFileSessionManager):
         """Löscht eine Datei basierend auf ihrem Dateinamen (ohne Endung) aus dem Speicher."""
         logger.info("remove(): (memory)")
         if dir not in self.memory_storage:
+            logger.error("remove(): DirectoryNotFoundError")
             raise DirectoryNotFoundError(f"Directory '{dir}' not found in memory")
         for file in list(self.memory_storage[dir].keys()):
             if file.startswith(f"{file_name}."):
                 del self.memory_storage[dir][file]
                 logger.info(f"remove(): Deleted file '{file}' from memory under '{dir}'")
                 return
+        logger.error("remove(): FileDeleteError")
         raise FileDeleteError(f"File '{file_name}' not found in memory under '{dir}'")
 
     def clear(self) -> None:
