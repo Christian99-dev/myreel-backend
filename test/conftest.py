@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -26,6 +28,11 @@ load_dotenv()
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_logging():
     setup_logging(env="test")
+
+"""Creds"""
+@pytest.fixture(scope="session")
+def admintoken():
+    return os.getenv("ADMIN_TOKEN")
     
 """Database"""
 @pytest.fixture(scope="function")
