@@ -59,13 +59,13 @@ def delete_all_from_email(email: str, database_session: Session) -> None:
     database_session.query(LoginRequest).filter(LoginRequest.user_id == user.user_id).delete()
     database_session.commit()
 
-def get_login_request_by_groupid_and_token(groupid: str, token: str, database_session: Session) -> LoginRequest:
+def get_login_request_by_groupid_and_email(groupid: str, email: str, database_session: Session) -> LoginRequest:
     login_request = database_session.query(LoginRequest).join(User).filter(
         User.group_id == groupid,
-        LoginRequest.pin == token
+        User.email == email
     ).one_or_none()
     if not login_request:
-        raise NoResultFound(f"Login request with group ID {groupid} and token {token} not found")
+        raise NoResultFound(f"Login request with group ID {groupid} and email {email} not found")
     return login_request
 
 def create_or_update(user_id: int, database_session: Session, expires_in_minutes: int = 10) -> LoginRequest:

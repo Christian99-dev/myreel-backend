@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from api.models.database.model import LoginRequest, User
 from api.services.database.login import (
     create, create_or_update, delete_all_from_email, get,
-    get_login_request_by_groupid_and_token, remove, update)
+    get_login_request_by_groupid_and_email, remove, update)
 from mock.database.data import data
 
 """CRUD Operationen"""
@@ -182,36 +182,37 @@ def test_delete_all_from_email_edgecase_empty_email(memory_database_session: Ses
     with pytest.raises(NoResultFound):
         delete_all_from_email(email=empty_email, database_session=memory_database_session)
 
-# get_login_request_by_groupid_and_token Tests
-def test_get_login_request_by_groupid_and_token_success(memory_database_session: Session):
+# get_login_request_by_groupid_and_email Tests
+def test_get_login_request_by_groupid_and_email_success(memory_database_session: Session):
     # Arrange
     group_id = "11111111-1111-1111-1111-111111111111"
-    token = data["login_requests"][0]["pin"]
+    email = data["users"][0]["email"]
 
     # Act
-    login_request = get_login_request_by_groupid_and_token(groupid=group_id, token=token, database_session=memory_database_session)
+    login_request = get_login_request_by_groupid_and_email(groupid=group_id, email=email, database_session=memory_database_session)
 
     # Assert
     assert login_request is not None
+    assert login_request.user.email == email
 
-def test_get_login_request_by_groupid_and_token_invalid_group(memory_database_session: Session):
+def test_get_login_request_by_groupid_and_email_invalid_group(memory_database_session: Session):
     # Arrange
     invalid_group_id = "invalid-group-id"
-    token = data["login_requests"][0]["pin"]
+    email = data["users"][0]["email"]
 
     # Act & Assert
     with pytest.raises(NoResultFound):
-        get_login_request_by_groupid_and_token(groupid=invalid_group_id, token=token, database_session=memory_database_session)
+        get_login_request_by_groupid_and_email(groupid=invalid_group_id, email=email, database_session=memory_database_session)
 
-def test_get_login_request_by_groupid_and_token_invalid_token(memory_database_session: Session):
+def test_get_login_request_by_groupid_and_email_invalid_email(memory_database_session: Session):
     # Arrange
     group_id = "11111111-1111-1111-1111-111111111111"
-    invalid_token = "invalid_token"
+    invalid_email = "invalid_email@example.com"
 
     # Act & Assert
     with pytest.raises(NoResultFound):
-        get_login_request_by_groupid_and_token(groupid=group_id, token=invalid_token, database_session=memory_database_session)
-
+        get_login_request_by_groupid_and_email(groupid=group_id, email=invalid_email, database_session=memory_database_session)
+        
 # create_or_update Tests
 def test_create_or_update_creates_new_request(memory_database_session: Session):
     # Arrange
