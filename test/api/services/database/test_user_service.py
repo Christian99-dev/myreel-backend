@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
 from api.models.database.model import Edit, LoginRequest, OccupiedSlot, User
-from api.services.database.user import (create, get, get_user_by_email, remove,
+from api.services.database.user import (create, get, get_user_by_email_and_group_id, remove,
                                         update)
 from mock.database.data import data
 
@@ -141,34 +141,44 @@ def test_remove_edgecase_zero_id(memory_database_session: Session):
 
 """Andere Operationen"""
 
-# get_user_by_email Tests
-def test_get_user_by_email_success(memory_database_session: Session):
+def test_get_user_by_email_and_group_id_success(memory_database_session: Session):
     # Arrange
     existing_user = data["users"][0]
     
     # Act
-    fetched_user = get_user_by_email(existing_user["email"], memory_database_session)
+    fetched_user = get_user_by_email_and_group_id(existing_user["email"], existing_user["group_id"], memory_database_session)
     
     # Assert
     assert fetched_user is not None
     assert fetched_user.email == existing_user["email"]
+    assert fetched_user.group_id == existing_user["group_id"]
 
-def test_get_user_by_email_invalid_email(memory_database_session: Session):
+def test_get_user_by_email_and_group_id_invalid_email(memory_database_session: Session):
     # Arrange
     non_existent_email = "nonexistent@example.com"
+    existing_group_id = data["users"][0]["group_id"]
     
     # Act & Assert
     with pytest.raises(NoResultFound):
-        get_user_by_email(non_existent_email, memory_database_session)
+        get_user_by_email_and_group_id(non_existent_email, existing_group_id, memory_database_session)
 
-def test_get_user_by_email_edgecase_empty_email(memory_database_session: Session):
+def test_get_user_by_email_and_group_id_invalid_group(memory_database_session: Session):
+    # Arrange
+    existing_email = data["users"][0]["email"]
+    non_existent_group_id = "non-existent-group-id"
+    
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get_user_by_email_and_group_id(existing_email, non_existent_group_id, memory_database_session)
+
+def test_get_user_by_email_and_group_id_edgecase_empty_email(memory_database_session: Session):
     # Arrange
     empty_email = ""
+    existing_group_id = data["users"][0]["group_id"]
     
     # Act & Assert
     with pytest.raises(NoResultFound):
-        get_user_by_email(empty_email, memory_database_session)
-
+        get_user_by_email_and_group_id(empty_email, existing_group_id, memory_database_session)
 
 """Integration - CRUD"""
 

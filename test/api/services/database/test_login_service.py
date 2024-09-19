@@ -46,6 +46,22 @@ def test_create_edgecase_expires_now(memory_database_session: Session):
     # Assert
     assert new_login_request.expires_at == new_login_request.created_at
 
+def test_create_duplicate_login_request(memory_database_session: Session):
+    # Arrange
+    user_id = 4  # Ein gültiger Benutzer
+    expires_in_minutes = 10
+
+    # Act: Erstelle die erste Login-Anfrage
+    first_login_request = create(user_id=user_id, expires_in_minutes=expires_in_minutes, database_session=memory_database_session)
+
+    # Assert: Die erste Login-Anfrage sollte erfolgreich erstellt werden
+    assert first_login_request is not None
+    assert first_login_request.user_id == user_id
+
+    # Act & Assert: Versuche, eine zweite Login-Anfrage für denselben Benutzer zu erstellen
+    with pytest.raises(IntegrityError):
+        create(user_id=user_id, expires_in_minutes=expires_in_minutes, database_session=memory_database_session)
+        
 # Get Tests
 def test_get_success(memory_database_session: Session):
     # Arrange
