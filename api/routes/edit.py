@@ -315,10 +315,7 @@ async def post_slot(
     if is_slot_occupied(slot_id, edit_id, database_session=database_session):
         raise HTTPException(status_code=403, detail="Slot is nicht leer")
  
-    (validated_video_file, message) = file_validation(request.video_file, "video")
-    
-    if not validated_video_file:
-        raise HTTPException(status_code=400, detail="File is not valid")
+    validated_video_file = file_validation(request.video_file, "video")
     
     validate_video_file_bytes = await validated_video_file.read()
     
@@ -391,7 +388,7 @@ async def put_slot(
     if occupied_slot.user_id is not user_id:
         raise HTTPException(status_code=403, detail="Slot is not yours")
     
-    (validated_video_file, message) = file_validation(request.video_file, "video")
+    validated_video_file = file_validation(request.video_file, "video")
     validate_video_file_bytes = await validated_video_file.read()
     
     slot = get_slot_by_occupied_slot_id(occupied_slot.occupied_slot_id, database_session=database_session)        

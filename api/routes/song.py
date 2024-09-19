@@ -35,15 +35,8 @@ async def create(
         breakpoints = sorted(request.breakpoints)
         
         # validate files 
-        (validated_song_file, message_song_file) = file_validation(request.song_file, "audio")
-        (validated_cover_file, message_cover_file) = file_validation(request.cover_file, "image")
-        
-
-        if validated_song_file is None:
-            raise HTTPException(status_code=400, detail=message_song_file)
-        
-        if validated_cover_file is None:
-            raise HTTPException(status_code=400, detail=message_cover_file)
+        validated_song_file = file_validation(request.song_file, "audio")
+        validated_cover_file = file_validation(request.cover_file, "image")
         
         # check if last breakpoint is not longer then the song itssleft
         song_duration = get_audio_duration(validated_song_file, "wav")
