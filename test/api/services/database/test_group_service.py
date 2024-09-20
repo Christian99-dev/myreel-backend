@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from api.models.database.model import Group, Invitation, User
 from api.services.database.group import (create, get, get_group_by_edit_id,
-                                         get_group_by_user_id,
+                                         get_group_by_user_id, get_group_creator,
                                          is_group_creator, is_group_member,
                                          list_members, remove, update)
 from mock.database.data import data
@@ -252,6 +252,36 @@ def test_get_group_by_user_id_invalid_user(memory_database_session: Session):
     # Act & Assert
     with pytest.raises(NoResultFound):
         get_group_by_user_id(user_id=non_existent_user_id, database_session=memory_database_session)
+
+# get_group_creator Tests
+def test_get_group_creator_success(memory_database_session: Session):
+    # Arrange
+    group = data["groups"][0]
+    creator = data["users"][0]  # Annahme: Der erste User ist der Ersteller der Gruppe
+    
+    # Act
+    group_creator = get_group_creator(group_id=group["group_id"], database_session=memory_database_session)
+    
+    # Assert
+    assert group_creator is not None
+    assert group_creator.user_id == creator["user_id"]
+
+def test_get_group_creator_invalid_group(memory_database_session: Session):
+    # Arrange
+    non_existent_group_id = "99999999-9999-9999-9999-999999999999"
+    
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get_group_creator(group_id=non_existent_group_id, database_session=memory_database_session)
+
+def test_get_group_creator_no_creator(memory_database_session: Session):
+    # Arrange
+    group_without_creator = create(name="Group Without Creator", database_session=memory_database_session)
+    
+    # Act & Assert
+    with pytest.raises(NoResultFound):
+        get_group_creator(group_id=group_without_creator.group_id, database_session=memory_database_session)
+
 
 """Integration - CRUD"""
 

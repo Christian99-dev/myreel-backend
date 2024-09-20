@@ -42,6 +42,7 @@ class GetResponse(BaseModel):
     user: User
     group_name: str
     group_id: str
+    created_by: str
 
 # GET /{group_id}
 class GetMembersResponse(BaseModel):

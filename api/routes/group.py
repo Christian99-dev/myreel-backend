@@ -9,7 +9,7 @@ from api.models.schema.group import (DeleteResponse, GetEditsResponse,
                                      PostResponse)
 from api.services.database.edit import \
     get_edits_by_group as get_edits_by_group_database
-from api.services.database.group import create as create_group_database
+from api.services.database.group import create as create_group_database, get_group_creator
 from api.services.database.group import get as get_group_database
 from api.services.database.group import \
     list_members as list_members_group_database
@@ -65,7 +65,8 @@ async def group_name(group_id: str, database_session: Session = Depends(get_data
 async def get(group_id: str, authorization: str = Header(None), database_session: Session = Depends(get_database_session)):
     # group infos
     group = get_group_database(group_id=group_id, database_session=database_session)
-
+    group_creator = get_group_creator(group_id=group_id, database_session=database_session)
+    
     # user infos
     user_id = read_jwt(authorization.replace("Bearer ", ""))
     user = get_user_database(user_id, database_session=database_session)
@@ -78,7 +79,8 @@ async def get(group_id: str, authorization: str = Header(None), database_session
             "email": user.email
         },
         "group_id": group.group_id,
-        "group_name": group.name
+        "group_name": group.name,
+        "created_by": group_creator.name
     }
 
 @router.get("/{group_id}/members", response_model=GetMembersResponse, tags=["group"])

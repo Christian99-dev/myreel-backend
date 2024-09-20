@@ -128,7 +128,6 @@ def test_delete_group_success(http_client: TestClient, bearer_headers: List[dict
     assert response.status_code == 200
     assert response.json()["message"] == "Group successfully deleted"
 
-
 def test_delete_group_not_found(http_client: TestClient, bearer_headers: List[dict[str, str]]):
     # Arrange
     group_id = "not existing group"
@@ -192,6 +191,7 @@ def test_get_group_details_success(http_client: TestClient, bearer_headers: List
     # Assert group data
     assert response_data["group_id"] == group_id
     assert response_data["group_name"] == data["groups"][0]["name"]
+    assert response_data["created_by"] == data["users"][0]["name"]
 
 def test_get_group_details_not_exists(http_client: TestClient):
     response = http_client.get("/group/11111111-1111-1111-1111-111111111112")

@@ -66,3 +66,17 @@ def get_group_by_user_id(user_id: int, database_session: Session) -> Group:
     if not user:
         raise NoResultFound(f"Group for user ID {user_id} not found")
     return database_session.query(Group).filter(Group.group_id == user.group_id).first()
+
+def get_group_creator(group_id: str, database_session: Session) -> User:
+    # Suche den ersten Edit in der Gruppe, um den Ersteller zu finden
+    creator = (
+        database_session.query(User)
+        .join(Edit, Edit.created_by == User.user_id)
+        .filter(Edit.group_id == group_id)
+        .first()
+    )
+    
+    if not creator:
+        raise NoResultFound(f"No creator found for group ID {group_id}")
+    
+    return creator
