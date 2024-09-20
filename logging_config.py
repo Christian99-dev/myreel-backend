@@ -124,6 +124,13 @@ def setup_logging(env: str):
             ),
 
             "routes.song": get_logger(env, 
+                test={"level": "CRITICAL"},
+                dev={"level": "INFO"}, 
+                prod={"level": "CRITICAL"}, 
+                handlers={"console", "file"}
+            ),
+
+            "routes.edit": get_logger(env, 
                 test={"level": "DEBUG"},
                 dev={"level": "INFO"}, 
                 prod={"level": "CRITICAL"}, 
@@ -140,7 +147,7 @@ def setup_logging(env: str):
 
             #utils
             "utils.media_manipulation": get_logger(env, 
-                test={"level": "CRITICAL"},
+                test={"level": "DEBUG"},
                 dev={"level": "DEBUG"}, 
                 prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}

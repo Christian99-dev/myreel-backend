@@ -24,8 +24,8 @@ def test1(
     database_session = Depends(get_database_session), 
     file_session: BaseFileSessionManager = Depends(get_file_session)
 ):
-    video_bytes = file_session.get("demo.mp4", "demo_slot")
-    song_bytes = file_session.get("1.wav", "songs")
+    video_bytes = file_session.get("demo", "demo_slot")
+    song_bytes = file_session.get("1", "songs")
     
     breapoints = [1,2,3,6]
     
@@ -40,7 +40,7 @@ def test1(
         "mp4"
     )
     
-    file_session.create(f"{generate_random_characters()}.mp4", "testres", endresult)
+    file_session.create(f"{generate_random_characters()}", "mp4", endresult, "testres")
     return 18
 
 @router.get("/2", tags=["testing"])

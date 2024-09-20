@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from fastapi import File, Form, UploadFile
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
 
 
 class User(BaseModel):
@@ -14,18 +15,17 @@ class Slot(BaseModel):
     song_id: int
     start_time: float
     end_time: float
-    occupied_by: Optional[User]  # Optionales User-Objekt, das den Benutzer darstellt, der den Slot belegt hat
-    occupied_id: Optional[int]  # ID des belegten Slots, falls vorhanden
+    occupied_by: Optional[User]  
+    occupied_id: Optional[int]
     
-class EditWithUserObject(BaseModel):
+class Edit(BaseModel):
     edit_id: int
     song_id: int
-    created_by: User  # User-Objekt mit ID und Name
     group_id: str
+    created_by: int
     name: str
     isLive: bool
     video_src: str
-
 
 # POST /{editid}/goLive/
 class GoLiveResponse(BaseModel):
@@ -39,20 +39,23 @@ class DeleteEditResponse(BaseModel):
 class PostRequest(BaseModel):
     groupid: str
     song_id: int
-    edit_name: str
+    edit_name: str = Field(..., min_length=3, max_length=20)
 
-class PostResponse(EditWithUserObject):
+
+class PostResponse(Edit):
     pass
 
-# GET /group/{groupid}/list
-class EditListResponse(BaseModel):
-    edits: List[EditWithUserObject]
-    
 # GET /group/{group_id}/{edit_id}
 class GetEditResponse(BaseModel):
-    edit: EditWithUserObject
+    created_by: User
+    edit: Edit
     slots: List[Slot]
     
+
+
+
+
+
 # POST /group/{group_id}/{edit_id}/slot/{slot_id}
 @dataclass
 class AddSlotRequest():

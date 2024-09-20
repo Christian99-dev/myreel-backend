@@ -40,6 +40,10 @@ def create_edit_video(
         The resulting video as bytes.
     """
 
+    video_temp_file_path = None
+    audio_temp_file_path = None
+    output_file_path = None
+
     logger.info("create_edit_video(): Start video editing")
     try:
         # Temporarily store video and audio data
@@ -102,11 +106,11 @@ def create_edit_video(
 
         # Delete temporary files
         logger.info("create_edit_video(): Cleaning up temporary files.")
-        if os.path.exists(video_temp_file_path):
+        if video_temp_file_path and os.path.exists(video_temp_file_path):
             os.remove(video_temp_file_path)
-        if os.path.exists(audio_temp_file_path):
+        if audio_temp_file_path and os.path.exists(audio_temp_file_path):
             os.remove(audio_temp_file_path)
-        if os.path.exists(output_file_path):
+        if output_file_path and os.path.exists(output_file_path):
             os.remove(output_file_path)
 
     logger.info("create_edit_video(): Video editing completed successfully.")

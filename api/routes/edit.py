@@ -1,5 +1,7 @@
 
 
+import logging
+
 from fastapi import APIRouter, Body, Depends, Header, HTTPException
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -7,9 +9,8 @@ from sqlalchemy.orm import Session
 from api.models.schema.edit import (AddSlotRequest, AddSlotResponse,
                                     ChangeSlotRequest, ChangeSlotResponse,
                                     DeleteEditResponse, DeleteSlotResponse,
-                                    EditListResponse, GetEditResponse,
-                                    GoLiveResponse, PostRequest, PostResponse,
-                                    User)
+                                    GetEditResponse, GoLiveResponse,
+                                    PostRequest, PostResponse, User)
 from api.services.database.edit import are_all_slots_occupied
 from api.services.database.edit import create as create_edit_service
 from api.services.database.edit import get as get_edit_serivce
@@ -53,37 +54,14 @@ from api.utils.media_manipulation.create_edit_video import create_edit_video
 from api.utils.media_manipulation.swap_slot_in_edit_video import \
     swap_slot_in_edit
 
+logger = logging.getLogger("routes.edit")
+
 # database
 
 router = APIRouter(
     prefix="/edit",
 )    
 
-@router.post("/{edit_id}/goLive", response_model=GoLiveResponse, tags=["edit"])
-def go_live(edit_id: int, database_session: Session = Depends(get_database_session), file_session: BaseFileSessionManager = Depends(get_file_session), instagram_session = Depends(get_instagram_session)):
-    
-    if not are_all_slots_occupied(edit_id, database_session=database_session):
-        raise HTTPException(status_code=422, detail="Edit not upload ready, occupie all slots")
-        
-    # check if all slots are belegt 
-    edit_file = get_edit_file_session(edit_id, file_session=file_session)
-    
-    if not edit_file:
-        raise HTTPException(status_code=422, detail="Something went wrong, no videofile found")
-    
-    set_is_live(edit_id, database_session=database_session)
-    
-    if instram_upload_service(edit_file, "mp4", "was geht ab instagram", instagram_session):
-        return {"message": "Auf instagram hochgeladen!"}
-       
-    
-@router.delete("/{edit_id}", response_model=DeleteEditResponse, tags=["edit"])
-async def delete_edit(edit_id: int, database_session: Session = Depends(get_database_session)):
-    
-    if remove_edit_service(edit_id, database_session=database_session):
-        return {"message" : "Deleted Successfully"}
-    else:
-        raise HTTPException(status_code=422, detail="Could not delete")
 
 @router.post("/", response_model=PostResponse, tags=["edit"])
 def create_edit(
@@ -95,182 +73,129 @@ def create_edit(
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
     groupid = request.groupid
     
-    if user_id is None or groupid is None:
-        raise HTTPException(status_code=422, detail="Sorry, something went wrong")
+    # create db edit
+    new_edit = create_edit_service(
+        request.song_id, 
+        user_id,
+        groupid,
+        request.edit_name,
+        False,   
+        video_src="",
+        database_session=database_session
+    )
     
-    try:
-        # create db edit
-        new_edit = create_edit_service(
-            request.song_id, 
-            user_id,
-            groupid,
-            request.edit_name,
-            False,   
-            video_src="",
-            database_session=database_session
-        )
+    # get infos to create edit video
+    demo_video_bytes = get_demo_video(file_session)
+    song_audio_bytes = get_song_audio(request.song_id, file_session)
+    breakpoints = get_breakpoints(request.song_id, database_session)
 
-        if new_edit is None: 
-            raise HTTPException(status_code=422, detail="Problem when creating edit")
-        
-        # get demo video
-        demo_video_bytes = get_demo_video(file_session)
-        
-        if demo_video_bytes is None: 
-            raise HTTPException(status_code=422, detail="Problem with demo video")
+    # creating video
+    edit_video_bytes = create_edit_video(
+        demo_video_bytes,
+        "mp4",
+        song_audio_bytes,
+        "mp3",
+        breakpoints,
+        "mp4"
+    )
 
-        # get song
-        song_audio_bytes = get_song_audio(request.song_id, file_session)
-        
-        if song_audio_bytes is None: 
-            raise HTTPException(status_code=422, detail="Problem with song audio")
-        
-        # create edit video
-        breakpoints = get_breakpoints(request.song_id, database_session)
-        
-        # creating video
-        edit_video_bytes = create_edit_video(
-            demo_video_bytes,
-            "mp4",
-            song_audio_bytes,
-            "mp3",
-            breakpoints,
-            "mp4"
-        )
-        
-        if edit_video_bytes is None:
-            raise HTTPException(status_code=422, detail="Error creating edit")
-            
-        edit_location = create_edit_file_session(
-            new_edit.edit_id, 
-            "mp4", 
-            edit_video_bytes, 
-            file_session
-        )
-        
-        if edit_location is None:
-            raise HTTPException(status_code=422, detail="Something went wrong while saving the edit")
-        
-        # Update the edit with the new video source
-        updated_edit = edit_update_service(new_edit.edit_id, video_src=edit_location, database_session=database_session)
-        
-        user = get_user_service(updated_edit.created_by, database_session)  # Retrieve the user details
-        
-        # Create the response object
-        response = PostResponse(
-            edit_id=updated_edit.edit_id,
-            song_id=updated_edit.song_id,
-            created_by=User(user_id=user.user_id, name=user.name),  # Assuming you have a way to get this, or replace with the user info if necessary
-            group_id=updated_edit.group_id,
-            name=updated_edit.name,
-            isLive=updated_edit.isLive,
-            video_src=updated_edit.video_src
-        )
-        
-        return response
+    # save video, obtain link
+    edit_location = create_edit_file_session(
+        new_edit.edit_id, 
+        "mp4", 
+        edit_video_bytes, 
+        file_session
+    )
 
-    except IntegrityError as e:
-        # Handle database integrity errors (e.g., foreign key or unique constraint violations)
-        database_session.rollback()
-        raise HTTPException(status_code=400, detail=f"Database integrity error: {str(e.orig)}")
-
-    except SQLAlchemyError as e:
-        # Handle other SQLAlchemy database errors
-        database_session.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
-
-    except Exception as e:
-        # Catch any other unexpected exceptions
-        database_session.rollback()
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
-
-@router.get("/group/{group_id}/list", response_model=EditListResponse, tags=["edit"])
-async def get_edits_for_group(group_id: str, database_session: Session = Depends(get_database_session)):
-    # Abrufen aller Edits für die gegebene Gruppen-ID
-    edits = get_edits_by_group(group_id, database_session)
-
-    if not edits:
-        raise HTTPException(status_code=404, detail="No edits found for this group")
+    # Update the edit with the new video link
+    updated_edit = edit_update_service(new_edit.edit_id, video_src=edit_location, database_session=database_session)
+        
+    return updated_edit
+        
+@router.get("/{edit_id}", response_model=GetEditResponse, tags=["edit"])
+async def get_edit_details(edit_id: int, database_session: Session = Depends(get_database_session)):
+    # Abrufen des Edits aus der Datenbank
+    edit = get_edit_serivce(edit_id, database_session=database_session)
     
-    response_list = []
-    
-    for edit in edits:
-        # Abrufen der User-Informationen des Erstellers
-        user = get_user_service(edit.created_by, database_session)
-        
-        if not user:
-            raise HTTPException(status_code=404, detail=f"User with ID {edit.created_by} not found for edit")
-        
-        # Erstellung der EditWithUserObject-Instanz mit dem User-Objekt
-        edit_info = {
-            "edit_id": edit.edit_id,
-            "song_id": edit.song_id,
-            "created_by": User(user_id=user.user_id, name=user.name),  # User-Objekt mit ID und Name
-            "group_id": edit.group_id,
-            "name": edit.name,
-            "isLive": edit.isLive,
-            "video_src": edit.video_src
-        }
-        
-        response_list.append(edit_info)
-    
-    return EditListResponse(edits=response_list)
-
-@router.get("/group/{group_id}/{edit_id}", response_model=GetEditResponse,  tags=["edit"])
-async def get_edit_details(group_id: str, edit_id: int, database_session: Session = Depends(get_database_session)):
-    # Abrufen des Edits
-    edit = get_edit_serivce(edit_id, database_session)
-
-    if not edit or edit.group_id != group_id:
-        raise HTTPException(status_code=404, detail="Edit not found in this group")
-
-    # Abrufen der Slots und der belegten Slots über die Services
+    # Abrufen der Slots und belegten Slots
     slots = get_slots_for_edit(edit_id, database_session)
     occupied_slots_info = get_occupied_slots_for_edit(edit_id, database_session)
 
-    # Umwandlung des edit-Objekts
-    edit_response = {
+    # Erstellerinformationen
+    created_by = {
+        "user_id": edit.creator.user_id,  # User-ID des Erstellers
+        "name": edit.creator.name  # Name des Erstellers
+    }
+
+    # Edit-Informationen
+    edit_info = {
         "edit_id": edit.edit_id,
         "song_id": edit.song_id,
-        "created_by": {
-            "user_id": edit.created_by,  # ID des Erstellers
-            "name": edit.creator.name,    # Name des Erstellers
-        },
         "group_id": edit.group_id,
+        "created_by": edit.created_by,  # User-ID des Erstellers
         "name": edit.name,
         "isLive": edit.isLive,
         "video_src": edit.video_src
     }
 
-    # Erstellung der Slot-Details für das Response-Modell
+    # Slot-Informationen
     slot_response = []
     for slot in slots:
         occupied_info = None
         occupied_id = None
-        
+
         # Überprüfen, ob der Slot belegt ist
         for occupied in occupied_slots_info:
+
             if occupied.slot_id == slot.slot_id:
                 occupied_info = {
                     "user_id": occupied.user.user_id,
                     "name": occupied.user.name
                 }
-                occupied_id = occupied.occupied_slot_id  # Angenommen, occupied_slot_id existiert
+                occupied_id = occupied.occupied_slot_id
                 break
-        
+
         slot_response.append({
             "slot_id": slot.slot_id,
             "song_id": slot.song_id,
             "start_time": slot.start_time,
             "end_time": slot.end_time,
-            "occupied_by": occupied_info,  # Optionales User-Objekt
-            "occupied_id": occupied_id  # ID des belegten Slots oder null
+            "occupied_by": occupied_info,
+            "occupied_id": occupied_id
         })
 
+    # Rückgabe im Format von GetEditResponse
     return {
-        "edit": edit_response,
-        "slots": slot_response  # Normale Slots (mit IDs und optionalem User)
+        "created_by": created_by,
+        "edit": edit_info,
+        "slots": slot_response
     }
+
+@router.post("/{edit_id}/goLive", response_model=GoLiveResponse, tags=["edit"])
+def go_live(edit_id: int, database_session: Session = Depends(get_database_session), file_session: BaseFileSessionManager = Depends(get_file_session), instagram_session = Depends(get_instagram_session)):
+    
+    # check if all slots are belegt 
+    if not are_all_slots_occupied(edit_id, database_session=database_session):
+        raise HTTPException(status_code=422, detail="Edit not upload ready, occupie all slots")
+    
+    # nehme edit video 
+    edit_file = get_edit_file_session(edit_id, file_session=file_session)
+
+    # lade es hoch
+    instram_upload_service(edit_file, "mp4", "was geht ab instagram", instagram_session)
+    
+    # datenbank live setzen
+    set_is_live(edit_id, database_session=database_session)
+    
+    return {"message": "Auf instagram hochgeladen!"}
+       
+@router.delete("/{edit_id}", response_model=DeleteEditResponse, tags=["edit"])
+async def delete_edit(edit_id: int, database_session: Session = Depends(get_database_session)):
+    remove_edit_service(edit_id, database_session=database_session)
+    return {"message" : "Deleted Successfully"}
+
+
+
 
 
 @router.delete("/group/{group_id}/{edit_id}/slot/{occupied_slot_id}", response_model=DeleteSlotResponse,  tags=["edit"])

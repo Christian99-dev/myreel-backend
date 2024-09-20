@@ -50,10 +50,10 @@ endpoint_config = EndpointConfig({
     
     # group
     '/group':                           {"POST": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},
-    '/group/{group_id}':                  {
+    '/group/{group_id}':                {
                                             "GET": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
                                             "DELETE": EndpointInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=True)
-                                          },
+                                        },
     '/group/{group_id}/members':        {"GET": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},   
     '/group/{group_id}/edits':          {"GET": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},   
     '/group/{group_id}/name':           {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},   
@@ -66,10 +66,13 @@ endpoint_config = EndpointConfig({
     
     # edit
     '/edit/{edit_id}/goLive':           {"POST": EndpointInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=True)},    
-    '/edit/{edit_id}':                  {"DELETE": EndpointInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=True)},    
+    '/edit/{edit_id}':                  {
+                                            "DELETE": EndpointInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=True),
+                                            "GET": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)
+                                        },    
     '/edit/':                           {"POST": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},    
-    '/edit/group/{group_id}/list':      {"GET": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},    
-    '/edit/group/{group_id}/{edit_id}': {"GET": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},    
+
+
     '/edit/group/{group_id}/{edit_id}/slot/{occupied_slot_id}' : {
         "DELETE": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
         "POST": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
