@@ -3,7 +3,8 @@ import logging
 from fastapi import APIRouter, Body, Depends, Header
 from sqlalchemy.orm import Session
 
-from api.models.schema.group import (DeleteResponse, GetResponse,
+from api.models.schema.group import (DeleteResponse, GetEditsResponse,
+                                     GetMembersResponse, GetResponse,
                                      GroupNameResponse, PostRequest,
                                      PostResponse)
 from api.services.database.edit import get_edits_by_group
@@ -61,48 +62,52 @@ async def group_name(group_id: str, database_session: Session = Depends(get_data
 
 @router.get("/{group_id}", response_model=GetResponse, tags=["group"])
 async def get(group_id: str, authorization: str = Header(None), database_session: Session = Depends(get_database_session)):
-    
     # group infos
     group = get_group_service(group_id=group_id, database_session=database_session)
-    
+
     # user infos
     user_id = read_jwt(authorization.replace("Bearer ", ""))
     user = get_user_service(user_id, database_session=database_session)
 
-    # get edits 
-    edits = get_edits_by_group(group_id, database_session=database_session)
-    
-    # get members
-    members = list_members_groud_service(group_id, database_session=database_session)
-
     return {
-        "user" : {
+        "user": {
             "id": user.user_id,
             "name": user.name,
             "role": user.role,
-            "email" : user.email
-        }, 
-        "members" : [
-            {
-                "user_id" : member.user_id,
-                "role" : member.role,
-                "name" : member.name,
-            }
-            for member in members
-        ], 
-        "edits" : [
-            {
-                "edit_id" : edit.edit_id,
-                "created_by" : edit.created_by,
-                "name" : edit.name,
-                "isLive" : edit.isLive
-            }
-            for edit in edits
-        ], 
-        "group_id" : group.group_id, 
-        "group_name" : group.name
+            "email": user.email
+        },
+        "group_id": group.group_id,
+        "group_name": group.name
     }
 
+@router.get("/{group_id}/members", response_model=GetMembersResponse, tags=["group"])
+async def get_group_members(group_id: str, database_session: Session = Depends(get_database_session)):
+    members = list_members_groud_service(group_id, database_session=database_session)
+    return {        
+        "members": [
+            {
+                "user_id": member.user_id,
+                "role": member.role,
+                "name": member.name,
+            }
+            for member in members
+        ]
+    }
+
+@router.get("/{group_id}/edits", response_model=GetEditsResponse, tags=["group"])
+async def get_group_edits(group_id: str, database_session: Session = Depends(get_database_session)):
+    edits = get_edits_by_group(group_id, database_session=database_session)
+    return {
+        "edits": [
+            {
+                "edit_id": edit.edit_id,
+                "created_by": edit.created_by,
+                "name": edit.name,
+                "isLive": edit.isLive
+            }
+            for edit in edits
+        ]
+    }
         
 
 

@@ -40,7 +40,13 @@ class GroupNameResponse(BaseModel):
 # GET /{group_id}
 class GetResponse(BaseModel):
     user: User
-    members: List[Member]
-    edits: List[Edit]
     group_name: str
     group_id: str
+
+# GET /{group_id}
+class GetMembersResponse(BaseModel):
+    members: List[Member]
+
+# GET /{group_id}
+class GetEditsResponse(BaseModel):
+    edits: List[Edit]

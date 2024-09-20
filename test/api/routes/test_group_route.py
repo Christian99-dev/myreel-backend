@@ -189,31 +189,79 @@ def test_get_group_details_success(http_client: TestClient, bearer_headers: List
     assert response_data["user"]["role"] == data["users"][0]["role"]
     assert response_data["user"]["email"] == data["users"][0]["email"]
 
-    # Assert members
-    assert "members" in response_data
-    members = response_data["members"]
-    assert len(members) == len([user for user in data["users"] if user["group_id"] == group_id])
-    for member in members:
-        member_data = next((user for user in data["users"] if user["user_id"] == member["user_id"]), None)
-        assert member_data is not None
-        assert member["name"] == member_data["name"]
-        assert member["role"] == member_data["role"]
-
-    # Assert edits
-    assert "edits" in response_data
-    edits = response_data["edits"]
-    assert len(edits) == len([edit for edit in data["edits"] if edit["group_id"] == group_id])
-    for edit in edits:
-        edit_data = next((e for e in data["edits"] if e["edit_id"] == edit["edit_id"]), None)
-        assert edit_data is not None
-        assert edit["created_by"] == edit_data["created_by"]
-        assert edit["name"] == edit_data["name"]
-        assert edit["isLive"] == edit_data["isLive"]
-
     # Assert group data
     assert response_data["group_id"] == group_id
     assert response_data["group_name"] == data["groups"][0]["name"]
 
 def test_get_group_details_not_exists(http_client: TestClient):
     response = http_client.get("/group/11111111-1111-1111-1111-111111111112")
+    assert response.status_code == 403
+
+# Test for /group/{group_id}/members GET (Get Group Members)
+
+def test_get_group_members_blank_access(http_client: TestClient):
+    response = http_client.get("/group/11111111-1111-1111-1111-111111111111/members")
+    assert response.status_code == 403
+
+def test_get_group_members_success(http_client: TestClient, bearer_headers: List[dict[str, str]]):
+    # Arrange
+    group_id = data["groups"][0]["group_id"]
+
+    # Act
+    response = http_client.get(f"/group/{group_id}/members", headers=bearer_headers[0])
+
+    # Assert
+    assert response.status_code == 200
+    response_data = response.json()
+
+    # Assert members data
+    assert isinstance(response_data["members"], list)
+    assert len(response_data["members"]) > 0  # Ensure there's at least one member
+    for member in response_data["members"]:
+        assert "user_id" in member
+        assert "role" in member
+        assert "name" in member
+
+    # Specific checks for the first member
+    assert response_data["members"][0]["user_id"] == data["users"][0]["user_id"]
+    assert response_data["members"][0]["name"] == data["users"][0]["name"]
+    assert response_data["members"][0]["role"] == data["users"][0]["role"]
+
+def test_get_group_members_not_exists(http_client: TestClient):
+    response = http_client.get("/group/11111111-1111-1111-1111-111111111112/members")
+    assert response.status_code == 403
+
+# Test for /group/{group_id}/edits GET (Get Group Members)
+
+def test_get_group_edits_blank_access(http_client: TestClient):
+    response = http_client.get("/group/11111111-1111-1111-1111-111111111111/edits")
+    assert response.status_code == 403
+
+def test_get_group_edits_success(http_client: TestClient, bearer_headers: List[dict[str, str]]):
+    # Arrange
+    group_id = data["groups"][0]["group_id"]
+
+    # Act
+    response = http_client.get(f"/group/{group_id}/edits", headers=bearer_headers[0])
+
+    # Assert
+    assert response.status_code == 200
+    response_data = response.json()
+
+    # Assert edits data
+    assert isinstance(response_data["edits"], list)
+    assert len(response_data["edits"]) > 0  # Ensure there's at least one edit
+    for edit in response_data["edits"]:
+        assert "edit_id" in edit
+        assert "created_by" in edit
+        assert "name" in edit
+        assert "isLive" in edit
+
+    # Specific checks for the first edit
+    assert response_data["edits"][0]["edit_id"] == data["edits"][0]["edit_id"]
+    assert response_data["edits"][0]["name"] == data["edits"][0]["name"]
+    assert response_data["edits"][0]["created_by"] == data["edits"][0]["created_by"]
+
+def test_get_group_edits_not_exists(http_client: TestClient):
+    response = http_client.get("/group/11111111-1111-1111-1111-111111111112/edits")
     assert response.status_code == 403
