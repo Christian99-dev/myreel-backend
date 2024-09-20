@@ -1,9 +1,7 @@
-from dataclasses import dataclass
+
 from typing import List, Optional
 
-from fastapi import File, Form, UploadFile
 from pydantic import BaseModel, Field
-
 
 
 class User(BaseModel):
@@ -50,36 +48,3 @@ class GetEditResponse(BaseModel):
     created_by: User
     edit: Edit
     slots: List[Slot]
-    
-
-
-
-
-
-# POST /group/{group_id}/{edit_id}/slot/{slot_id}
-@dataclass
-class AddSlotRequest():
-    start_time:     float = Form(...)
-    end_time:       float = Form(...)
-    video_file: UploadFile = File(...)   
-
-class AddSlotResponse(BaseModel):
-    message: str
-
-# DELETE /group/{group_id}/{edit_id}/slot/{slot_id}
-@dataclass
-class DeleteSlotRequest:
-    video_file: UploadFile = File(...)   
-
-class DeleteSlotResponse(BaseModel):
-    message: str
-
-# PUT /group/{group_id}/{edit_id}/slot/{slot_id}
-@dataclass
-class ChangeSlotRequest:
-    start_time:     float = Form(...)
-    end_time:       float = Form(...)
-    video_file: UploadFile = File(...)      
-
-class ChangeSlotResponse(BaseModel):
-    message: str
