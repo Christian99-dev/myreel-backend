@@ -110,7 +110,7 @@ def setup_logging(env: str):
 
             # routes
             "routes.user": get_logger(env, 
-                test={"level": "DEBUG"},
+                test={"level": "CRITICAL"},
                 dev={"level": "INFO"}, 
                 prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}
@@ -118,6 +118,13 @@ def setup_logging(env: str):
 
             "routes.song": get_logger(env, 
                 test={"level": "CRITICAL"},
+                dev={"level": "INFO"}, 
+                prod={"level": "CRITICAL"}, 
+                handlers={"console", "file"}
+            ),
+
+            "routes.song": get_logger(env, 
+                test={"level": "DEBUG"},
                 dev={"level": "INFO"}, 
                 prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}

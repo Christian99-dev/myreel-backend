@@ -1,120 +1,219 @@
-import os
+import logging
+from typing import List
 
-from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 
-from api.utils.jwt import jwt
-from api.utils.jwt.jwt import read_jwt
+from mock.database.data import data
 
+logger = logging.getLogger("test.unittest")
 
-# create
-def notest_create_group_status(http_client: TestClient): 
-    assert http_client.post("/group").status_code == 422
-    
-def notest_create_group_success(http_client: TestClient):
-    # Definiere die Anfrage-Daten für die Gruppencreation
-    request_data = {
-        "groupname": "New Group",
-        "username": "Test User",
-        "email": "test@example.com"
-    }
+# Test for /group POST (Create Group)
+def test_create_group_blank_access(http_client: TestClient):
+    response = http_client.post("/group/")
+    assert response.status_code == 422
 
-    # Sende die POST-Anfrage zur Erstellung der Gruppe
-    response = http_client.post("/group/", json=request_data)
+def test_create_group_success(http_client: TestClient):
+    # Arrange
+    groupname = "Test Group"
+    username = "Test User"
+    email = "test@example.com"
 
-    # Überprüfe den Statuscode und die Struktur der Antwort
-    assert response.status_code == 200  # OK (200) für erfolgreiche Erstellung
-    response_data = response.json()
-    assert "jwt" in response_data  # Stelle sicher, dass das JWT in der Antwort enthalten ist
-    assert 10 is read_jwt(response_data.get("jwt"))  # Stelle sicher, dass das JWT in der Antwort enthalten ist
-    assert response_data["group_id"] is not None  # Überprüfe, ob die group_id vorhanden ist
+    # Act
+    response = http_client.post(
+        "/group/",
+        json={
+            "groupname": groupname,
+            "username": username,
+            "email": email
+        }
+    )
 
-def notest_create_group_missing_fields(http_client: TestClient):
-    # Definiere die Anfrage-Daten ohne erforderliche Felder
-    request_data = {
-        "groupname": "New Group"  # Fehlt: username, email
-    }
-
-    # Sende die POST-Anfrage zur Erstellung der Gruppe
-    response = http_client.post("/group/", json=request_data)
-
-    # Überprüfe den Statuscode und die Fehlerstruktur
-    assert response.status_code == 422  # Unprocessable Entity (422) für fehlende Felder
-    assert "detail" in response.json()  # Stelle sicher, dass Fehlerdetails vorhanden sind
-
-# delete
-def notest_delete_group_status(http_client: TestClient): 
-    assert http_client.delete("/group/1").status_code == 403
-
-def notest_delete_group_success(http_client: TestClient):
-    # Zuerst eine Gruppe erstellen, um sicherzustellen, dass sie existiert
-    create_response = http_client.post("/group/", json={
-        "groupname": "Test Group for Deletion",
-        "username": "Test User",
-        "email": "test@example.com"
-    })
-
-    assert create_response.status_code == 200  # Gruppe sollte erfolgreich erstellt werden
-    group_id = create_response.json()["group_id"]
-    jwt = create_response.json()["jwt"]
-
-    # Jetzt die Gruppe löschen
-    delete_response = http_client.delete(f"/group/{group_id}", headers={"Authorization" : f"Bearer {jwt}"})
-
-    # Überprüfen des Statuscodes und der Antwort
-    assert delete_response.status_code == 200  # Erfolgreiche Löschung sollte 200 zurückgeben
-    assert delete_response.json() == {"message": "Group successfully deleted"}  # Erfolgsnachricht
-
-# get
-def notest_get_group_success(http_client: TestClient):
-    
-    # Zuerst eine Gruppe erstellen, um sicherzustellen, dass sie existiert
-    create_response = http_client.post("/group/", json={
-        "groupname": "Test Group for Deletion",
-        "username": "Test User",
-        "email": "test@example.com"
-    })
-
-    assert create_response.status_code == 200  # Gruppe sollte erfolgreich erstellt werden
-    
-    group_id = create_response.json()["group_id"]
-    jwt = create_response.json()["jwt"]
-
-    # Sende die GET-Anfrage zur Gruppe
-    get_response = http_client.get(f'/group/{group_id}', headers={"Authorization" : f'Bearer {jwt}'})
-
-    # Überprüfe den Statuscode und die Struktur der Antwort
-    assert get_response.status_code == 200  # OK (200) für erfolgreiche Abfrage
-    response_data = get_response.json()
-    assert response_data["group_id"] == group_id  # Überprüfe die group_id
-    assert response_data["name"] == "Test Group for Deletion"  # Überprüfe den Gruppennamen
-
-def notest_get_group_not_found(http_client: TestClient):
-    admintoken = os.getenv("ADMIN_TOKEN")
-    
-    # Sende die GET-Anfrage für eine nicht existierende Gruppe
-    response = http_client.get("/group/non-existent-group-id", headers={"admintoken" : admintoken})
-
-    # Überprüfe den Statuscode und die Fehlermeldung
-    assert response.status_code == 404  # Not Found (403) für nicht keinen zugriff
-    
-# group_exist
-def notest_group_exists_status(http_client: TestClient): 
-
-    # Sende die GET-Anfrage zur Überprüfung, ob die Gruppe existiert
-    response = http_client.get(f"/group/11111111-1111-1111-1111-111111111111/groupExists")
-
+    # Assert
     assert response.status_code == 200
     response_data = response.json()
-    assert response_data.get("exists") == True
-    
-    # Sende die GET-Anfrage zur Überprüfung, ob die Gruppe existiert
-    response_not_there = http_client.get(f"/group/123/groupExists")
+    assert "jwt" in response_data
+    assert response_data["group_id"] is not None
 
-    assert response_not_there.status_code == 200
-    response_data_not_there = response_not_there.json()
-    assert response_data_not_there.get("exists") == False
+def test_create_group_invalid_email(http_client: TestClient):
+    # Arrange
+    groupname = "Test Group"
+    username = "Test User"
+    email = "invalid-email"  # Invalid email format
+
+    # Act
+    response = http_client.post(
+        "/group/",
+        json={
+            "groupname": groupname,
+            "username": username,
+            "email": email
+        }
+    )
+
+    # Assert
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["msg"] == "value is not a valid email address: An email address must have an @-sign."
+
+def test_create_group_short_groupname(http_client: TestClient):
+    # Arrange
+    groupname = "TG"  # Too short group name
+    username = "Test User"
+    email = "test@example.com"
+
+    # Act
+    response = http_client.post(
+        "/group/",
+        json={
+            "groupname": groupname,
+            "username": username,
+            "email": email
+        }
+    )
+
+    # Assert
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["msg"] == "String should have at least 3 characters"
+
+def test_create_group_short_username(http_client: TestClient):
+    # Arrange
+    groupname = "Test Group"
+    username = "TU"  # Too short username
+    email = "test@example.com"
+
+    # Act
+    response = http_client.post(
+        "/group/",
+        json={
+            "groupname": groupname,
+            "username": username,
+            "email": email
+        }
+    )
+
+    # Assert
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["msg"] == "String should have at least 3 characters"
+
+def test_create_group_missing_fields(http_client: TestClient):
+    # Arrange: Missing username field
+    groupname = "Test Group"
+    email = "test@example.com"
+
+    # Act
+    response = http_client.post(
+        "/group/",
+        json={
+            "groupname": groupname,
+            "email": email
+        }
+    )
+
+    # Assert
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["msg"] == "Field required"
+
+# Test for /group DELETE (Delete Group)
+def test_delete_group_blank_access(http_client: TestClient):
+    response = http_client.delete("/group/1")
+    assert response.status_code == 403
+
+def test_delete_group_success(http_client: TestClient, bearer_headers: List[dict[str, str]]):
+    # Arrange
+    group_id = data["groups"][0]["group_id"]
+
+    # Act
+    response = http_client.delete(f"/group/{group_id}", headers=bearer_headers[0])
+
+    # Assert
+    assert response.status_code == 200
+    assert response.json()["message"] == "Group successfully deleted"
 
 
+def test_delete_group_not_found(http_client: TestClient, bearer_headers: List[dict[str, str]]):
+    # Arrange
+    group_id = "not existing group"
 
+    # Act
+    response = http_client.delete(f"/group/{group_id}", headers=bearer_headers[0])
 
+    # Assert
+    assert response.status_code == 403
+
+# Test for /group/{group_id}/name GET (Get Group Name)
+def test_get_group_name_blank_access(http_client: TestClient):
+    response = http_client.get("/group/11111111-1111-1111-1111-111111111111/name")
+    assert response.status_code == 200
+
+def test_get_group_name_success(http_client: TestClient):
+    # Arrange
+    group_id = data["groups"][0]["group_id"]
+
+    # Act
+    response = http_client.get(f"/group/{group_id}/name")
+
+    # Assert
+    assert response.status_code == 200
+    assert response.json()["name"] == data["groups"][0]["name"]
+
+def test_get_group_name_not_exists(http_client: TestClient):
+    # Arrange
+    group_id = "not existing group"
+
+    # Act
+    response = http_client.get(f"/group/{group_id}/name")
+
+    # Assert
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Group with ID not existing group not found"
+
+# Test for /group/{group_id} GET (Get Group Details)
+def test_get_group_details_blank_access(http_client: TestClient):
+    response = http_client.get("/group/11111111-1111-1111-1111-111111111111")
+    assert response.status_code == 403
+
+def test_get_group_details_success(http_client: TestClient, bearer_headers: List[dict[str, str]]):
+    # Arrange
+    group_id = data["groups"][0]["group_id"]
+
+    # Act
+    response = http_client.get(f"/group/{group_id}", headers=bearer_headers[0])
+
+    # Assert
+    assert response.status_code == 200
+    response_data = response.json()
+
+    # Assert user data
+    assert "user" in response_data
+    assert response_data["user"]["id"] == data["users"][0]["user_id"]
+    assert response_data["user"]["name"] == data["users"][0]["name"]
+    assert response_data["user"]["role"] == data["users"][0]["role"]
+    assert response_data["user"]["email"] == data["users"][0]["email"]
+
+    # Assert members
+    assert "members" in response_data
+    members = response_data["members"]
+    assert len(members) == len([user for user in data["users"] if user["group_id"] == group_id])
+    for member in members:
+        member_data = next((user for user in data["users"] if user["user_id"] == member["user_id"]), None)
+        assert member_data is not None
+        assert member["name"] == member_data["name"]
+        assert member["role"] == member_data["role"]
+
+    # Assert edits
+    assert "edits" in response_data
+    edits = response_data["edits"]
+    assert len(edits) == len([edit for edit in data["edits"] if edit["group_id"] == group_id])
+    for edit in edits:
+        edit_data = next((e for e in data["edits"] if e["edit_id"] == edit["edit_id"]), None)
+        assert edit_data is not None
+        assert edit["created_by"] == edit_data["created_by"]
+        assert edit["name"] == edit_data["name"]
+        assert edit["isLive"] == edit_data["isLive"]
+
+    # Assert group data
+    assert response_data["group_id"] == group_id
+    assert response_data["group_name"] == data["groups"][0]["name"]
+
+def test_get_group_details_not_exists(http_client: TestClient):
+    response = http_client.get("/group/11111111-1111-1111-1111-111111111112")
+    assert response.status_code == 403

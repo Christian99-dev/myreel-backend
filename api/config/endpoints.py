@@ -54,7 +54,7 @@ endpoint_config = EndpointConfig({
                                             "GET": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
                                             "DELETE": EndpointInfo(role=RoleEnum.GROUP_CREATOR, has_subroles=True)
                                           },
-    '/group/{group_id}/groupExists':      {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},   
+    '/group/{group_id}/name':           {"GET": EndpointInfo(role=RoleEnum.EXTERNAL, has_subroles=True)},   
 
     # user
     '/user/invite':                     {"POST": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},    

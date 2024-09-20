@@ -1,33 +1,46 @@
-from pydantic import BaseModel
+from typing import List
+from pydantic import BaseModel, EmailStr, Field
 
 class User(BaseModel):
+    id: int
+    name: str
+    role: str
+    email: str
+
+class Member(BaseModel):
     user_id: int
-    group_id: str
     role: str
     name: str
-    email: str
 
-class Group(BaseModel):
-    group_id: str
+class Edit(BaseModel):
+    edit_id: int
+    created_by: int
     name: str
+    isLive: bool
 
-# POST /{group_id} 
+# POST /
 class PostRequest(BaseModel):
-    groupname: str
-    username: str
-    email: str
+    groupname: str = Field(..., min_length=3, max_length=100, description="The name of the group.")
+    username: str = Field(..., min_length=3, max_length=50, description="The name of the user.")
+    email: EmailStr = Field(..., description="The email of the user.")
 
-class PostResponse(Group):
+class PostResponse(BaseModel):
     jwt: str
+    group_id: str
+
 
 # DELETE /{group_id} 
 class DeleteResponse(BaseModel):
     message: str
 
-# GET /{group_id} 
-class GetResponse(Group):
-    pass
+# GET /{group_id}/name
+class GroupNameResponse(BaseModel):
+    name: str
 
-# GET /{group_id}/groupExists
-class GroupExistsResponse(BaseModel):
-    exists: bool
+# GET /{group_id}
+class GetResponse(BaseModel):
+    user: User
+    members: List[Member]
+    edits: List[Edit]
+    group_name: str
+    group_id: str
