@@ -72,13 +72,13 @@ endpoint_config = EndpointConfig({
                                         },    
     '/edit/':                           {"POST": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True)},    
 
-
-    '/edit/group/{group_id}/{edit_id}/slot/{occupied_slot_id}' : {
-        "DELETE": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
+    # slot
+    '/edit/{edit_id}/slot/{slot_id}' : {
         "POST": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
     },
-    '/edit/group/{group_id}/{edit_id}/slot/{slot_id}' : {
+    '/edit/{edit_id}/slot/{occupied_slot_id}' : {
         "PUT": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
+        "DELETE": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
     }
 
 })

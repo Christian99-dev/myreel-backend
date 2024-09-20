@@ -136,6 +136,13 @@ def setup_logging(env: str):
                 prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}
             ),
+            "routes.slot": get_logger(env, 
+                test={"level": "DEBUG"},
+                dev={"level": "INFO"}, 
+                prod={"level": "CRITICAL"}, 
+                handlers={"console", "file"}
+            ),
+
 
             # Middleware
             "middleware.access_handler": get_logger(env, 
@@ -147,7 +154,7 @@ def setup_logging(env: str):
 
             #utils
             "utils.media_manipulation": get_logger(env, 
-                test={"level": "DEBUG"},
+                test={"level": "CRITICAL"},
                 dev={"level": "DEBUG"}, 
                 prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}

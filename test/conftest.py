@@ -13,6 +13,7 @@ from api.routes.edit import router as edit_router
 from api.routes.group import router as group_router
 from api.routes.song import router as song_router
 from api.routes.user import router as user_router
+from api.routes.slot import router as slot_router
 from api.sessions.database import (MemoryDatabaseSessionManager,
                                    get_database_session)
 from api.sessions.email import MemoryEmailSessionManager, get_email_session
@@ -82,6 +83,7 @@ def http_client(
     app.include_router(group_router)
     app.include_router(user_router)
     app.include_router(edit_router)
+    app.include_router(slot_router)
 
     # add exception handler 
     add_exception_handlers(app)

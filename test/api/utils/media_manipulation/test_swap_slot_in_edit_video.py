@@ -5,7 +5,7 @@ from api.utils.media_manipulation.swap_slot_in_edit_video import \
     swap_slot_in_edit
 
 
-def notest_swap_slot_in_edit_video_no_errors(memory_file_session, memory_database_session):
+def test_swap_slot_in_edit_video_no_errors(memory_file_session, memory_database_session):
     
     # Arrange
     existing_edit = memory_database_session.query(Edit).first()  # Nimm den ersten Song
