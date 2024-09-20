@@ -35,10 +35,10 @@ def test_invite_success(http_client: TestClient, bearer_headers: List[dict[str, 
     assert response.status_code == 200
     assert response.json()["message"] == "Invite successfull"
 
-def test_empty_email(http_client: TestClient, bearer_headers: List[dict[str, str]]):
+def test_invalid_email(http_client: TestClient, bearer_headers: List[dict[str, str]]):
     # Arrange
     group_id = data["groups"][0]["group_id"]
-    email = ""
+    email = "notvalidemial.com"
 
     # Act
     response = http_client.post(
@@ -51,8 +51,8 @@ def test_empty_email(http_client: TestClient, bearer_headers: List[dict[str, str
     )
 
     # Assert
-    assert response.status_code == 500
-    assert response.json()["detail"] == "Recipient email address is missing."
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["msg"] == "value is not a valid email address: An email address must have an @-sign."
 
 def test_invite_wrong_group(http_client: TestClient, bearer_headers: List[dict[str, str]]):
     # Arrange

@@ -1,10 +1,10 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 # POST /invite
 class InviteRequest(BaseModel):
     groupid: str
-    email: str
+    email: EmailStr
 
 
 class InviteResponse(BaseModel):
