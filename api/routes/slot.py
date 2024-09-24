@@ -94,10 +94,7 @@ async def delete_slot(
     )
     
     # updateing file
-    new_edit_file_location = update_edit_file(edit_id, new_edit_file, file_session=file_session)
-    
-    # updating edit location
-    update_edit_database(edit_id, video_src=new_edit_file_location, database_session=database_session)
+    update_edit_file(edit_id, new_edit_file, file_session=file_session)
     
     return {"message": "Successfull delete"}
 
@@ -163,10 +160,7 @@ async def post_slot(
     )
     
     # speichere das neue edit ab
-    new_edit_file_location = update_edit_file(edit_id, new_edit_file, file_session=file_session)
-    
-    # updating edit location
-    update_edit_database(edit_id, video_src=new_edit_file_location, database_session=database_session)
+    update_edit_file(edit_id, new_edit_file, file_session=file_session)
 
     return {"message": "Successfull post"}
 
@@ -222,16 +216,11 @@ async def put_slot(
     )
 
     # neues edit abspeichern
-    new_edit_file_location = update_edit_file(edit_id, new_edit_file, file_session=file_session)
-    
-    # update video src
-    update_occupied_slot_database(occupied_slot.occupied_slot_id, video_src=new_edit_file_location, database_session=database_session)
+    update_edit_file(edit_id, new_edit_file, file_session=file_session)
 
     # file updaten
     update_occupied_slot_file(occupied_slot.occupied_slot_id, validate_video_file_bytes, file_session=file_session)
     
-    # updating edit location
-    update_edit_database(edit_id, video_src=new_edit_file_location, database_session=database_session)
     
     return {"message": "Successfull swap"}
 

@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 import pytest
 from sqlalchemy.orm import Session
 from api.exceptions.sessions.files import FileNotFoundInSessionError
-from api.models.database.model import OccupiedSlot, Slot
+from api.models.database.model import Edit, OccupiedSlot, Slot
 from api.sessions.files import BaseFileSessionManager
 from mock.database.data import data
 
@@ -187,7 +187,6 @@ def test_put_slot_success(http_client: TestClient, memory_file_session: BaseFile
     # Arrange
     occupied_slot_id = data["occupied_slots"][0]["occupied_slot_id"]
     video_file_bytes = memory_file_session.get("1", "occupied_slots")
-    old_location = data["occupied_slots"][0]["video_src"]
 
     # Act
     response = http_client.put(
@@ -208,9 +207,7 @@ def test_put_slot_success(http_client: TestClient, memory_file_session: BaseFile
     
     # Check if slot is updated in the database
     updated_slot = memory_database_session.query(OccupiedSlot).filter_by(occupied_slot_id=occupied_slot_id).first()
-    new_location = updated_slot.video_src
     assert updated_slot is not None
-    assert new_location != old_location
     
 def test_put_new_slot_too_long(http_client: TestClient, memory_file_session: BaseFileSessionManager, bearer_headers: List[dict[str, str]], memory_database_session: Session):
     # Arrange
