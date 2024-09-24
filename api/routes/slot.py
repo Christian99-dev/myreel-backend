@@ -14,12 +14,15 @@ from api.services.database.occupied_slot import \
     get as get_occupied_slot_database
 from api.services.database.occupied_slot import \
     is_slot_occupied as is_slot_occupied_database
+from api.services.database.edit import update as update_edit_database
 from api.services.database.occupied_slot import \
     remove as remove_occupied_slot_database
 from api.services.database.occupied_slot import \
     update as update_occupied_slot_database
+from api.services.files.demo_slot import get as get_demo_file
 from api.services.database.slot import \
     get_slot_by_occupied_slot_id as get_slot_by_occupied_slot_id_database
+from api.services.database.slot import get as get_slot_database
 from api.services.files.edit import get as get_edit_file
 from api.services.files.edit import update as update_edit_file
 from api.services.files.occupied_slot import \
@@ -55,7 +58,9 @@ async def delete_slot(
     # optain information
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
     occupied_slot = get_occupied_slot_database(occupied_slot_id, database_session=database_session)
+    slot = get_slot_by_occupied_slot_id_database(occupied_slot_id, database_session=database_session)
     
+
     # IMPORTANT, you can only delete your own slot
     if user_id != occupied_slot.user_id:
         raise HTTPException(status_code=403, detail="Slot not yours")
@@ -68,6 +73,31 @@ async def delete_slot(
     # remove assets in db and files
     remove_occupied_slot_database(occupied_slot.occupied_slot_id, database_session)
     remove_occupied_slot_file(occupied_slot.occupied_slot_id, file_session)
+    
+    # demo file
+    demo_video_bytes = get_demo_file(file_session)
+    old_edit_file = get_edit_file(edit_id, file_session=file_session)
+
+    # create new edit with demo slot
+    new_edit_file = swap_slot_in_edit(
+        old_edit_file,
+        slot.start_time,
+        slot.end_time,
+        "mp4",
+        
+        demo_video_bytes,
+        0,
+        slot.end_time - slot.start_time,
+        "mp4",
+        
+        "mp4"
+    )
+    
+    # updateing file
+    new_edit_file_location = update_edit_file(edit_id, new_edit_file, file_session=file_session)
+    
+    # updating edit location
+    update_edit_database(edit_id, video_src=new_edit_file_location, database_session=database_session)
     
     return {"message": "Successfull delete"}
 
@@ -86,7 +116,12 @@ async def post_slot(
     # slot is free ? 
     if is_slot_occupied_database(slot_id, edit_id, database_session=database_session):
         raise HTTPException(status_code=403, detail="Slot ist schon belegt")
+       
+    slot = get_slot_database(slot_id, database_session=database_session)
     
+    if slot.end_time - slot.start_time != request.end_time - request.start_time:
+        raise HTTPException(status_code=422, detail="Slot länge muss die gleiche sein")
+        
     # validate new video clip
     validated_video_file = file_validation(request.video_file, "video")
     validate_video_file_bytes = await validated_video_file.read()
@@ -109,10 +144,7 @@ async def post_slot(
     )
     
     # datenbank eintrag mit video src vervollständing
-    updated_occupied_slot = update_occupied_slot_database(database_session=database_session,occupied_slot_id=new_occupied_slot.slot_id, video_src=video_location)
-    
-    # start und endzeit von slot
-    slot = get_slot_by_occupied_slot_id_database(updated_occupied_slot.occupied_slot_id, database_session=database_session)        
+    update_occupied_slot_database(database_session=database_session,occupied_slot_id=new_occupied_slot.slot_id, video_src=video_location) 
     
     # edit neu erstellen und abspeicher
     old_edit_file = get_edit_file(edit_id, file_session=file_session)
@@ -131,7 +163,10 @@ async def post_slot(
     )
     
     # speichere das neue edit ab
-    update_edit_file(edit_id, new_edit_file, file_session=file_session)
+    new_edit_file_location = update_edit_file(edit_id, new_edit_file, file_session=file_session)
+    
+    # updating edit location
+    update_edit_database(edit_id, video_src=new_edit_file_location, database_session=database_session)
 
     return {"message": "Successfull post"}
 
@@ -157,12 +192,17 @@ async def put_slot(
     if edit_id != occupied_slot.edit_id:
         raise HTTPException(status_code=403, detail=f"Edit has not occupied slot with id {edit_id}")
     
+    # start und endzeit von slot
+    slot = get_slot_by_occupied_slot_id_database(occupied_slot.occupied_slot_id, database_session=database_session)
+    
+    if slot.end_time - slot.start_time != request.end_time - request.start_time:
+        raise HTTPException(status_code=422, detail="Slot länge muss die gleiche sein")
+    
     # validate new video clip
     validated_video_file = file_validation(request.video_file, "video")
     validate_video_file_bytes = await validated_video_file.read()
     
-    # start und endzeit von slot
-    slot = get_slot_by_occupied_slot_id_database(occupied_slot.occupied_slot_id, database_session=database_session)        
+            
     
     # edit neu erstellen und abspeicher
     old_edit_file = get_edit_file(edit_id, file_session=file_session)
@@ -182,13 +222,16 @@ async def put_slot(
     )
 
     # neues edit abspeichern
-    new_location = update_edit_file(edit_id, new_edit_file, file_session=file_session)
+    new_edit_file_location = update_edit_file(edit_id, new_edit_file, file_session=file_session)
     
     # update video src
-    update_occupied_slot_database(occupied_slot.occupied_slot_id, video_src=new_location, database_session=database_session)
+    update_occupied_slot_database(occupied_slot.occupied_slot_id, video_src=new_edit_file_location, database_session=database_session)
 
     # file updaten
     update_occupied_slot_file(occupied_slot.occupied_slot_id, validate_video_file_bytes, file_session=file_session)
+    
+    # updating edit location
+    update_edit_database(edit_id, video_src=new_edit_file_location, database_session=database_session)
     
     return {"message": "Successfull swap"}
 
