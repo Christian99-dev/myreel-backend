@@ -13,9 +13,6 @@ def get_group_id_from_object(obj):
     if isinstance(obj, Edit):
         return obj.group_id
     elif isinstance(obj, OccupiedSlot):
-        logger.debug(obj)
-        logger.debug(obj.edit)
-        logger.debug(obj.edit.group_id)
         return obj.edit.group_id
     elif isinstance(obj, User):
         return obj.group_id
