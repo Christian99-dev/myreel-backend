@@ -58,13 +58,13 @@ data = {
         {"user_id": 3, "pin": "91011", "created_at": datetime.now(), "expires_at": datetime.now() + timedelta(minutes=10)}
     ],
     "occupied_slots": [
-        {"occupied_slot_id": 1, "user_id": 1, "slot_id": 1, "edit_id": 1, "video_src": "http://localhost:8000/files/occupied_slots/1.mp4"},
-        {"occupied_slot_id": 2, "user_id": 2, "slot_id": 2, "edit_id": 2, "video_src": "http://localhost:8000/files/occupied_slots/2.mp4"},
-        {"occupied_slot_id": 3, "user_id": 3, "slot_id": 7, "edit_id": 3, "video_src": "http://localhost:8000/files/occupied_slots/3.mp4"},
-        {"occupied_slot_id": 4, "user_id": 3, "slot_id": 8, "edit_id": 3, "video_src": "http://localhost:8000/files/occupied_slots/4.mp4"},
-        {"occupied_slot_id": 5, "user_id": 3, "slot_id": 9, "edit_id": 3, "video_src": "http://localhost:8000/files/occupied_slots/5.mp4"},
-        {"occupied_slot_id": 6, "user_id": 3, "slot_id": 10, "edit_id": 3, "video_src": "http://localhost:8000/files/occupied_slots/6.mp4"},
-        {"occupied_slot_id": 7, "user_id": 3, "slot_id": 11, "edit_id": 3, "video_src": "http://localhost:8000/files/occupied_slots/7.mp4"},
-        {"occupied_slot_id": 8, "user_id": 3, "slot_id": 12, "edit_id": 3, "video_src": "http://localhost:8000/files/occupied_slots/8.mp4"}
+        {"occupied_slot_id": 1, "user_id": 1, "slot_id": 1, "edit_id": 1, "video_src": "http://localhost:8000/files/occupied_slots/1.mp4", "start_time": 0, "end_time": 0.5},
+        {"occupied_slot_id": 2, "user_id": 2, "slot_id": 2, "edit_id": 2, "video_src": "http://localhost:8000/files/occupied_slots/2.mp4", "start_time": 0, "end_time": 0.5},
+        {"occupied_slot_id": 3, "user_id": 3, "slot_id": 7, "edit_id": 3, "video_src": "http://localhost:8000/files/occupied_slots/3.mp4", "start_time": 0, "end_time": 0.5},
+        {"occupied_slot_id": 4, "user_id": 3, "slot_id": 8, "edit_id": 3, "video_src": "http://localhost:8000/files/occupied_slots/4.mp4", "start_time": 0, "end_time": 0.5},
+        {"occupied_slot_id": 5, "user_id": 3, "slot_id": 9, "edit_id": 3, "video_src": "http://localhost:8000/files/occupied_slots/5.mp4", "start_time": 0, "end_time": 0.5},
+        {"occupied_slot_id": 6, "user_id": 3, "slot_id": 10, "edit_id": 3, "video_src": "http://localhost:8000/files/occupied_slots/6.mp4", "start_time": 0, "end_time": 0.5},
+        {"occupied_slot_id": 7, "user_id": 3, "slot_id": 11, "edit_id": 3, "video_src": "http://localhost:8000/files/occupied_slots/7.mp4", "start_time": 0, "end_time": 0.5},
+        {"occupied_slot_id": 8, "user_id": 3, "slot_id": 12, "edit_id": 3, "video_src": "http://localhost:8000/files/occupied_slots/8.mp4", "start_time": 0, "end_time": 0.5}
     ]
 }

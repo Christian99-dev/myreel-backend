@@ -137,8 +137,8 @@ def test_go_live_success(http_client: TestClient, memory_database_session: Sessi
     edit_id = data["edits"][0]["edit_id"]  # We are using Edit 1 of Group 1
     user_id = data["users"][0]["user_id"]  # Creator of Group 1
 
-    create_occupied_slot_database(user_id, 2, 1, "idk", database_session=memory_database_session)
-    create_occupied_slot_database(user_id, 3, 1, "idk", database_session=memory_database_session)
+    create_occupied_slot_database(user_id, 2, 1, "idk", database_session=memory_database_session, start_time=0, end_time=0.5)
+    create_occupied_slot_database(user_id, 3, 1, "idk", database_session=memory_database_session, start_time=0, end_time=0.5)
     
     # Arrange
     edit_id = data["edits"][0]["edit_id"]

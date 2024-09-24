@@ -18,9 +18,11 @@ def test_create_success(memory_database_session: Session):
     slot_id = 1
     edit_id = 1
     video_src = "http://example.com/video.mp4"
+    start_time= 0
+    end_time= 0.5
     
     # Act
-    new_occupied_slot = create(user_id=user_id, slot_id=slot_id, edit_id=edit_id, video_src=video_src, database_session=memory_database_session)
+    new_occupied_slot = create(user_id=user_id, slot_id=slot_id, edit_id=edit_id, video_src=video_src,start_time=start_time, end_time=end_time, database_session=memory_database_session)
     
     # Assert
     assert new_occupied_slot is not None
@@ -28,6 +30,8 @@ def test_create_success(memory_database_session: Session):
     assert new_occupied_slot.slot_id == slot_id
     assert new_occupied_slot.edit_id == edit_id
     assert new_occupied_slot.video_src == video_src
+    assert new_occupied_slot.start_time == start_time
+    assert new_occupied_slot.end_time == end_time
 
 def test_create_invalid_user(memory_database_session: Session):
     # Arrange
@@ -35,10 +39,12 @@ def test_create_invalid_user(memory_database_session: Session):
     slot_id = 1
     edit_id = 1
     video_src = "http://example.com/video.mp4"
+    start_time=0
+    end_time=0.5
     
     # Act & Assert
     with pytest.raises(IntegrityError):
-        create(user_id=invalid_user_id, slot_id=slot_id, edit_id=edit_id, video_src=video_src, database_session=memory_database_session)
+        create(user_id=invalid_user_id, slot_id=slot_id, edit_id=edit_id, video_src=video_src,start_time=start_time, end_time=end_time, database_session=memory_database_session)
 
 def test_create_edgecase_empty_video_src(memory_database_session: Session):
     # Arrange
@@ -46,9 +52,11 @@ def test_create_edgecase_empty_video_src(memory_database_session: Session):
     slot_id = 1
     edit_id = 1
     video_src = ""  # Leerer Video-Source
+    start_time= 0
+    end_time= 0.5
     
     # Act
-    new_occupied_slot = create(user_id=user_id, slot_id=slot_id, edit_id=edit_id, video_src=video_src, database_session=memory_database_session)
+    new_occupied_slot = create(user_id=user_id, slot_id=slot_id, edit_id=edit_id, video_src=video_src,start_time=start_time, end_time=end_time, database_session=memory_database_session)
     
     # Assert
     assert new_occupied_slot is not None
@@ -87,13 +95,17 @@ def test_update_success(memory_database_session: Session):
     # Arrange
     existing_occupied_slot = data["occupied_slots"][0]
     new_video_src = "http://example.com/updated_video.mp4"
+    start_time = 0.1
+    end_time = 0.4
 
     # Act
-    updated_occupied_slot = update(occupied_slot_id=existing_occupied_slot["occupied_slot_id"], video_src=new_video_src, database_session=memory_database_session)
+    updated_occupied_slot = update(occupied_slot_id=existing_occupied_slot["occupied_slot_id"], video_src=new_video_src, start_time=start_time, end_time=end_time, database_session=memory_database_session)
 
     # Assert
     assert updated_occupied_slot is not None
     assert updated_occupied_slot.video_src == new_video_src
+    assert updated_occupied_slot.start_time == start_time
+    assert updated_occupied_slot.end_time == end_time
 
 def test_update_invalid_id(memory_database_session: Session):
     # Arrange
@@ -215,7 +227,7 @@ def test_is_slot_occupied_edgecase_no_occupied_slots(memory_database_session: Se
 
 def test_integration_crud_occupied_slot(memory_database_session: Session):
     # Create an occupied slot
-    new_occupied_slot = create(user_id=1, slot_id=1, edit_id=1, video_src="http://example.com/video.mp4", database_session=memory_database_session)
+    new_occupied_slot = create(user_id=1, slot_id=1, edit_id=1, video_src="http://example.com/video.mp4", start_time=0, end_time=0.5, database_session=memory_database_session)
     assert new_occupied_slot is not None
 
     # Update the occupied slot

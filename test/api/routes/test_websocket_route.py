@@ -9,7 +9,6 @@ from mock.database.data import data
 
 
 """Auth"""
-# Test für blank access (Fehlende Authentifizierung)
 @pytest.mark.asyncio
 async def test_websocket_blank_access(http_client: TestClient):
     with pytest.raises(WebSocketDisconnect) as exc_info:
@@ -18,7 +17,6 @@ async def test_websocket_blank_access(http_client: TestClient):
     # Überprüfe, ob der Code für fehlende Authentifizierung korrekt ist (1008)
     assert exc_info.value.code == 1008
 
-# Test für falsches JWT (Ungültige Authentifizierung)
 @pytest.mark.asyncio
 async def test_websocket_wrong_jwt(http_client: TestClient, bearer_headers: List[dict[str, str]]):
     with pytest.raises(WebSocketDisconnect) as exc_info:
@@ -27,9 +25,7 @@ async def test_websocket_wrong_jwt(http_client: TestClient, bearer_headers: List
     # Überprüfe, ob der Code für falsches JWT korrekt ist (4001 oder 1008)
     assert exc_info.value.code == 4001
 
-
-"""Success"""
-# tables success        
+"""Success"""        
 @pytest.mark.asyncio
 async def test_websocket_edit_success(http_client: TestClient, bearer_headers: List[dict[str, str]]):
     song_id = data["songs"][0]["song_id"]  # Song 1
@@ -123,11 +119,6 @@ async def test_websocket_occupied_slot_post_put_delete(http_client: TestClient, 
         assert websocket.receive_text() == "OCCUPIEDSLOT"
 
 """Multiple Connections"""
-
-
-
-
-
 @pytest.mark.asyncio
 async def test_websocket_multiple_connections_check_queue(http_client: TestClient, bearer_headers: List[dict[str, str]]):
     group_1_id = data["groups"][0]["group_id"]  # Group 1

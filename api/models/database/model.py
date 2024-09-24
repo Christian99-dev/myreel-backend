@@ -100,6 +100,9 @@ class OccupiedSlot(Base):
     slot_id: Mapped[int] = mapped_column(ForeignKey('slot.slot_id', ondelete='CASCADE'), nullable=False)
     edit_id: Mapped[int] = mapped_column(ForeignKey('edit.edit_id', ondelete='CASCADE'), nullable=False)
     video_src: Mapped[str] = mapped_column(String(255), nullable=False)
+    start_time: Mapped[float] = mapped_column(nullable=False)
+    end_time: Mapped[float] = mapped_column(nullable=False)
+
 
     user: Mapped["User"] = relationship("User", back_populates="occupied_slot_list")
     slot: Mapped["Slot"] = relationship("Slot", back_populates="occupied_slots")

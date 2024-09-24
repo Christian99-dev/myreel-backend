@@ -37,6 +37,7 @@ from api.utils.files.file_validation import file_validation
 from api.utils.jwt import jwt
 from api.utils.media_manipulation.swap_slot_in_edit_video import \
     swap_slot_in_edit
+from mock.database import data
 
 logger = logging.getLogger("routes.slot")
 
@@ -128,6 +129,8 @@ async def post_slot(
         user_id,
         slot_id,
         edit_id,
+        start_time=request.start_time,
+        end_time=request.end_time,
         video_src="",
         database_session=database_session
     )
@@ -141,7 +144,7 @@ async def post_slot(
     )
     
     # datenbank eintrag mit video src vervollständing
-    update_occupied_slot_database(database_session=database_session,occupied_slot_id=new_occupied_slot.slot_id, video_src=video_location) 
+    update_occupied_slot_database(occupied_slot_id=new_occupied_slot.slot_id, database_session=database_session, video_src=video_location) 
     
     # edit neu erstellen und abspeicher
     old_edit_file = get_edit_file(edit_id, file_session=file_session)
@@ -153,8 +156,8 @@ async def post_slot(
         slot.end_time,
         "mp4",
         validate_video_file_bytes,
-        request.start_time,
-        request.end_time,
+        new_occupied_slot.start_time,
+        new_occupied_slot.end_time,
         "mp4",
         "mp4"
     )
@@ -196,6 +199,8 @@ async def put_slot(
     validated_video_file = file_validation(request.video_file, "video")
     validate_video_file_bytes = await validated_video_file.read()
     
+    # update occupied slot
+    new_occupied_slot = update_occupied_slot_database(occupied_slot_id, start_time=request.start_time, end_time=request.end_time, database_session=database_session)
             
     
     # edit neu erstellen und abspeicher
@@ -208,8 +213,8 @@ async def put_slot(
         "mp4",
         
         validate_video_file_bytes,
-        request.start_time,
-        request.end_time,
+        new_occupied_slot.start_time,
+        new_occupied_slot.end_time,
         "mp4",
         
         "mp4"
