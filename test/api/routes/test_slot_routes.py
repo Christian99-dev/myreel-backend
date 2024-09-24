@@ -159,11 +159,12 @@ def test_post_slot_not_found(http_client: TestClient, memory_file_session: BaseF
 def test_put_slot_blank_access(http_client: TestClient):
     response = http_client.put("/edit/1/slot/1")
     assert response.status_code == 403
-
+    
 def test_put_slot_success(http_client: TestClient, memory_file_session: BaseFileSessionManager, bearer_headers: List[dict[str, str]], memory_database_session: Session):
     # Arrange
     occupied_slot_id = data["occupied_slots"][0]["occupied_slot_id"]
     video_file_bytes = memory_file_session.get("1", "occupied_slots")
+    old_location = data["occupied_slots"][0]["video_src"]
 
     # Act
     response = http_client.put(
@@ -184,7 +185,9 @@ def test_put_slot_success(http_client: TestClient, memory_file_session: BaseFile
     
     # Check if slot is updated in the database
     updated_slot = memory_database_session.query(OccupiedSlot).filter_by(occupied_slot_id=occupied_slot_id).first()
+    new_location = updated_slot.video_src
     assert updated_slot is not None
+    assert new_location != old_location
 
 def test_put_slot_wrong_edit(http_client: TestClient, memory_file_session: BaseFileSessionManager, bearer_headers: List[dict[str, str]], memory_database_session: Session):
     # Arrange

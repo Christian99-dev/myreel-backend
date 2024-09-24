@@ -182,7 +182,10 @@ async def put_slot(
     )
 
     # neues edit abspeichern
-    update_edit_file(edit_id, new_edit_file, file_session=file_session)
+    new_location = update_edit_file(edit_id, new_edit_file, file_session=file_session)
+    
+    # update video src
+    update_occupied_slot_database(occupied_slot.occupied_slot_id, video_src=new_location, database_session=database_session)
 
     # file updaten
     update_occupied_slot_file(occupied_slot.occupied_slot_id, validate_video_file_bytes, file_session=file_session)
