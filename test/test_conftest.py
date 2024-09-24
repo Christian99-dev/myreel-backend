@@ -232,8 +232,8 @@ def test_http_client_has_prod_routes(http_client: TestClient):
         '/testing/1',
         '/testing/2',
         '/testing/3',
-        '/testing/4'
-        
+        '/testing/4',
+        "/ws/updates/{group_id}"
     ]
     
     """Test to ensure that the app has the correct routes."""

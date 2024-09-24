@@ -15,6 +15,9 @@ from api.models.database.model import (Base, Edit, Group, Invitation,
                                        User)
 from mock.database.data import data
 
+"""Init Trigger"""
+from api.config.database_trigger import after_edit_update, after_occupied_slot_update, after_user_update
+
 # Logger für die Session-Verwaltung
 logger = logging.getLogger("sessions.database")
 
@@ -28,6 +31,7 @@ DATABASE_REMOTE_SQL_HOST            = os.getenv("DATABASE_REMOTE_MYSQL_HOST")
 DATABASE_REMOTE_SQL_USER            = os.getenv("DATABASE_REMOTE_MYSQL_USER")
 DATABASE_REMOTE_SQL_PASSWORD        = os.getenv("DATABASE_REMOTE_MYSQL_PASSWORD")
 DATABASE_REMOTE_SQL_DB              = os.getenv("DATABASE_REMOTE_MYSQL_DB")
+
 
 """Base Database Session Manager"""
 class BaseDatabaseSessionManager(ABC):
@@ -166,8 +170,6 @@ class BaseDatabaseSessionManager(ABC):
             raise e
         finally:
             session.close()
-
-
 
 
 """Implementations for Different Session Managers"""

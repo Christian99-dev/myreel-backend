@@ -14,6 +14,7 @@ from api.routes.group import router as group_router
 from api.routes.song import router as song_router
 from api.routes.user import router as user_router
 from api.routes.slot import router as slot_router
+from api.routes.websockets import router as websockets_router
 from api.sessions.database import (MemoryDatabaseSessionManager,
                                    get_database_session)
 from api.sessions.email import MemoryEmailSessionManager, get_email_session
@@ -42,6 +43,7 @@ def bearer_headers():
         {"Authorization": f"Bearer {jwt.create_jwt(1, 30)}"},
         {"Authorization": f"Bearer {jwt.create_jwt(2, 30)}"},
         {"Authorization": f"Bearer {jwt.create_jwt(3, 30)}"},
+        {"Authorization": f"Bearer {jwt.create_jwt(4, 30)}"},
     ]
     
 """Database"""
@@ -84,6 +86,9 @@ def http_client(
     app.include_router(user_router)
     app.include_router(edit_router)
     app.include_router(slot_router)
+    
+    # websockets
+    app.include_router(websockets_router)
 
     # add exception handler 
     add_exception_handlers(app)

@@ -115,34 +115,30 @@ def setup_logging(env: str):
                 prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}
             ),
-
             "routes.song": get_logger(env, 
                 test={"level": "CRITICAL"},
                 dev={"level": "INFO"}, 
                 prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}
             ),
-
-            "routes.song": get_logger(env, 
-                test={"level": "CRITICAL"},
-                dev={"level": "INFO"}, 
-                prod={"level": "CRITICAL"}, 
-                handlers={"console", "file"}
-            ),
-
             "routes.edit": get_logger(env, 
-                test={"level": "DEBUG"},
+                test={"level": "CRITICAL"},
                 dev={"level": "INFO"}, 
                 prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}
             ),
             "routes.slot": get_logger(env, 
-                test={"level": "DEBUG"},
+                test={"level": "CRITICAL"},
                 dev={"level": "INFO"}, 
                 prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}
             ),
-
+            "routes.websocket": get_logger(env, 
+                test={"level": "DEBUG"},
+                dev={"level": "DEBUG"}, 
+                prod={"level": "CRITICAL"}, 
+                handlers={"console", "file"}
+            ),
 
             # Middleware
             "middleware.access_handler": get_logger(env, 
@@ -167,6 +163,23 @@ def setup_logging(env: str):
                 prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}
             ),
+            
+            # config
+            "config.database_trigger": get_logger(env, 
+                test={"level": "DEBUG"},
+                dev={"level": "DEBUG"}, 
+                prod={"level": "CRITICAL"}, 
+                handlers={"console", "file"}
+            ),
+            
+            # websocket
+            "websocket.active_connections": get_logger(env, 
+                test={"level": "DEBUG"},
+                dev={"level": "DEBUG"}, 
+                prod={"level": "CRITICAL"}, 
+                handlers={"console", "file"}
+            ),
+            
         },
     })
 

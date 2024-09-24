@@ -14,6 +14,7 @@ from api.routes.static import router as static_router
 from api.routes.testing import router as testing_router
 from api.routes.slot import router as slot_router
 from api.routes.user import router as user_router
+from api.routes.websockets import router as websocket_router
 from api.sessions.database import (get_database_session,
                                    init_database_session_manager)
 from api.sessions.email import init_email_session_manager
@@ -53,6 +54,10 @@ app.include_router(group_router)
 app.include_router(user_router)
 app.include_router(edit_router)
 app.include_router(slot_router)
+
+# websockets
+app.include_router(websocket_router)
+
 
 # root
 @app.get("/")
