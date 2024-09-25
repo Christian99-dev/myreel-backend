@@ -1,5 +1,6 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Header
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from sqlalchemy.orm import Session
+from urllib.parse import parse_qs
 
 from api.services.database.group import is_group_member
 from api.sessions.database import get_database_session
@@ -13,7 +14,6 @@ router = APIRouter(prefix="/ws")
 async def websocket_endpoint(
     websocket: WebSocket,
     group_id: str,
-    authorization: str = Header(None),
     database_session: Session = Depends(get_database_session)
 ):
     """
@@ -21,10 +21,13 @@ async def websocket_endpoint(
     The client must authenticate with a JWT and provide a valid group_id.
     """
     try:
-        
-        if authorization is None:
+        # Query-Parameter parsen
+        query_params = parse_qs(websocket.scope["query_string"].decode())
+        token_list = query_params.get("token")
+        if not token_list:
             await websocket.close(code=1008)  # Unauthorized access
             return
+        authorization = token_list[0]
 
         # Step 1: Verify JWT and obtain user_id
         user_id = read_jwt(authorization.replace("Bearer ", ""))
@@ -52,7 +55,8 @@ async def websocket_endpoint(
     except WebSocketDisconnect:
         # Handle disconnection
         if group_id in active_connections:
-            active_connections[group_id].remove(websocket)
+            if websocket in active_connections[group_id]:
+                active_connections[group_id].remove(websocket)
             if not active_connections[group_id]:
                 del active_connections[group_id]
 
