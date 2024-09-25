@@ -21,6 +21,8 @@ from api.sessions.email import init_email_session_manager
 from api.sessions.files import init_file_session_manager
 from api.sessions.instagram import init_instagram_session_manager
 from logging_config import setup_logging
+from fastapi.middleware.cors import CORSMiddleware
+
 
 # env
 load_dotenv()
@@ -45,6 +47,17 @@ app.add_middleware(AccessHandlerMiddleware, endpoint_config=endpoint_config, get
 
 # add exception handler
 add_exception_handlers(app)
+
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+    "http://localhost:3000",
+    ],                                # Erlaubte Ursprünge
+    allow_credentials=True,           # Erlaube Cookies/Authentifizierung
+    allow_methods=["*"],              # Erlaube alle Methoden
+    allow_headers=["*"],              # Erlaube alle Header
+)
 
 # router
 app.include_router(testing_router)
