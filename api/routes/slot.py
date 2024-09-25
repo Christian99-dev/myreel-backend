@@ -1,13 +1,15 @@
 
 
+from io import BytesIO
 import logging
 
 from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from api.models.schema.slot import (AddSlotRequest, AddSlotResponse,
                                     ChangeSlotRequest, ChangeSlotResponse,
-                                    DeleteSlotResponse)
+                                    DeleteSlotResponse, PreviewSlotRequest)
 from api.services.database.occupied_slot import \
     create as create_occupied_slot_service
 from api.services.database.occupied_slot import \
@@ -228,4 +230,51 @@ async def put_slot(
     
     
     return {"message": "Successfull swap"}
+
+@router.post("/{edit_id}/slot/{slot_id}/preview", tags=["edit"])
+async def put_slot(
+    edit_id: int,
+    slot_id: int,
+    request: PreviewSlotRequest = Depends(), 
+    database_session: Session = Depends(get_database_session), 
+    file_session: BaseFileSessionManager = Depends(get_file_session)
+):
+    # slot is free ? 
+    if is_slot_occupied_database(slot_id, edit_id, database_session=database_session):
+        raise HTTPException(status_code=403, detail="Slot ist schon belegt")
+       
+    slot = get_slot_database(slot_id, database_session=database_session)
+    
+    if slot.end_time - slot.start_time != request.end_time - request.start_time:
+        raise HTTPException(status_code=422, detail="Slot länge muss die gleiche sein")
+        
+    # validate new video clip
+    validated_video_file = file_validation(request.video_file, "video")
+    validate_video_file_bytes = await validated_video_file.read()
+    
+    # edit neu erstellen und abspeicher
+    old_edit_file = get_edit_file(edit_id, file_session=file_session)
+    
+    # schreibe den neuen clip in das vorhandene edit
+    new_edit_file = swap_slot_in_edit(
+        old_edit_file,
+        slot.start_time,
+        slot.end_time,
+        "mp4",
+        validate_video_file_bytes,
+        request.start_time,
+        request.end_time,
+        "mp4",
+        "mp4"
+    )
+    
+    # Create a BytesIO object to hold the video bytes for streaming
+    new_edit_bytes_io = BytesIO(new_edit_file)
+
+    # Return the new edit file as a video stream with appropriate headers
+    headers = {
+        'Content-Disposition': 'attachment; filename="edited_video.mp4"'
+    }
+
+    return StreamingResponse(new_edit_bytes_io, media_type="video/mp4", headers=headers)
 

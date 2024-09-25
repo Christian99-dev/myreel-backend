@@ -30,3 +30,10 @@ class ChangeSlotRequest:
 
 class ChangeSlotResponse(BaseModel):
     message: str
+    
+# PUT /group/{group_id}/{edit_id}/slot/{slot_id}/preview
+@dataclass
+class PreviewSlotRequest:
+    start_time:     float = Form(...)
+    end_time:       float = Form(...)
+    video_file: UploadFile = File(...)      

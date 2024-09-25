@@ -312,3 +312,96 @@ def test_put_slot_not_found(http_client: TestClient, memory_file_session: BaseFi
     )
     
     assert response.status_code == 404
+
+# Test for preview a slot
+def test_preview_slot_blank_access(http_client: TestClient):
+    response = http_client.post("/edit/1/slot/1/preview")
+    assert response.status_code == 403
+
+def test_preview_slot_success(http_client: TestClient, memory_database_session: Session, memory_file_session: BaseFileSessionManager, bearer_headers: List[dict[str, str]]):
+    # Arrange
+    slot_id = data["slots"][1]["slot_id"]
+    video_file_bytes = memory_file_session.get("1", "occupied_slots")
+    
+    # Act
+    response = http_client.post(
+        f"/edit/1/slot/{slot_id}/preview",
+        headers=bearer_headers[0],
+        files={
+            "video_file": ("test_video.mp4", video_file_bytes, "video/mp4")
+        },
+        data={
+            "start_time": 0.0,
+            "end_time": 0.5
+        }
+    )
+    
+    # Assert
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "video/mp4"
+    assert response.headers["content-disposition"] == 'attachment; filename="edited_video.mp4"'
+
+def test_preview_slot_already_taken(http_client: TestClient, memory_database_session: Session, memory_file_session: BaseFileSessionManager, bearer_headers: List[dict[str, str]]):
+    # Arrange
+    slot_id = data["slots"][0]["slot_id"]
+    video_file_bytes = memory_file_session.get("1", "occupied_slots")
+
+    # Act
+    response = http_client.post(
+        f"/edit/1/slot/{slot_id}/preview",
+        headers=bearer_headers[0],
+        files={
+            "video_file": ("test_video.mp4", video_file_bytes, "video/mp4")
+        },
+        data={
+            "start_time": 0.0,
+            "end_time": 0.5
+        }
+    )
+
+    # Assert
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Slot ist schon belegt"
+
+def test_preview_slot_length_mismatch(http_client: TestClient, memory_database_session: Session, memory_file_session: BaseFileSessionManager, bearer_headers: List[dict[str, str]]):
+    # Arrange
+    slot_id = data["slots"][1]["slot_id"]
+    video_file_bytes = memory_file_session.get("1", "occupied_slots")
+
+    # Act
+    response = http_client.post(
+        f"/edit/1/slot/{slot_id}/preview",
+        headers=bearer_headers[0],
+        files={
+            "video_file": ("test_video.mp4", video_file_bytes, "video/mp4")
+        },
+        data={
+            "start_time": 0.0,
+            "end_time": 0.6  # Length does not match the slot length
+        }
+    )
+
+    # Assert
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Slot länge muss die gleiche sein"
+
+def test_preview_slot_not_found(http_client: TestClient, memory_file_session: BaseFileSessionManager, bearer_headers: List[dict[str, str]]):
+    # Arrange
+    slot_id = 99  # Non-existing slot
+    video_file_bytes = memory_file_session.get("1", "occupied_slots")
+
+    # Act
+    response = http_client.post(
+        f"/edit/2/slot/{slot_id}/preview",
+        headers=bearer_headers[0],
+        files={
+            "video_file": ("test_video.mp4", video_file_bytes, "video/mp4")
+        },
+        data={
+            "start_time": 0.0,
+            "end_time": 0.5
+        }
+    )
+
+    # Assert
+    assert response.status_code == 404

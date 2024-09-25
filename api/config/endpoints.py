@@ -76,6 +76,9 @@ endpoint_config = EndpointConfig({
     '/edit/{edit_id}/slot/{slot_id}' : {
         "POST": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
     },
+    '/edit/{edit_id}/slot/{slot_id}/preview' : {
+        "POST": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
+    },
     '/edit/{edit_id}/slot/{occupied_slot_id}' : {
         "PUT": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
         "DELETE": EndpointInfo(role=RoleEnum.GROUP_MEMBER, has_subroles=True),
