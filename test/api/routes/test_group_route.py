@@ -265,3 +265,50 @@ def test_get_group_edits_success(http_client: TestClient, bearer_headers: List[d
 def test_get_group_edits_not_exists(http_client: TestClient):
     response = http_client.get("/group/11111111-1111-1111-1111-111111111112/edits")
     assert response.status_code == 403
+    
+""" Integration """
+
+def test_create_and_get_group_details(http_client: TestClient):
+    # Arrange - Erstellen der Gruppendaten
+    groupname = "Integration Test Group"
+    username = "Integration Test User"
+    email = "integration_test@example.com"
+
+    # Act - Erstellen der Gruppe
+    response_create = http_client.post(
+        "/group/",
+        json={
+            "groupname": groupname,
+            "username": username,
+            "email": email
+        }
+    )
+
+    # Assert - Überprüfen der Antwort nach Erstellung
+    assert response_create.status_code == 200
+    response_data = response_create.json()
+    assert "jwt" in response_data
+    assert response_data["group_id"] is not None
+
+    jwt_token = response_data["jwt"]
+    group_id = response_data["group_id"]
+
+    # Headers mit JWT-Token vorbereiten
+    headers = {"Authorization": f"Bearer {jwt_token}"}
+
+    # Act - Abrufen der Gruppendetails mit dem JWT-Token
+    response_get = http_client.get(f"/group/{group_id}", headers=headers)
+
+    # Assert - Überprüfen der Antwort nach Abruf der Details
+    assert response_get.status_code == 200
+    response_get_data = response_get.json()
+
+    # Überprüfen der Benutzerdaten
+    assert "user" in response_get_data
+    assert response_get_data["user"]["name"] == username
+    assert response_get_data["user"]["email"] == email
+
+    # Überprüfen der Gruppendaten
+    assert response_get_data["group_id"] == group_id
+    assert response_get_data["group_name"] == groupname
+    assert response_get_data["created_by"] == username

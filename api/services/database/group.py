@@ -68,11 +68,10 @@ def get_group_by_user_id(user_id: int, database_session: Session) -> Group:
     return database_session.query(Group).filter(Group.group_id == user.group_id).first()
 
 def get_group_creator(group_id: str, database_session: Session) -> User:
-    # Suche den ersten Edit in der Gruppe, um den Ersteller zu finden
+    # Suche den Benutzer mit der Rolle 'creator' in der Gruppe
     creator = (
         database_session.query(User)
-        .join(Edit, Edit.created_by == User.user_id)
-        .filter(Edit.group_id == group_id)
+        .filter(User.group_id == group_id, User.role == 'creator')
         .first()
     )
     

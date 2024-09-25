@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
-from api.models.database.model import Group, Invitation, User
+from api.models.database.model import Group, Invitation, User, Edit
 from api.services.database.group import (create, get, get_group_by_edit_id,
                                          get_group_by_user_id, get_group_creator,
                                          is_group_creator, is_group_member,
@@ -339,3 +339,26 @@ def test_cascade_delete_group_with_users_and_invitations(memory_database_session
     # Ensure all associated Invitations are deleted
     invitations = memory_database_session.query(Invitation).filter_by(group_id=group_id).all()
     assert len(invitations) == 0
+
+"""Integration - Other"""
+def test_get_group_creator_after_group_creation(memory_database_session: Session):
+    # Arrange: Erstellen einer neuen Gruppe
+    group_name = "Test Group"
+    new_group = create(name=group_name, database_session=memory_database_session)
+
+    # Erstellen eines neuen Benutzers und Zuweisen zur Gruppe
+    user_name = "Test User"
+    user_email = "testuser@example.com"
+    user_role = "creator" 
+    new_user = User(name=user_name, email=user_email, role=user_role, group_id=new_group.group_id)
+    memory_database_session.add(new_user)
+    memory_database_session.commit()
+
+    # Act: Aufrufen der get_group_creator-Methode
+    creator = get_group_creator(group_id=new_group.group_id, database_session=memory_database_session)
+
+    # Assert: Überprüfen, ob der Ersteller korrekt ist
+    assert creator is not None
+    assert creator.user_id == new_user.user_id
+    assert creator.name == new_user.name
+    assert creator.email == new_user.email
