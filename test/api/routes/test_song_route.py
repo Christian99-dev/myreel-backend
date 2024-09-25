@@ -12,17 +12,24 @@ def test_create_blank_access(http_client: TestClient):
     assert response.status_code == 403
 
 def test_create_song_success(http_client: TestClient, memory_file_session: BaseFileSessionManager, admintoken: str):
-    
     # Arrange
     cover_file_bytes = memory_file_session.get("1", "covers")
     song_file_bytes = memory_file_session.get("1", "songs")
 
-    assert type(cover_file_bytes) is bytes 
-    assert type(song_file_bytes) is bytes 
+    assert isinstance(cover_file_bytes, bytes)
+    assert isinstance(song_file_bytes, bytes)
+
+    # Zähle die vorhandenen Songs, um die neue song_id zu bestimmen
+    existing_songs = memory_file_session.list('songs')
+    existing_song_ids = [filename.split('.')[0] for filename in existing_songs]
+    existing_song_ids_int = [int(song_id) for song_id in existing_song_ids if song_id.isdigit()]
+    max_existing_song_id = max(existing_song_ids_int) if existing_song_ids_int else 0
+    new_song_id = str(max_existing_song_id + 1)
+    old_song_size = len(song_file_bytes)
 
     # Act
     response = http_client.post(
-        "/song/", 
+        "/song/",
         headers={"admintoken": admintoken},
         files={
             "cover_file": ("test_cover.png", cover_file_bytes, "image/png"),
@@ -42,6 +49,17 @@ def test_create_song_success(http_client: TestClient, memory_file_session: BaseF
     assert response_json["author"] == "Test Artist"
     assert response_json["audio_src"] is not None
     assert response_json["cover_src"] is not None
+
+    # Überprüfe, ob die neue song_id im Speicher existiert
+    stored_song_content = memory_file_session.get(new_song_id, 'songs')
+    assert stored_song_content is not None, f"Die Audiodatei für song_id '{new_song_id}' wurde nicht im Speicher gefunden."
+
+    # Überprüfe die Größe der gespeicherten Audiodatei
+    stored_song_size = len(stored_song_content)
+    assert old_song_size == stored_song_size
+    assert stored_song_size > 0, f"Die gespeicherte Audiodatei für song_id '{new_song_id}' ist 0 Bytes groß."
+
+    print(f"Die gespeicherte Audiodatei für song_id '{new_song_id}' hat eine Größe von {stored_song_size} Bytes.")
 
 def test_create_empty_data(http_client: TestClient, memory_file_session: BaseFileSessionManager, admintoken: str):
     

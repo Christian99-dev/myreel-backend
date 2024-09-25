@@ -41,14 +41,16 @@ async def create_song(
     # Validate and read files
     validated_song_file = file_validation(request.song_file, "audio")
     validated_cover_file = file_validation(request.cover_file, "image")
+    
+    # Lese die Song-Datei einmal
+    song_file_bytes = await validated_song_file.read()
 
-    # Validate breakpoints against song duration
-    song_duration = get_audio_duration(validated_song_file, "wav")
+    # Berechne die Dauer der Song-Datei
+    song_duration = get_audio_duration(song_file_bytes, "wav")
 
     if song_duration < (breakpoints[-1] - breakpoints[0]):
         raise ValueError("Breakpoints exceed song duration")
 
-    song_file_bytes = await validated_song_file.read()
     cover_file_bytes = await validated_cover_file.read()
 
     song_extension = validated_song_file.filename.split(".")[-1]
