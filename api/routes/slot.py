@@ -141,7 +141,7 @@ async def post_slot(
     video_location = create_occupied_slot_file(
         new_occupied_slot.occupied_slot_id, 
         "mp4", 
-        validated_video_file, 
+        validate_video_file_bytes, 
         file_session=file_session
     )
     
