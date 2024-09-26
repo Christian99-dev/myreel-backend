@@ -136,7 +136,7 @@ class LocalFileSessionManager(BaseFileSessionManager):
             f.write(file_data)
         
         logger.info(f"create(): Saved file '{complete_file_name}' in '{dir}'")
-        return f"http://localhost:8000/outgoing/files/{dir}/{complete_file_name}"
+        return f"http://localhost:8000/files/{dir}/{complete_file_name}"
 
     def get(self, file_name: str, dir: str) -> bytes:
         logger.info("get(): (lokal)")
@@ -161,7 +161,7 @@ class LocalFileSessionManager(BaseFileSessionManager):
                 with open(file_path, 'wb') as f:
                     f.write(file_data)
                 logger.info(f"update(): Updated file '{file}' in '{dir}'")
-                return f"http://localhost:8000/outgoing/files/{dir}/{file}"
+                return f"http://localhost:8000/files/{dir}/{file}"
         
         raise FileNotFoundInSessionError(f"File '{file_name}' not found in '{dir}'")
 
