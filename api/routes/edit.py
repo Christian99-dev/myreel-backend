@@ -30,6 +30,7 @@ from api.sessions.files import BaseFileSessionManager, get_file_session
 from api.sessions.instagram import get_instagram_session
 from api.utils.jwt import jwt
 from api.utils.media_manipulation.create_edit_video import create_edit_video
+from sqlalchemy.exc import NoResultFound
 
 logger = logging.getLogger("routes.edit")
 
@@ -92,7 +93,12 @@ async def get_edit_details(edit_id: int, database_session: Session = Depends(get
     edit = get_edit_database(edit_id, database_session=database_session)
     
     # Abrufen der Slots und belegten Slots
-    slots = get_slots_for_edit_database(edit_id, database_session)
+    slots = []
+    try:
+        slots = get_slots_for_edit_database(edit_id, database_session)
+    except NoResultFound:
+        pass
+
     occupied_slots_info = get_occupied_slots_for_edit_database(edit_id, database_session)
 
     # Erstellerinformationen
