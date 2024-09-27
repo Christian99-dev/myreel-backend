@@ -67,7 +67,7 @@ async def acceptInvite(request: AcceptInviteRequest = Body(...), database_sessio
     new_user = create_user_database(request.groupid, "member", request.name, email=invite.email, database_session=database_session)
     
     # jwt für den nutzer, nutzer kann sich aber auch über login einen token holen
-    jwt = create_jwt(new_user.user_id, 30)
+    jwt = create_jwt(new_user.user_id, 130)
     
     # lösche alle die noch da sind mit diesem user
     remove_all_by_email_and_group_id_invite_database(email=invite.email, group_id=request.groupid, database_session=database_session)
@@ -108,7 +108,7 @@ async def login(request: LoginRequest = Body(...), database_session: Session = D
         raise HTTPException(status_code=400, detail="Login-Anfrage ist abgelaufen")
 
     # jwt für user
-    jwt = create_jwt(user.user_id, 30)
+    jwt = create_jwt(user.user_id, 130)
     
     # login request löschen
     remove_login_database(user.user_id, database_session=database_session)
