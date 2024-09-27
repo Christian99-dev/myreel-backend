@@ -1,6 +1,7 @@
+from typing import List
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
-from api.models.database.model import OccupiedSlot, Slot
+from api.models.database.model import OccupiedSlot, Slot, Edit
 
 """CRUD Operationen"""
 
@@ -43,15 +44,27 @@ def remove(slot_id: int, database_session: Session) -> None:
 
 """Andere Operationen"""
 
-def get_slots_for_edit(edit_id: int, database_session: Session):
+def get_slots_for_edit(edit_id: int, database_session: Session) -> List[Slot]:
     """
-    Gibt die Liste der Slots zurück, die mit der angegebenen edit_id verknüpft sind.
-    Wenn keine Slots gefunden werden, wird eine NoResultFound Exception geworfen.
+    Gibt die Liste der Slots zurück, die mit dem Song verknüpft sind, der in der angegebenen edit_id vertreten ist.
+    Wenn das Edit oder die Slots nicht gefunden werden, wird eine NoResultFound Exception geworfen.
+    
+    :param edit_id: Die ID des Edits.
+    :param database_session: Die SQLAlchemy Session.
+    :return: Eine Liste von Slot-Objekten.
+    :raises NoResultFound: Wenn das Edit oder die Slots nicht gefunden werden.
     """
-    slots = database_session.query(Slot).filter(Slot.song_id == edit_id).all()
+    # Schritt 1: Finde das Edit anhand der edit_id
+    edit = database_session.query(Edit).filter(Edit.edit_id == edit_id).one_or_none()
+    
+    if not edit:
+        raise NoResultFound(f"Edit mit ID {edit_id} nicht gefunden.")
+    
+    # Schritt 2: Finde alle Slots, die mit dem song_id des Edits verknüpft sind
+    slots = database_session.query(Slot).filter(Slot.song_id == edit.song_id).all()
     
     if not slots:
-        raise NoResultFound(f"No slots found for edit ID {edit_id}")
+        raise NoResultFound(f"No slots found for the song ID {edit.song_id} associated with edit ID {edit_id}.")
     
     return slots
 

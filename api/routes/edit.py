@@ -93,13 +93,13 @@ async def get_edit_details(edit_id: int, database_session: Session = Depends(get
     edit = get_edit_database(edit_id, database_session=database_session)
     
     # Abrufen der Slots und belegten Slots
-    slots = []
+    slots = get_slots_for_edit_database(edit_id, database_session)
+    
+    occupied_slots_info = []
     try:
-        slots = get_slots_for_edit_database(edit_id, database_session)
+        occupied_slots_info = get_occupied_slots_for_edit_database(edit_id, database_session)
     except NoResultFound:
         pass
-
-    occupied_slots_info = get_occupied_slots_for_edit_database(edit_id, database_session)
 
     # Erstellerinformationen
     created_by = {
