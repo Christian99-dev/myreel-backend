@@ -100,17 +100,24 @@ async def get_group_members(group_id: str, database_session: Session = Depends(g
 @router.get("/{group_id}/edits", response_model=GetEditsResponse, tags=["group"])
 async def get_group_edits(group_id: str, database_session: Session = Depends(get_database_session)):
     edits = get_edits_by_group_database(group_id, database_session=database_session)
-    return {
-        "edits": [
-            {
-                "edit_id": edit.edit_id,
-                "created_by": edit.created_by,
-                "name": edit.name,
-                "isLive": edit.isLive
-            }
-            for edit in edits
-        ]
-    }
+    
+    
+    response_edits = [
+        {
+            "edit_id": edit.edit_id,
+            "created_by": {
+                "user_id": edit.created_by,
+                "role": user.role if user else "Unbekannt",
+                "name": user.name if user else "Unbekannt",
+            },
+            "name": edit.name,
+            "isLive": edit.isLive
+        }
+        for edit in edits
+        for user in [get_user_database(edit.created_by, database_session)]
+    ]
+    
+    return {"edits": response_edits}
         
 
 

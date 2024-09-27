@@ -260,7 +260,7 @@ def test_get_group_edits_success(http_client: TestClient, bearer_headers: List[d
     # Specific checks for the first edit
     assert response_data["edits"][0]["edit_id"] == data["edits"][0]["edit_id"]
     assert response_data["edits"][0]["name"] == data["edits"][0]["name"]
-    assert response_data["edits"][0]["created_by"] == data["edits"][0]["created_by"]
+    assert response_data["edits"][0]["created_by"]["name"] == data["users"][0]["name"]
 
 def test_get_group_edits_not_exists(http_client: TestClient):
     response = http_client.get("/group/11111111-1111-1111-1111-111111111112/edits")

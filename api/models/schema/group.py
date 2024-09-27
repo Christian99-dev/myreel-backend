@@ -14,7 +14,7 @@ class Member(BaseModel):
 
 class Edit(BaseModel):
     edit_id: int
-    created_by: int
+    created_by: Member
     name: str
     isLive: bool
 
