@@ -208,6 +208,28 @@ def test_put_slot_success(http_client: TestClient, memory_file_session: BaseFile
     # Check if slot is updated in the database
     updated_slot = memory_database_session.query(OccupiedSlot).filter_by(occupied_slot_id=occupied_slot_id).first()
     assert updated_slot is not None
+
+def test_put_slot_without_videofile_success(http_client: TestClient, memory_file_session: BaseFileSessionManager, bearer_headers: List[dict[str, str]], memory_database_session: Session):
+    # Arrange
+    occupied_slot_id = data["occupied_slots"][0]["occupied_slot_id"]
+
+    # Act
+    response = http_client.put(
+        f"/edit/1/slot/{occupied_slot_id}", 
+        headers=bearer_headers[0],
+        data={
+            "start_time": 4.0,
+            "end_time": 4.5
+        }
+    )
+    
+    # Assert
+    assert response.status_code == 200
+    assert response.json()["message"] == "Successfull swap"
+    
+    # Check if slot is updated in the database
+    updated_slot = memory_database_session.query(OccupiedSlot).filter_by(occupied_slot_id=occupied_slot_id).first()
+    assert updated_slot is not None
     
 def test_put_new_slot_too_long(http_client: TestClient, memory_file_session: BaseFileSessionManager, bearer_headers: List[dict[str, str]], memory_database_session: Session):
     # Arrange

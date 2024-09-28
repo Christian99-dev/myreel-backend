@@ -197,36 +197,37 @@ async def put_slot(
     if slot.end_time - slot.start_time != request.end_time - request.start_time:
         raise HTTPException(status_code=422, detail="Slot länge muss die gleiche sein")
     
-    # validate new video clip
-    validated_video_file = file_validation(request.video_file, "video")
-    validate_video_file_bytes = await validated_video_file.read()
-    
     # update occupied slot
     new_occupied_slot = update_occupied_slot_database(occupied_slot_id, start_time=request.start_time, end_time=request.end_time, database_session=database_session)
+    
+    # change video also ? 
+    if request.video_file != None:
+        # validate new video clip
+        validated_video_file = file_validation(request.video_file, "video")
+        validate_video_file_bytes = await validated_video_file.read()
+                
+        # edit neu erstellen und abspeicher
+        old_edit_file = get_edit_file(edit_id, file_session=file_session)
+        
+        new_edit_file = swap_slot_in_edit(
+            old_edit_file,
+            slot.start_time,
+            slot.end_time,
+            "mp4",
             
-    
-    # edit neu erstellen und abspeicher
-    old_edit_file = get_edit_file(edit_id, file_session=file_session)
-    
-    new_edit_file = swap_slot_in_edit(
-        old_edit_file,
-        slot.start_time,
-        slot.end_time,
-        "mp4",
-        
-        validate_video_file_bytes,
-        new_occupied_slot.start_time,
-        new_occupied_slot.end_time,
-        "mp4",
-        
-        "mp4"
-    )
+            validate_video_file_bytes,
+            new_occupied_slot.start_time,
+            new_occupied_slot.end_time,
+            "mp4",
+            
+            "mp4"
+        )
 
-    # neues edit abspeichern
-    update_edit_file(edit_id, new_edit_file, file_session=file_session)
+        # neues edit abspeichern
+        update_edit_file(edit_id, new_edit_file, file_session=file_session)
 
-    # file updaten
-    update_occupied_slot_file(occupied_slot.occupied_slot_id, validate_video_file_bytes, file_session=file_session)
+        # file updaten
+        update_occupied_slot_file(occupied_slot.occupied_slot_id, validate_video_file_bytes, file_session=file_session)
     
     
     return {"message": "Successfull swap"}

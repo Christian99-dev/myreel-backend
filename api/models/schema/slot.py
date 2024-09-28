@@ -26,7 +26,7 @@ class DeleteSlotResponse(BaseModel):
 class ChangeSlotRequest:
     start_time:     float = Form(...)
     end_time:       float = Form(...)
-    video_file: UploadFile = File(...)      
+    video_file: UploadFile = File(None)      
 
 class ChangeSlotResponse(BaseModel):
     message: str
