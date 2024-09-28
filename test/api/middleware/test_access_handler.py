@@ -57,6 +57,17 @@ admin_req_creds = {
     "userid": 1
 }
 
+admin_req_creds_with_expired_token = {
+    "req": {    
+        "headers": {
+            "admintoken": str(os.getenv("ADMIN_TOKEN")),
+            "Authorization" : "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mjc1MjEwNzMsInN1YiI6IjE2In0.x8qAn795QtPKpMlIr8L6l2onbVoCYSoScXHu2YMnHGA"
+        }
+    }, 
+    "role": RoleEnum.ADMIN,
+    "userid": 1
+}
+
 group_creator_req_creds = {
     "req": {    
         "headers": {
@@ -203,7 +214,8 @@ def test_access_handler_with_subroles(http_client_mocked_paths: TestClient):
             group_member_req_creds, 
             external_req_creds,
             group_creator_with_edit_id_req_creds,
-            group_member_with_edit_id_req_creds
+            group_member_with_edit_id_req_creds,
+            admin_req_creds_with_expired_token
         ]: 
             headers = current_creds["req"]["headers"]
             params  = current_creds["req"].get("params", {})
