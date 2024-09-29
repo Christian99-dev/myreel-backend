@@ -106,6 +106,7 @@ def test_get_edit_details_success(http_client: TestClient, bearer_headers: List[
     assert response_data["slots"][0]["end_time"] == 0.5
     assert response_data["slots"][0]["occupied_by"]["user_id"] == 1
     assert response_data["slots"][0]["occupied_by"]["name"] == "Creator of Group 1"
+    assert response_data["slots"][0]["video_src"] == "http://localhost:8000/files/occupied_slots/1.mp4"
 
     assert response_data["slots"][1]["slot_id"] == 2
     assert response_data["slots"][1]["song_id"] == 1

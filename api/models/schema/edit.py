@@ -15,6 +15,7 @@ class Slot(BaseModel):
     end_time: float
     occupied_by: Optional[User]  
     occupied_id: Optional[int]
+    video_src: Optional[str]
     
 class Edit(BaseModel):
     edit_id: int
@@ -39,11 +40,10 @@ class PostRequest(BaseModel):
     song_id: int
     edit_name: str = Field(..., min_length=3, max_length=20)
 
-
 class PostResponse(Edit):
     pass
 
-# GET /group/{group_id}/{edit_id}
+# GET /{edit_id}
 class GetEditResponse(BaseModel):
     created_by: User
     edit: Edit
