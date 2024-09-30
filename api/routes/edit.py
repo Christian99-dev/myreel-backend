@@ -101,6 +101,7 @@ async def get_edit_details(edit_id: int, database_session: Session = Depends(get
     except NoResultFound:
         pass
 
+
     # Erstellerinformationen
     created_by = {
         "user_id": edit.creator.user_id,  # User-ID des Erstellers
@@ -135,7 +136,6 @@ async def get_edit_details(edit_id: int, database_session: Session = Depends(get
                     "user_id": occupied.user.user_id,
                     "name": occupied.user.name
                 }
-                logger.debug(occupied.video_src)
                 occupied_id = occupied.occupied_slot_id
                 video_src = occupied.video_src
                 occupied_start_time = occupied.start_time

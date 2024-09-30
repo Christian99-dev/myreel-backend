@@ -102,7 +102,7 @@ async def delete_slot(
     
     return {"message": "Successfull delete"}
 
-@router.post("/{edit_id}/slot/{slot_id}", response_model=AddSlotResponse,  tags=["edit"])
+@router.post("/{edit_id}/slot/{slot_id}", response_model=AddSlotResponse, tags=["edit"])
 async def post_slot(
     slot_id: int,
     edit_id: int,
@@ -112,34 +112,29 @@ async def post_slot(
     file_session: BaseFileSessionManager = Depends(get_file_session)
 ):
     
-    
-    
+    # Extract user_id from JWT token
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
     
-    # slot is free ? 
-    try :
+    # Check if the slot is already occupied
+    try:
         if is_slot_occupied_database(slot_id, edit_id, database_session=database_session):
+
             raise HTTPException(status_code=403, detail="Slot ist schon belegt")
     except NoResultFound:
         pass
-       
+    
+    # Get slot details from database
     slot = get_slot_database(slot_id, database_session=database_session)
     
-    logger.debug(slot.start_time)
-    logger.debug(slot.end_time)
-    logger.debug(request.start_time)
-    logger.debug(request.end_time)
-    logger.debug((slot.end_time - slot.start_time) - (request.end_time - request.start_time))
-    
-    
+    # Check if the slot length is the same
     if abs((slot.end_time - slot.start_time) - (request.end_time - request.start_time)) > 0.01:
         raise HTTPException(status_code=422, detail="Slot länge muss die gleiche sein")
-        
-    # validate new video clip
+    
+    # Validate the new video clip
     validated_video_file = file_validation(request.video_file, "video")
     validate_video_file_bytes = await validated_video_file.read()
-    
-    # database eintrag
+
+    # Create a new database entry for the occupied slot
     new_occupied_slot = create_occupied_slot_service(
         user_id,
         slot_id,
@@ -150,21 +145,21 @@ async def post_slot(
         database_session=database_session
     )
     
-    # file eintrag in occupied slot
+    # Save the file to the occupied slot
     video_location = create_occupied_slot_file(
         new_occupied_slot.occupied_slot_id, 
         "mp4", 
         validate_video_file_bytes, 
         file_session=file_session
     )
-    
-    # datenbank eintrag mit video src vervollständing
-    update_occupied_slot_database(occupied_slot_id=new_occupied_slot.slot_id, database_session=database_session, video_src=video_location) 
-    
-    # edit neu erstellen und abspeicher
+
+    # Update the database with video source
+    update_occupied_slot_database(occupied_slot_id=new_occupied_slot.occupied_slot_id, database_session=database_session, video_src=video_location) 
+
+    # Retrieve the existing edit file
     old_edit_file = get_edit_file(edit_id, file_session=file_session)
-    
-    # schreibe den neuen clip in das vorhandene edit
+
+    # Swap the old clip with the new one in the edit
     new_edit_file = swap_slot_in_edit(
         old_edit_file,
         slot.start_time,
@@ -176,11 +171,12 @@ async def post_slot(
         "mp4",
         "mp4"
     )
-    
-    # speichere das neue edit ab
+    logger.debug(f"Slot swapped successfully in the edit file")
+
+    # Save the new edit file
     update_edit_file(edit_id, new_edit_file, file_session=file_session)
 
-    return {"message": "Successfull post"}
+    return {"message": "Successful post"}
 
 @router.put("/{edit_id}/slot/{occupied_slot_id}", response_model=ChangeSlotResponse,  tags=["edit"])
 async def put_slot(
