@@ -124,6 +124,8 @@ async def get_edit_details(edit_id: int, database_session: Session = Depends(get
         occupied_info = None
         occupied_id = None
         video_src = None
+        occupied_start_time = None
+        occupied_end_time = None
 
         # Überprüfen, ob der Slot belegt ist
         for occupied in occupied_slots_info:
@@ -135,6 +137,8 @@ async def get_edit_details(edit_id: int, database_session: Session = Depends(get
                 }
                 occupied_id = occupied.occupied_slot_id
                 video_src = occupied.video_src
+                occupied_start_time = occupied.start_time
+                occupied_end_time = occupied.end_time
                 break
 
         slot_response.append({
@@ -144,7 +148,9 @@ async def get_edit_details(edit_id: int, database_session: Session = Depends(get
             "end_time": slot.end_time,
             "occupied_by": occupied_info,
             "occupied_id": occupied_id,
-            "video_src": video_src
+            "video_src": video_src,
+            "occupied_start_time": occupied_start_time,
+            "occupied_end_time": occupied_end_time
         })
 
     # Rückgabe im Format von GetEditResponse

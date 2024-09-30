@@ -16,6 +16,8 @@ class Slot(BaseModel):
     occupied_by: Optional[User]  
     occupied_id: Optional[int]
     video_src: Optional[str]
+    occupied_start_time: Optional[float]
+    occupied_end_time: Optional[float]
     
 class Edit(BaseModel):
     edit_id: int
