@@ -115,8 +115,11 @@ async def post_slot(
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
     
     # slot is free ? 
-    if is_slot_occupied_database(slot_id, edit_id, database_session=database_session):
-        raise HTTPException(status_code=403, detail="Slot ist schon belegt")
+    try :
+        if is_slot_occupied_database(slot_id, edit_id, database_session=database_session):
+            raise HTTPException(status_code=403, detail="Slot ist schon belegt")
+    except NoResultFound:
+        pass
        
     slot = get_slot_database(slot_id, database_session=database_session)
     
