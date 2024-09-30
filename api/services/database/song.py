@@ -98,3 +98,20 @@ def create_slots_from_breakpoints(song_id: int, breakpoints: List[float], databa
     for slot in slots:
         database_session.refresh(slot)
     return slots
+
+def get_earliest_slot_start_time(song_id: int, database_session: Session) -> float:
+    """
+    Gibt die Startzeit des ersten Slots für den angegebenen Song zurück.
+    
+    :param song_id: Die ID des Songs.
+    :param database_session: Die SQLAlchemy Session.
+    :return: Die Startzeit des frühesten Slots.
+    :raises NoResultFound: Wenn kein Slot für den angegebenen Song gefunden wird.
+    """
+    earliest_slot = database_session.query(Slot).filter(Slot.song_id == song_id) \
+        .order_by(Slot.start_time.asc()).first()
+
+    if not earliest_slot:
+        raise NoResultFound(f"No slots found for the song ID {song_id}.")
+
+    return earliest_slot.start_time

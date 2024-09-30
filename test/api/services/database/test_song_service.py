@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from api.models.database.model import Edit, Slot, Song
 from api.services.database.song import (create, create_slots_from_breakpoints,
-                                        get, get_breakpoints, list_all, remove,
+                                        get, get_breakpoints, get_earliest_slot_start_time, list_all, remove,
                                         update)
 from mock.database.data import data
 
@@ -219,6 +219,15 @@ def test_create_slots_from_breakpoints_too_few_breakpoints(memory_database_sessi
     with pytest.raises(ValueError):
         create_slots_from_breakpoints(song_id, breakpoints, memory_database_session)
 
+# get_earliest_slot_start_time
+def test_get_earliest_slot_start_time_success(memory_database_session:Session):
+    assert get_earliest_slot_start_time(1, memory_database_session) == 0
+    assert get_earliest_slot_start_time(2, memory_database_session) == 0
+    assert get_earliest_slot_start_time(3, memory_database_session) == 0.5
+    
+def test_get_earliest_slot_start_not_found(memory_database_session:Session):
+    with pytest.raises(NoResultFound):
+        get_earliest_slot_start_time(4, memory_database_session)
 
 """Integration - CRUD"""
 
