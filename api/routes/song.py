@@ -52,7 +52,6 @@ async def create_song(
         raise ValueError("Breakpoints exceed song duration")
     
     # transform breakpoints so its starts at 0
-    breakpoints = [point - breakpoints[0] for point in breakpoints]
 
     cover_file_bytes = await validated_cover_file.read()
 

@@ -17,11 +17,12 @@ from api.services.database.occupied_slot import \
     get as get_occupied_slot_database
 from api.services.database.occupied_slot import \
     is_slot_occupied as is_slot_occupied_database
-from api.services.database.edit import update as update_edit_database
+from api.services.database.edit import get_earliest_slot_start_time_by_edit, update as update_edit_database
 from api.services.database.occupied_slot import \
     remove as remove_occupied_slot_database
 from api.services.database.occupied_slot import \
     update as update_occupied_slot_database
+from api.services.database.song import get_earliest_slot_start_time
 from api.services.files.demo_slot import get as get_demo_file
 from api.services.database.slot import \
     get_slot_by_occupied_slot_id as get_slot_by_occupied_slot_id_database
@@ -81,12 +82,18 @@ async def delete_slot(
     # demo file
     demo_video_bytes = get_demo_file(file_session)
     old_edit_file = get_edit_file(edit_id, file_session=file_session)
+    
+    
+    #transform slot from song scope to edit scope
+    earliest_start_time = get_earliest_slot_start_time_by_edit(edit_id, database_session)
+    new_start_time = slot.start_time - earliest_start_time
+    new_end_time = slot.end_time - earliest_start_time
 
     # create new edit with demo slot
     new_edit_file = swap_slot_in_edit(
         old_edit_file,
-        slot.start_time,
-        slot.end_time,
+        new_start_time,
+        new_end_time,
         "mp4",
         
         demo_video_bytes,
@@ -158,12 +165,17 @@ async def post_slot(
 
     # Retrieve the existing edit file
     old_edit_file = get_edit_file(edit_id, file_session=file_session)
+    
+    #transform slot from song scope to edit scope
+    earliest_start_time = get_earliest_slot_start_time_by_edit(edit_id, database_session)
+    new_start_time = slot.start_time - earliest_start_time
+    new_end_time = slot.end_time - earliest_start_time
 
     # Swap the old clip with the new one in the edit
     new_edit_file = swap_slot_in_edit(
         old_edit_file,
-        slot.start_time,
-        slot.end_time,
+        new_start_time,
+        new_end_time,
         "mp4",
         validate_video_file_bytes,
         new_occupied_slot.start_time,
@@ -224,10 +236,15 @@ async def put_slot(
         # edit neu erstellen und abspeicher
         old_edit_file = get_edit_file(edit_id, file_session=file_session)
         
+        #transform slot from song scope to edit scope
+        earliest_start_time = get_earliest_slot_start_time_by_edit(edit_id, database_session)
+        new_start_time = slot.start_time - earliest_start_time
+        new_end_time = slot.end_time - earliest_start_time
+    
         new_edit_file = swap_slot_in_edit(
             old_edit_file,
-            slot.start_time,
-            slot.end_time,
+            new_start_time,
+            new_end_time,
             "mp4",
             
             validate_video_file_bytes,
@@ -280,11 +297,16 @@ async def put_slot(
     # edit neu erstellen und abspeicher
     old_edit_file = get_edit_file(edit_id, file_session=file_session)
     
+    #transform slot from song scope to edit scope
+    earliest_start_time = get_earliest_slot_start_time_by_edit(edit_id, database_session)
+    new_start_time = slot.start_time - earliest_start_time
+    new_end_time = slot.end_time - earliest_start_time
+    
     # schreibe den neuen clip in das vorhandene edit
     new_edit_file = swap_slot_in_edit(
         old_edit_file,
-        slot.start_time,
-        slot.end_time,
+        new_start_time,
+        new_end_time,
         "mp4",
         validate_video_file_bytes,
         request.start_time,
