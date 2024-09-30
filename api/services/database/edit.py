@@ -114,3 +114,27 @@ def get_edits_by_group(group_id: str, database_session: Session) -> List[Edit]:
     if not edits:
         raise NoResultFound(f"No edits found for group with id {group_id}.")
     return edits
+
+def get_earliest_slot_start_time_by_edit(edit_id: int, database_session: Session) -> float:
+    """
+    Gibt die Startzeit des ersten Slots für den Song zurück, der mit der angegebenen edit_id verknüpft ist.
+    
+    :param edit_id: Die ID des Edits.
+    :param database_session: Die SQLAlchemy Session.
+    :return: Die Startzeit des frühesten Slots.
+    :raises NoResultFound: Wenn kein Slot für den angegebenen Edit gefunden wird.
+    """
+    # Finde das Edit anhand der edit_id
+    edit = database_session.query(Edit).filter(Edit.edit_id == edit_id).one_or_none()
+    
+    if not edit:
+        raise NoResultFound(f"Edit mit ID {edit_id} nicht gefunden.")
+    
+    # Finde den frühesten Slot für den song_id des Edits
+    earliest_slot = database_session.query(Slot).filter(Slot.song_id == edit.song_id) \
+        .order_by(Slot.start_time.asc()).first()
+
+    if not earliest_slot:
+        raise NoResultFound(f"No slots found for the song ID {edit.song_id} associated with edit ID {edit_id}.")
+
+    return earliest_slot.start_time

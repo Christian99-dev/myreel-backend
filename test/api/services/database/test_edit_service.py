@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
 from api.models.database.model import Edit, OccupiedSlot
-from api.services.database.edit import (are_all_slots_occupied, create, get,
+from api.services.database.edit import (are_all_slots_occupied, create, get, get_earliest_slot_start_time_by_edit,
                                         get_edits_by_group, is_edit_creator,
                                         remove, set_is_live, update)
 from mock.database.data import data
@@ -265,6 +265,16 @@ def test_get_edits_by_group_edgecase_empty_group(memory_database_session: Sessio
     # Act & Assert
     with pytest.raises(NoResultFound):
         get_edits_by_group(group_id=empty_group_id, database_session=memory_database_session)
+
+# get_earliest_slot_start_time_by_edit
+def test_get_earliest_slot_start_time_by_edit(memory_database_session: Session):
+    assert get_earliest_slot_start_time_by_edit(1, memory_database_session) == 0
+    assert get_earliest_slot_start_time_by_edit(2, memory_database_session) == 0
+    assert get_earliest_slot_start_time_by_edit(3, memory_database_session) == 0.5
+
+def test_get_earliest_slot_start_time_by_edit_not_found(memory_database_session: Session):
+    with pytest.raises(NoResultFound):
+        get_earliest_slot_start_time_by_edit(99, memory_database_session)
 
 """Integration - CRUD"""
 
