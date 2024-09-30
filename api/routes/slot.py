@@ -112,6 +112,8 @@ async def post_slot(
     file_session: BaseFileSessionManager = Depends(get_file_session)
 ):
     
+    
+    
     user_id = jwt.read_jwt(authorization.replace("Bearer ", ""))
     
     # slot is free ? 
@@ -123,7 +125,14 @@ async def post_slot(
        
     slot = get_slot_database(slot_id, database_session=database_session)
     
-    if slot.end_time - slot.start_time != request.end_time - request.start_time:
+    logger.debug(slot.start_time)
+    logger.debug(slot.end_time)
+    logger.debug(request.start_time)
+    logger.debug(request.end_time)
+    logger.debug((slot.end_time - slot.start_time) - (request.end_time - request.start_time))
+    
+    
+    if abs((slot.end_time - slot.start_time) - (request.end_time - request.start_time)) > 0.01:
         raise HTTPException(status_code=422, detail="Slot länge muss die gleiche sein")
         
     # validate new video clip
@@ -198,7 +207,13 @@ async def put_slot(
     # start und endzeit von slot
     slot = get_slot_by_occupied_slot_id_database(occupied_slot.occupied_slot_id, database_session=database_session)
     
-    if slot.end_time - slot.start_time != request.end_time - request.start_time:
+    logger.debug(slot.start_time)
+    logger.debug(slot.end_time)
+    logger.debug(request.start_time)
+    logger.debug(request.end_time)
+    logger.debug((slot.end_time - slot.start_time) - (request.end_time - request.start_time))
+    
+    if abs((slot.end_time - slot.start_time) - (request.end_time - request.start_time)) > 0.01:
         raise HTTPException(status_code=422, detail="Slot länge muss die gleiche sein")
     
     # update occupied slot
@@ -253,7 +268,13 @@ async def put_slot(
        
     slot = get_slot_database(slot_id, database_session=database_session)
     
-    if slot.end_time - slot.start_time != request.end_time - request.start_time:
+    logger.debug(slot.start_time)
+    logger.debug(slot.end_time)
+    logger.debug(request.start_time)
+    logger.debug(request.end_time)
+    logger.debug((slot.end_time - slot.start_time) - (request.end_time - request.start_time))
+    
+    if abs((slot.end_time - slot.start_time) - (request.end_time - request.start_time)) > 0.01:
         raise HTTPException(status_code=422, detail="Slot länge muss die gleiche sein")
         
     # validate new video clip
