@@ -44,7 +44,7 @@ def after_edit_update(mapper, connection, target):
 # Event listener for OccupiedSlot table
 @event.listens_for(OccupiedSlot, 'after_insert')
 @event.listens_for(OccupiedSlot, 'after_update')
-@event.listens_for(OccupiedSlot, 'after_delete')
+@event.listens_for(OccupiedSlot, 'before_delete')
 def after_occupied_slot_update(mapper, connection, target):
 # Convert the connection into a SQLAlchemy session
     session = Session(bind=connection)
