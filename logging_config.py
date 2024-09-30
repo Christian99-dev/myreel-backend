@@ -128,8 +128,8 @@ def setup_logging(env: str):
                 handlers={"console", "file"}
             ),
             "routes.slot": get_logger(env, 
-                test={"level": "CRITICAL"},
-                dev={"level": "INFO"}, 
+                test={"level": "DEBUG"},
+                dev={"level": "DEBUG"}, 
                 prod={"level": "CRITICAL"}, 
                 handlers={"console", "file"}
             ),

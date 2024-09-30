@@ -6,6 +6,7 @@ import logging
 from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import NoResultFound
 
 from api.models.schema.slot import (AddSlotRequest, AddSlotResponse,
                                     ChangeSlotRequest, ChangeSlotResponse,
@@ -241,8 +242,11 @@ async def put_slot(
     file_session: BaseFileSessionManager = Depends(get_file_session)
 ):
     # slot is free ? 
-    if is_slot_occupied_database(slot_id, edit_id, database_session=database_session):
-        raise HTTPException(status_code=403, detail="Slot ist schon belegt")
+    try :
+        if is_slot_occupied_database(slot_id, edit_id, database_session=database_session):
+            raise HTTPException(status_code=403, detail="Slot ist schon belegt")
+    except NoResultFound:
+        pass
        
     slot = get_slot_database(slot_id, database_session=database_session)
     
